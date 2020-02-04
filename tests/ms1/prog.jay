@@ -1,0 +1,3 @@
+howdy() {
+    prints("Hello, world!\n");
+}

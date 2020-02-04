@@ -1,0 +1,8 @@
+./build/**/*
+.ccls-cache
+*.o
+*.so
+tests/reference/*
+.vscode
+.idea
+

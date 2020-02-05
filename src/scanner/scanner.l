@@ -1,11 +1,14 @@
 %{
   #include <stdio.h>
   #include <string.h>
+  #include <stdbool.h>
+
   // has to be this weird path,
   // because the generated lexer located in `./build/generated-src/`
   #include "../../src/include/string_builder.h"
 
   #define TOKEN_COUNT 40
+  #define WARNING_THRESHOLD 10
 
   typedef enum {
     T_EOF = 0,
@@ -56,7 +59,7 @@
     char* val;
   } token_t;
 
-  int linenum = 1;
+  int warning_count = 0;
 
   // Assume strings are STR_LENGTH
   char *string;
@@ -152,7 +155,11 @@ string \"(\\.|[^"\\])*\"
 \\\" { sb_append(sb, yytext); }
 \\   { sb_append(sb, yytext); }
   
-{newline} { fprintf(stderr, "newlines in strings are not allowed\n"); }
+{newline} {
+  fprintf(stderr, "newlines in strings are not allowed\n");
+  BEGIN(INITIAL);
+  warning_count++;
+}
 
 }
 
@@ -160,22 +167,43 @@ string \"(\\.|[^"\\])*\"
 {identifier}  { return T_ID; }
 
 .             {
-                fprintf(stderr, "unknown char at line: %d\n", linenum);
+                fprintf(stderr, "unknown char at line: %d\n", yylineno);
+                if (warning_count >= WARNING_THRESHOLD) {
+                  fprintf(stderr, "too many errors. aborting\n");
+                  exit(1);
+                } else {
+                  warning_count++;
+                }
               }
 
 %%
 
+char *result(char *token_name, char *token_val, bool is_pretty) {
+  if (is_pretty) {
+    printf("  {\n    \"line\": %d,\n    \"token\": \"%s\",\n    \"value\": \"%s\"\n  },\n", yylineno, token_name, token_val);
+  } else {
+    printf("(%d, %s, %s) ", yylineno, token_name, token_val);
+  }
+}
+
 int main(int argc, char** argv) {
-  if (argc != 2 || argv[1] == NULL) {
+  if (argc < 2 || argv[1] == NULL) {
     fprintf(stderr, "Missing input file\n");
     return -1;
   }
 
   int token;
   sb = sb_init();
+  char *file_path = argv[1];
+  bool is_pretty = argv[2] != NULL;
+  bool is_raw = false;
 
-  yyin = fopen(argv[1], "r");
+  if ((yyin = fopen(file_path, "r")) == NULL) {
+    fprintf(stderr, "failed to open a specified file '%s'\n", file_path);
+    return 1;
+  }
 
+  // Build token map
   char* tokens[TOKEN_COUNT];
   tokens[T_ID] = "ID";
   tokens[T_NUM] = "NUMBER";
@@ -212,13 +240,23 @@ int main(int argc, char** argv) {
   tokens[T_OP_OR] = "||";
   tokens[T_STR] = "string";
 
+  if (is_pretty) printf("[\n");
 
   while ((token = yylex()) != T_EOF) {
-    printf("%d: id = %s, val = %s\n", yylineno, tokens[token], token != T_STR ? yytext : sb_build_str(sb));
-    if (!sb_is_empty(sb)) {
+    char *val = token != T_STR ? yytext : sb_build_str(sb);
+    if (!is_raw) {
+      result(tokens[token], val, is_pretty);
+    } else {
+      printf("%s\n", val);
+    }
+
+    // clear out the string builder buffer
+    if (token == T_STR && !sb_is_empty(sb)) {
       sb_reset(sb);
     }
   }
+
+  printf(is_pretty ? "]\n" : "\n");
 
   sb_free(sb);
   fclose(yyin);

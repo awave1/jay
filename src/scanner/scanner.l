@@ -1,7 +1,10 @@
 %{
   #include <stdio.h>
+  #include <stdlib.h>
   #include <string.h>
   #include <stdbool.h>
+  #include <unistd.h>
+  #include <ctype.h>
 
   // has to be this weird path,
   // because the generated lexer located in `./build/generated-src/`
@@ -53,18 +56,7 @@
     T_OP_OR,
   } token;
 
-  typedef struct {
-    token token;
-    int linenum;
-    char* val;
-  } token_t;
-
   int warning_count = 0;
-
-  // Assume strings are STR_LENGTH
-  char *string;
-  int str_char_index = 0;
-
   string_builder_t *sb;
 %}
 
@@ -170,7 +162,7 @@ string \"(\\.|[^"\\])*\"
                 fprintf(stderr, "unknown char at line: %d\n", yylineno);
                 if (warning_count >= WARNING_THRESHOLD) {
                   fprintf(stderr, "too many errors. aborting\n");
-                  exit(1);
+                  exit(EXIT_FAILURE);
                 } else {
                   warning_count++;
                 }
@@ -180,27 +172,81 @@ string \"(\\.|[^"\\])*\"
 
 char *result(char *token_name, char *token_val, bool is_pretty) {
   if (is_pretty) {
-    printf("  {\n    \"line\": %d,\n    \"token\": \"%s\",\n    \"value\": \"%s\"\n  },\n", yylineno, token_name, token_val);
+    printf(
+      "  {\n    \"line\": %d,\n    \"token\": \"%s\",\n    \"value\": \"%s\"\n  },\n",
+      yylineno, token_name, token_val
+    );
   } else {
     printf("(%d, %s, %s) ", yylineno, token_name, token_val);
   }
 }
 
+void print_help(char **argv) {
+  printf("Usage: %s (-p|-r) -f <file path>\n", argv[0]);
+  printf("    Tokenize the input file. By default, the output has the following format:\n");
+  printf("    (linenum, token name, token value)\n\n");
+  printf("    -h        prints help");
+  printf("    -f <file> specify path to a file\n");
+  printf("    -p        pretty print the output\n");
+  printf("    -r        display tokens only. if both `-p` and `-r` are specified, `-p` is disabled\n");
+}
+
 int main(int argc, char** argv) {
-  if (argc < 2 || argv[1] == NULL) {
-    fprintf(stderr, "Missing input file\n");
-    return -1;
+  char opt;
+  char *file_path = NULL;
+  bool is_pretty = false;
+  bool is_raw = false;
+  bool is_file_set = false;
+
+  if (argc == 1) {
+    print_help(argv);
+    return EXIT_FAILURE;
+  }
+
+  while ((opt = getopt(argc, argv, "hprf:")) != -1) {
+    switch (opt) {
+      case 'p':
+        is_pretty = true;
+        break;
+      case 'r':
+        is_raw = true;
+        is_pretty = false;
+        break;
+      case 'f':
+        file_path = optarg;
+        is_file_set = true;
+        break;
+      case 'h':
+        print_help(argv);
+        return EXIT_FAILURE;
+      case '?':
+        if (optopt == 'f') {
+          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+        } else if (isprint (optopt)) {
+          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+        } else {
+          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+        }
+        return EXIT_FAILURE;
+      default:
+        print_help(argv); 
+        exit(EXIT_FAILURE);
+        break;
+    }
+  }
+
+  if (!is_file_set) {
+    print_help(argv);
+    exit(EXIT_FAILURE);
   }
 
   int token;
   sb = sb_init();
-  char *file_path = argv[1];
-  bool is_pretty = argv[2] != NULL;
-  bool is_raw = false;
 
   if ((yyin = fopen(file_path, "r")) == NULL) {
     fprintf(stderr, "failed to open a specified file '%s'\n", file_path);
-    return 1;
+    print_help(argv);
+    return EXIT_FAILURE;
   }
 
   // Build token map
@@ -256,10 +302,10 @@ int main(int argc, char** argv) {
     }
   }
 
-  printf(is_pretty ? "]\n" : "\n");
+  if (!is_raw) printf(is_pretty ? "]\n" : "\n");
 
   sb_free(sb);
   fclose(yyin);
-  return 0;
+  return EXIT_SUCCESS;
 }
 

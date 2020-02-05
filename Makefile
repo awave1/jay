@@ -16,10 +16,6 @@ SOURCE = \
 HEADERS = \
 					src/include/string_builder.h
 
-
-main: $(SOURCE) $(HEADERS)
-	$(CXX) -o main $(SOURCE)
-
 scanner:
 	$(FLEX) -o $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SRC)/scanner/scanner.l
 

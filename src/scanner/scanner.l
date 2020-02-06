@@ -11,6 +11,8 @@
   #include "../../src/include/string_builder.h"
 
   #define TOKEN_COUNT 40
+
+  // if there will be more than 10 warnings/error, the lexer will halt
   #define WARNING_THRESHOLD 10
 
   typedef enum {
@@ -63,22 +65,15 @@
 %option yylineno
 
 newline     (\r|\n|\r\n)
-
 whitespace  [ \t]
-
 input_char  [^(\r|\n|\r\n)]
 string_char [^\r\n\"\\]
-
-
 comment     \/\/{input_char}*
-
 identifier  [a-zA-Z_]+[a-zA-Z0-9_]*
-
-number      [0-9]*
-
-string \"(\\.|[^"\\])*\"
+number      [0-9]+
 
 %x STRING
+
 %%
 
 {whitespace}  {}
@@ -170,14 +165,20 @@ string \"(\\.|[^"\\])*\"
 
 %%
 
-char *result(char *token_name, char *token_val, bool is_pretty) {
+void print_token(char *token_name, char *token_val, bool is_pretty, bool is_raw) {
+  if (is_raw) {
+    printf("%s\n", token_val);
+    return;
+  }
+
   if (is_pretty) {
-    printf(
-      "  {\n    \"line\": %d,\n    \"token\": \"%s\",\n    \"value\": \"%s\"\n  },\n",
-      yylineno, token_name, token_val
-    );
+    printf("  {\n");
+    printf("    \"line\": %d,\n", yylineno);
+    printf("    \"token\": \"%s\",\n", token_name);
+    printf("    \"value\": \"%s\"\n", token_val);
+    printf("  },\n");
   } else {
-    printf("(%d, %s, %s) ", yylineno, token_name, token_val);
+    printf("(%d, %s, %s)\n", yylineno, token_name, token_val);
   }
 }
 
@@ -240,19 +241,16 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
 
-  int token;
-  sb = sb_init();
-
   if ((yyin = fopen(file_path, "r")) == NULL) {
     fprintf(stderr, "failed to open a specified file '%s'\n", file_path);
     print_help(argv);
     return EXIT_FAILURE;
   }
 
-  // Build token map
+  // Build the token map
   char* tokens[TOKEN_COUNT];
-  tokens[T_ID] = "ID";
-  tokens[T_NUM] = "NUMBER";
+  tokens[T_ID] = "id";
+  tokens[T_NUM] = "number";
   tokens[T_RESERVED_TRUE] = "true";
   tokens[T_RESERVED_FALSE] = "false";
   tokens[T_RESERVED_IF] = "if";
@@ -288,13 +286,11 @@ int main(int argc, char** argv) {
 
   if (is_pretty) printf("[\n");
 
+  int token;
+  sb = sb_init();
   while ((token = yylex()) != T_EOF) {
     char *val = token != T_STR ? yytext : sb_build_str(sb);
-    if (!is_raw) {
-      result(tokens[token], val, is_pretty);
-    } else {
-      printf("%s\n", val);
-    }
+    print_token(tokens[token], val, is_pretty, is_raw);
 
     // clear out the string builder buffer
     if (token == T_STR && !sb_is_empty(sb)) {

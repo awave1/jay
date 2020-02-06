@@ -1,3 +1,8 @@
-#!/usr/bin/env
+#!/usr/bin/env bash
 
-echo "@TODO"
+SCANNER=''
+TEST_FILES=$(find "$(dirname $0)/data" -name "*.t*")
+
+for f in $TEST_FILES; do
+  echo $f
+done

@@ -28,6 +28,8 @@ build: $(SOURCE) $(HEADERS)
 	mkdir -p $(GENERATED_SRC)
 	make scanner
 	$(CXX) $(CFLAGS) -ll $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SOURCE) -o $(BIN)/$(TARGET)
+	ln -s $(BIN)/$(TARGET) $(TARGET)
 
 clear:
 	rm -rf build
+	rm $(TARGET)

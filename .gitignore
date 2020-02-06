@@ -1,4 +1,5 @@
 build/
+scanner
 .ccls-cache
 *.o
 *.so

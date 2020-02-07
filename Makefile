@@ -1,5 +1,5 @@
 CXX=gcc
-CFLAGS=-Wall --std=c11
+CFLAGS=-Wall -std=c11
 
 FLEX=flex
 
@@ -26,8 +26,8 @@ build: $(SOURCE) $(HEADERS)
 	mkdir -p $(BUILD)
 	mkdir -p $(BIN)
 	mkdir -p $(GENERATED_SRC)
-	make scanner
-	$(CXX) $(CFLAGS) -ll $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SOURCE) -o $(BIN)/$(TARGET)
+	$(MAKE) scanner
+	$(CXX) $(CFLAGS) $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SOURCE) -o $(BIN)/$(TARGET) -ll
 	ln -s $(BIN)/$(TARGET) $(TARGET)
 
 test: clear build

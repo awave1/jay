@@ -3,9 +3,7 @@
   #include <stdlib.h>
   #include <string.h>
   #include <stdbool.h>
-  #include <unistd.h>
   #include <ctype.h>
-  #include <getopt.h>
 
   // has to be this weird path,
   // because the generated lexer located in `./build/generated-src/`
@@ -168,87 +166,25 @@ number      [0-9]+
 
 %%
 
-void print_token(char *token_name, char *token_val, bool is_compact, bool is_raw) {
-  if (is_raw) {
-    printf("%s\n", token_val);
-    return;
-  }
-
-  if (!is_compact) {
-    printf("  {\n");
-    printf("    \"line\": %d,\n", yylineno);
-    printf("    \"token\": \"%s\",\n", token_name);
-    printf("    \"value\": \"%s\"\n", token_val);
-    printf("  },\n");
-  } else {
-    printf("(%d, %s, %s)\n", yylineno, token_name, token_val);
-  }
-}
-
-void print_help(char **argv) {
-  printf("Usage: %s (-p|-r) -f <file path>\n", argv[0]);
-  printf("    Tokenize the input file. By default, the output has the following format:\n");
-  printf("    (linenum, token name, token value)\n\n");
-  printf("    -h        prints help");
-  printf("    -f <file> specify path to a file\n");
-  printf("    -p        pretty print the output\n");
-  printf("    -r        display tokens only. if both `-p` and `-r` are specified, `-p` is disabled\n");
+void print_token(char *token_name, char *token_val) {
+  printf("  {\n");
+  printf("    \"line\": %d,\n", yylineno);
+  printf("    \"token\": \"%s\",\n", token_name);
+  printf("    \"value\": \"%s\"\n", token_val);
+  printf("  },\n");
 }
 
 int main(int argc, char** argv) {
-  char opt;
-  char *file_path = NULL;
-  bool is_compact = false;
-  bool is_raw = false;
-  bool is_file_set = false;
-
-  if (argc == 1) {
-    print_help(argv);
+  if (argc < 2 || argv[1] == NULL) {
+    fprintf(stderr, "file is not set\n");
+    printf("usage: %s\n <filepath>\n", argv[0])
     return EXIT_FAILURE;
   }
 
-  while ((opt = getopt(argc, argv, "hcrf:")) != -1) {
-    switch (opt) {
-      case 'c':
-        is_compact = true;
-        break;
-      case 'r':
-        is_raw = true;
-        is_compact = false;
-        break;
-      case 'f':
-        file_path = optarg;
-        is_file_set = true;
-        break;
-      case 'h':
-        print_help(argv);
-        return EXIT_SUCCESS;
-      case '?':
-        if (optopt == 'f') {
-          fprintf (stderr, "Option -%c requires an argument.\n\n", optopt);
-        } else if (isprint (optopt)) {
-          fprintf (stderr, "Unknown option `-%c'.\n\n", optopt);
-        } else {
-          fprintf (stderr, "Unknown option character `\\x%x'.\n\n", optopt);
-        }
-        print_help(argv);
-        return EXIT_FAILURE;
-      default:
-        print_help(argv); 
-        exit(EXIT_FAILURE);
-        break;
-    }
-  }
-
-  if (!is_file_set) {
-    fprintf(stderr, "file is not set\n\n");
-    print_help(argv);
-    exit(EXIT_FAILURE);
-  }
+  char *file_path = argv[1];
 
   if ((yyin = fopen(file_path, "r")) == NULL) {
     fprintf(stderr, "failed to open a specified file '%s'\n\n", file_path);
-    print_help(argv);
     return EXIT_FAILURE;
   }
 
@@ -289,13 +225,13 @@ int main(int argc, char** argv) {
   tokens[T_OP_OR] = "||";
   tokens[T_STR] = "string";
 
-  if (!is_compact) printf("[\n");
+  printf("[\n");
 
   int token;
   sb = sb_init();
   while ((token = yylex()) != T_EOF) {
     char *val = token != T_STR ? yytext : sb_build_str(sb);
-    print_token(tokens[token], val, is_compact, is_raw);
+    print_token(tokens[token], val);
 
     // clear out the string builder buffer
     if (token == T_STR && !sb_is_empty(sb)) {
@@ -303,7 +239,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (!is_raw) printf(!is_compact ? "]\n" : "\n");
+  printf("]\n");
 
   sb_free(sb);
   fclose(yyin);

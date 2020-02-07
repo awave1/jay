@@ -8,7 +8,7 @@ SCANNER=$PWD/scanner
 echo -e "running tests...\n"
 for f in $TEST_FILES; do
   echo "Testing: $f"
-  $SCANNER -f $f $1
+  $SCANNER $f
   echo -e "\n"
 done
 echo "done!"

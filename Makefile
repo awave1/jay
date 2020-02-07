@@ -32,7 +32,7 @@ build: $(SOURCE) $(HEADERS)
 
 test: clear build
 	chmod +x ./test.sh
-	./test.sh ${ARGS}
+	./test.sh
 
 clear:
 	rm -rf build

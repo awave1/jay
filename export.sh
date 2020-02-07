@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-zip -r artem-golovin-scanner.zip ./* --exclude="*.git" --exclude="build/*"
+zip -r artem-golovin-scanner.totallynotzip ./* --exclude="*.git" --exclude="build/*"

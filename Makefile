@@ -1,5 +1,5 @@
-CXX=clang
-CFLAGS=-Wall
+CXX=gcc
+CFLAGS=-Wall --std=c11
 
 FLEX=flex
 

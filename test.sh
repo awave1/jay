@@ -10,12 +10,7 @@ RESET=$(tput sgr0)
 echo -e "running tests...\n"
 for f in $TEST_FILES; do
   echo "Testing: $f"
-  SCANNER -f $f
-  if [ $? -eq 0 ]; then
-    echo "${GREEN}PASS${RESET}"
-  else
-    echo "${RED}FAIL${RESET}"
-  fi
-  echo "------------------------------"
+  $SCANNER -f $f $1
+  echo -e "\n"
 done
-echo -e "\ndone!"
+echo "done!"

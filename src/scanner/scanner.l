@@ -79,7 +79,6 @@ number      [0-9]+
 
 {whitespace}  {}
 {comment}     {}
-<<EOF>>       { return 0; }
 
 {newline}     {}
 
@@ -142,17 +141,27 @@ number      [0-9]+
 \\'  { sb_append(sb, yytext); }
 \\\" { sb_append(sb, yytext); }
 \\   { sb_append(sb, yytext); }
-  
-{newline} {
-  fprintf(stderr, "newlines in strings are not allowed\n");
+
+<<EOF>> {
+  // in case if string is unterminated and there's EOF
+  fprintf(stderr, "unterminated string on line %d\n", yylineno);
   BEGIN(INITIAL);
   warning_count++;
 }
+  
+{newline} {
+  fprintf(stderr, "unterminated string on line %d\n", yylineno);
+  BEGIN(INITIAL);
+  warning_count++;
+}
+
 
 }
 
 
 {identifier}  { return T_ID; }
+
+<<EOF>>       { return T_EOF; }
 
 .             {
                 fprintf(stderr, "unknown char at line: %d\n", yylineno);

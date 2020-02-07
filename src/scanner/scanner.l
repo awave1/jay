@@ -166,13 +166,13 @@ number      [0-9]+
 
 %%
 
-void print_token(char *token_name, char *token_val, bool is_pretty, bool is_raw) {
+void print_token(char *token_name, char *token_val, bool is_compact, bool is_raw) {
   if (is_raw) {
     printf("%s\n", token_val);
     return;
   }
 
-  if (is_pretty) {
+  if (!is_compact) {
     printf("  {\n");
     printf("    \"line\": %d,\n", yylineno);
     printf("    \"token\": \"%s\",\n", token_name);
@@ -196,7 +196,7 @@ void print_help(char **argv) {
 int main(int argc, char** argv) {
   char opt;
   char *file_path = NULL;
-  bool is_pretty = false;
+  bool is_compact = false;
   bool is_raw = false;
   bool is_file_set = false;
 
@@ -205,14 +205,14 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  while ((opt = getopt(argc, argv, "hprf:")) != -1) {
+  while ((opt = getopt(argc, argv, "hcrf:")) != -1) {
     switch (opt) {
-      case 'p':
-        is_pretty = true;
+      case 'c':
+        is_compact = true;
         break;
       case 'r':
         is_raw = true;
-        is_pretty = false;
+        is_compact = false;
         break;
       case 'f':
         file_path = optarg;
@@ -285,13 +285,13 @@ int main(int argc, char** argv) {
   tokens[T_OP_OR] = "||";
   tokens[T_STR] = "string";
 
-  if (is_pretty) printf("[\n");
+  if (!is_compact) printf("[\n");
 
   int token;
   sb = sb_init();
   while ((token = yylex()) != T_EOF) {
     char *val = token != T_STR ? yytext : sb_build_str(sb);
-    print_token(tokens[token], val, is_pretty, is_raw);
+    print_token(tokens[token], val, is_compact, is_raw);
 
     // clear out the string builder buffer
     if (token == T_STR && !sb_is_empty(sb)) {
@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  if (!is_raw) printf(is_pretty ? "]\n" : "\n");
+  if (!is_raw) printf(!is_compact ? "]\n" : "\n");
 
   sb_free(sb);
   fclose(yyin);

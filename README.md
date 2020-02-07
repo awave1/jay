@@ -53,6 +53,8 @@ The scanner supports three different modes of output:
 
 ## Run tests
 
+> Note: instead of using `make test...` you can call ./test.sh <args> instead.
+
 To run the tests, run the following command
 
 ```sh

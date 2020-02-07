@@ -19,6 +19,8 @@ make clear
 
 ## Running the scanner
 
+> Note: instead of using `make run...` you can call ./scanner <args> instead
+
 To show the list of available arguments, run
 
 ```sh

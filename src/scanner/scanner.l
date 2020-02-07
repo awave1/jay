@@ -223,12 +223,13 @@ int main(int argc, char** argv) {
         return EXIT_SUCCESS;
       case '?':
         if (optopt == 'f') {
-          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+          fprintf (stderr, "Option -%c requires an argument.\n\n", optopt);
         } else if (isprint (optopt)) {
-          fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+          fprintf (stderr, "Unknown option `-%c'.\n\n", optopt);
         } else {
-          fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+          fprintf (stderr, "Unknown option character `\\x%x'.\n\n", optopt);
         }
+        print_help(argv);
         return EXIT_FAILURE;
       default:
         print_help(argv); 
@@ -238,12 +239,13 @@ int main(int argc, char** argv) {
   }
 
   if (!is_file_set) {
+    fprintf(stderr, "file is not set\n\n");
     print_help(argv);
     exit(EXIT_FAILURE);
   }
 
   if ((yyin = fopen(file_path, "r")) == NULL) {
-    fprintf(stderr, "failed to open a specified file '%s'\n", file_path);
+    fprintf(stderr, "failed to open a specified file '%s'\n\n", file_path);
     print_help(argv);
     return EXIT_FAILURE;
   }

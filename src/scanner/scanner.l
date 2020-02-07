@@ -5,6 +5,7 @@
   #include <stdbool.h>
   #include <unistd.h>
   #include <ctype.h>
+  #include <getopt.h>
 
   // has to be this weird path,
   // because the generated lexer located in `./build/generated-src/`

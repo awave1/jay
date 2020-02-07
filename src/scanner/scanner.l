@@ -177,7 +177,7 @@ void print_token(char *token_name, char *token_val) {
 int main(int argc, char** argv) {
   if (argc < 2 || argv[1] == NULL) {
     fprintf(stderr, "file is not set\n");
-    printf("usage: %s\n <filepath>\n", argv[0])
+    printf("usage: %s\n <filepath>\n", argv[0]);
     return EXIT_FAILURE;
   }
 

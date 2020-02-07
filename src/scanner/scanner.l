@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
         break;
       case 'h':
         print_help(argv);
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
       case '?':
         if (optopt == 'f') {
           fprintf (stderr, "Option -%c requires an argument.\n", optopt);

@@ -64,6 +64,8 @@
 %}
 
 %option yylineno
+%option nounput
+%option noinput
 
 newline     (\r|\n|\r\n)
 whitespace  [ \t]

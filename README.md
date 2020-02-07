@@ -39,7 +39,7 @@ Typically, to run a scanner on a specified file, run the following command:
 make run ARGS="-f ./test/data/legit-token-salad.t3"
 ```
 
-For more compact output, use flag `-c`:
+For more compact output, use the flag `-c`:
 
 ```sh
 make run ARGS="-f ./test/data/legit-token-salad.t3 -c"
@@ -54,6 +54,8 @@ The scanner supports three different modes of output:
 ## Run tests
 
 > Note: instead of using `make test...` you can call ./test.sh <args> instead.
+
+The `test.sh` runs all of the test files in the `test/data` directory. To run a single file, refer to **'Running the scanner'** section above.
 
 To run the tests, run the following command
 

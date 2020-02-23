@@ -19,6 +19,10 @@ HEADERS = \
 scanner:
 	$(FLEX) -o $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SRC)/scanner/scanner.l
 
+parser.source: $(SRC)/parser/parser.yy
+	bison $(SRC)/parser/parser.yy
+	bison -d $(SRC)/parser/parser.yy
+
 run:
 	$(BIN)/scanner ${ARGS}
 

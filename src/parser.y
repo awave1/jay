@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include "../include/ast.h"
+#include "src/include/scanner.h"
+// #include "../include/ast.h"
 
-extern FILE *yyin;
+// extern FILE *yyin;
 
 extern void yyerror(const char* err);
 extern int yydebug;
@@ -13,12 +14,12 @@ extern char* yytext;
 
 %}
 
-%union {
-  char *str;
-  ast_node_t* tree;
-}
+// %union {
+//   char *str;
+//   ast_node_t* tree;
+// }
 
-%token<str> T_ID
+%token T_ID
 %token T_STR
 %token T_NUM
 %token T_TYPE_INT T_TYPE_BOOLEAN T_TYPE_VOID
@@ -26,15 +27,12 @@ extern char* yytext;
 %token T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE T_SEPARATOR_SEMI T_SEPARATOR_COMMA
 %token T_OP_PLUS T_OP_MINUS T_OP_TIMES T_OP_DIV T_OP_MOD T_OP_GT T_OP_LT T_OP_GTEQ T_OP_LTEQ T_OP_EQ T_OP_EQEQ T_OP_NOT T_OP_NOTEQ T_OP_AND T_OP_OR
 
-%type<str> identifier
-%type<tree> start
-
 %start start
 
 %%
 
 start: /* empty */
-     | declarations { $$ = make_new_node("start"); }
+     | declarations
      ;
 
 literal: T_NUM

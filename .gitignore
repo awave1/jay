@@ -7,3 +7,6 @@ tests/reference/*
 .vscode
 .idea
 
+parser.tab.*
+lex.yy.*
+jay

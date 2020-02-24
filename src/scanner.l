@@ -5,10 +5,7 @@
   #include <stdbool.h>
   #include <ctype.h>
   #include "parser.tab.h"
-
-  // has to be this weird path,
-  // because the generated lexer located in `./build/generated-src/`
-  #include "../../src/include/string_builder.h"
+  #include "src/include/string_builder.h"
 
   #define TOKEN_COUNT 40
 
@@ -20,6 +17,7 @@
 %}
 
 %option yylineno
+%option noyywrap
 %option nounput
 %option noinput
 

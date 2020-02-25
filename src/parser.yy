@@ -77,7 +77,7 @@
 %%
 
 program: /* empty */
-     | declarations
+     | declarations { driver.m_ast = new ASTNode{ "program", {  } }; }
      ;
 
 literal: T_NUM

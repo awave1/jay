@@ -5,16 +5,16 @@
 #include <string>
 #include <vector>
 
-// namespace yy {
+namespace yy {
 
 struct ASTNode {
   std::string val;
   std::vector<ASTNode *> children;
 };
 
-// } // namespace yy
+} // namespace yy
 
-// using ASTNode = yy::ASTNode;
+using ASTNode = yy::ASTNode;
 
 inline void printAstNode(std::ostream &os, ASTNode &node, int tabDepth) {
   for (int i = 0; i < tabDepth; ++i)

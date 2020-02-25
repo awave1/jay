@@ -13,7 +13,7 @@ struct Driver {
 
   std::unique_ptr<Lexer> m_lexer;
   std::unique_ptr<Parser> m_parser;
-  ASTNode<std::string> *m_ast;
+  ASTNode *m_ast;
 
   ASTNode *parse(std::istream *is);
 };

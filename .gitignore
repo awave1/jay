@@ -8,5 +8,6 @@ tests/reference/*
 .idea
 
 parser.tab.*
+stack.hh
 lex.yy.*
 jay

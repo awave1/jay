@@ -1,21 +1,22 @@
-COMPILER_NAME = jay
+COMPILER = jay
 C_FLAGS = -Wall
+LDFLAGS = -lfl
+CXX = clang++
+DEBUGFLAGS = -DYYDEBUG
 
-HEADERS = parser.tab.h src/include/scanner.h src/include/ast.h src/include/string_builder.h
-SOURCES = lex.yy.c parser.tab.c src/ast.c src/string_builder.c
+HEADERS = parser.tab.hh src/include/ast.h src/include/string_builder.h src/include/Driver.h
+SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/Driver.cpp
 
-all: compiler.out
+all: $(COMPILER)
 
-lex.yy.c: src/scanner.l
+lex.yy.cc: src/scanner.l
 	flex src/scanner.l
 
-parser.tab.h parser.tab.c &: src/parser.y
-	bison -d src/parser.y
+parser.tab.hh parser.tab.cc &: src/parser.yy
+	bison -d src/parser.yy
 
-
-$(COMPILER_NAME): $(HEADERS) $(SOURCES)
-	clang -o $(COMPILER_NAME) -Wall $(SOURCES) -DYYDEBUG -lfl
-
+$(COMPILER): $(HEADERS) $(SOURCES)
+	$(CXX) $(CFLAGS) -o $(COMPILER) $(SOURCES) $(LDFLAGS) $(DEBUGFLAGS)
 
 clean:
-	rm *.tab.c *.tab.h *.yy.c *.out
+	rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER)

@@ -1,10 +1,12 @@
+%option c++
+%option yyclass="Lexer" 
+
 %{
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <stdbool.h>
-  #include <ctype.h>
-  #include "parser.tab.h"
+  #include <cstdio>
+  #include <cstdlib>
+  #include <cstring>
+  #include "Lexer.h"
+  #include "parser.tab.hh"
   #include "src/include/string_builder.h"
 
   #define TOKEN_COUNT 40
@@ -38,41 +40,41 @@ number      [0-9]+
 
 {newline}     {}
 
-{number}      { return T_NUM; }
+{number}      { return yy::Parser::token::T_NUM; }
 
-"true"        { return T_RESERVED_TRUE; }
-"false"       { return T_RESERVED_FALSE; }
-"while"       { return T_RESERVED_WHILE; }
-"if"          { return T_RESERVED_IF; }
-"else"        { return T_RESERVED_ELSE; }
-"break"       { return T_RESERVED_BREAK; }
-"return"      { return T_RESERVED_RETURN; }
-"int"         { return T_TYPE_INT; }
-"boolean"     { return T_TYPE_BOOLEAN; }
-"void"        { return T_TYPE_VOID; }
+"true"        { return yy::Parser::token::T_RESERVED_TRUE; }
+"false"       { return yy::Parser::token::T_RESERVED_FALSE; }
+"while"       { return yy::Parser::token::T_RESERVED_WHILE; }
+"if"          { return yy::Parser::token::T_RESERVED_IF; }
+"else"        { return yy::Parser::token::T_RESERVED_ELSE; }
+"break"       { return yy::Parser::token::T_RESERVED_BREAK; }
+"return"      { return yy::Parser::token::T_RESERVED_RETURN; }
+"int"         { return yy::Parser::token::T_TYPE_INT; }
+"boolean"     { return yy::Parser::token::T_TYPE_BOOLEAN; }
+"void"        { return yy::Parser::token::T_TYPE_VOID; }
 
-"("           { return T_SEPARATOR_LPAREN; }
-")"           { return T_SEPARATOR_RPAREN; }
-"{"           { return T_SEPARATOR_LBRACE; }
-"}"           { return T_SEPARATOR_RBRACE; }
-";"           { return T_SEPARATOR_SEMI; }
-","           { return T_SEPARATOR_COMMA; }
+"("           { return yy::Parser::token::T_SEPARATOR_LPAREN; }
+")"           { return yy::Parser::token::T_SEPARATOR_RPAREN; }
+"{"           { return yy::Parser::token::T_SEPARATOR_LBRACE; }
+"}"           { return yy::Parser::token::T_SEPARATOR_RBRACE; }
+";"           { return yy::Parser::token::T_SEPARATOR_SEMI; }
+","           { return yy::Parser::token::T_SEPARATOR_COMMA; }
 
-"+"           { return T_OP_PLUS; }
-"-"           { return T_OP_MINUS; }
-"*"           { return T_OP_TIMES; }
-"/"           { return T_OP_DIV; }
-"%"           { return T_OP_MOD; }
-">"           { return T_OP_GT; }
-"<"           { return T_OP_LT; }
-">="          { return T_OP_GTEQ; }
-"<="          { return T_OP_LTEQ; }
-"="           { return T_OP_EQ; }
-"=="          { return T_OP_EQEQ; }
-"!"           { return T_OP_NOT; }
-"!="          { return T_OP_NOTEQ; }
-"&&"          { return T_OP_AND; }
-"||"          { return T_OP_OR; }
+"+"           { return yy::Parser::token::T_OP_PLUS; }
+"-"           { return yy::Parser::token::T_OP_MINUS; }
+"*"           { return yy::Parser::token::T_OP_TIMES; }
+"/"           { return yy::Parser::token::T_OP_DIV; }
+"%"           { return yy::Parser::token::T_OP_MOD; }
+">"           { return yy::Parser::token::T_OP_GT; }
+"<"           { return yy::Parser::token::T_OP_LT; }
+">="          { return yy::Parser::token::T_OP_GTEQ; }
+"<="          { return yy::Parser::token::T_OP_LTEQ; }
+"="           { return yy::Parser::token::T_OP_EQ; }
+"=="          { return yy::Parser::token::T_OP_EQEQ; }
+"!"           { return yy::Parser::token::T_OP_NOT; }
+"!="          { return yy::Parser::token::T_OP_NOTEQ; }
+"&&"          { return yy::Parser::token::T_OP_AND; }
+"||"          { return yy::Parser::token::T_OP_OR; }
 
 \"  { BEGIN(STRING); }
 
@@ -80,7 +82,7 @@ number      [0-9]+
 
 \" {
   BEGIN(INITIAL);
-  return T_STR;
+  return yy::Parser::token::T_STR;
 }
 
 {string_char} {
@@ -114,7 +116,7 @@ number      [0-9]+
 
 }
 
-{identifier}  { return T_ID; }
+{identifier}  { return yy::Parser::token::T_ID; }
 
 .             {
                 fprintf(stderr, "unknown char at line: %d\n", yylineno);

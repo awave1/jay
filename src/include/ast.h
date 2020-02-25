@@ -1,13 +1,28 @@
 #ifndef AST_H
 #define AST_H
 
-struct ast_node {
-  struct ast_node *next;     // list of nodes at the same level
-  struct ast_node *children; // first child
-  char const *val;
+#include <iostream>
+#include <string>
+#include <vector>
+
+struct ASTNode {
+  std::string val;
+  std::vector<ASTNode *> children;
 };
 
-extern struct ast_node *ast_node_create(char const *val);
-extern void printAST(struct ast_node *node, int depth);
+inline void printAstNode(std::ostream &os, ASTNode const &node, int tabDepth) {
+  for (int i = 0; i < tabDepth; ++i)
+    os << "|\t";
+
+  os << "| " << node.val << "\n";
+
+  for (auto *n : node.children) {
+    printAstNode(os, *n, tabDepth + 1);
+  }
+}
+inline std::ostream &operator<<(std::ostream &os, ASTNode const &node) {
+  printAstNode(os, node, 0);
+  return os;
+}
 
 #endif /* AST_H */

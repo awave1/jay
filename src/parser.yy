@@ -1,37 +1,71 @@
+%skeleton "lalr1.cc"
+%define "parser_class_name" {Parser}
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include "src/include/scanner.h"
-// #include "../include/ast.h"
-
-// extern FILE *yyin;
-
-extern void yyerror(const char* err);
-extern int yydebug;
-extern char* yytext;
-
+#include "src/include/ast.h"
 %}
 
-// %union {
-//   char *str;
-//   ast_node_t* tree;
-// }
+%parse-param { struct Driver& driver }
+%error-verbose
+
+%union {
+  char *str;
+}
 
 %token T_ID
 %token T_STR
 %token T_NUM
-%token T_TYPE_INT T_TYPE_BOOLEAN T_TYPE_VOID
-%token T_RESERVED_TRUE T_RESERVED_FALSE T_RESERVED_IF T_RESERVED_ELSE T_RESERVED_WHILE T_RESERVED_RETURN T_RESERVED_BREAK
-%token T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE T_SEPARATOR_SEMI T_SEPARATOR_COMMA
-%token T_OP_PLUS T_OP_MINUS T_OP_TIMES T_OP_DIV T_OP_MOD T_OP_GT T_OP_LT T_OP_GTEQ T_OP_LTEQ T_OP_EQ T_OP_EQEQ T_OP_NOT T_OP_NOTEQ T_OP_AND T_OP_OR
+%token T_TYPE_INT
+%token T_TYPE_BOOLEAN
+%token T_TYPE_VOID
+%token T_RESERVED_TRUE
+%token T_RESERVED_FALSE
+%token T_RESERVED_IF 
+%token T_RESERVED_ELSE
+%token T_RESERVED_WHILE
+%token T_RESERVED_RETURN
+%token T_RESERVED_BREAK
+%token T_SEPARATOR_LPAREN
+%token T_SEPARATOR_RPAREN
+%token T_SEPARATOR_LBRACE
+%token T_SEPARATOR_RBRACE
+%token T_SEPARATOR_SEMI
+%token T_SEPARATOR_COMMA
+%token T_OP_PLUS
+%token T_OP_MINUS
+%token T_OP_TIMES
+%token T_OP_DIV
+%token T_OP_MOD
+%token T_OP_GT
+%token T_OP_LT
+%token T_OP_GTEQ
+%token T_OP_LTEQ
+%token T_OP_EQ
+%token T_OP_EQEQ
+%token T_OP_NOT
+%token T_OP_NOTEQ
+%token T_OP_AND
+%token T_OP_OR
 
-%start start
+%type<str> identifier
+
+%start program
+
+%{
+#include "./src/include/Driver.h"
+#include "Lexer.h"
+
+#undef yylex
+#define yylex driver.m_lexer->lex
+%}
 
 %%
 
-start: /* empty */
+program: /* empty */
      | declarations
      ;
 
@@ -46,9 +80,7 @@ type:
     | T_TYPE_BOOLEAN
     ;
 
-identifier: T_ID {
-  $$ = strdup(yytext);
-}
+identifier: T_ID
           ;
 
 declarations: declaration
@@ -75,9 +107,7 @@ function_declarator: identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN
                    | identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN
                    ;
 
-main_function_declaration: main_function_declarator block {
-  printf("> main function: declaration\n");
-}
+main_function_declaration: main_function_declarator block
                          ;
 
 main_function_declarator: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN {
@@ -92,8 +122,8 @@ param_list: param
 param: type identifier
      ;
 
-block: T_SEPARATOR_LBRACE block_statements T_SEPARATOR_RBRACE { printf("> block: statements\n"); }
-     | T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE { printf("> block: empty"); }
+block: T_SEPARATOR_LBRACE block_statements T_SEPARATOR_RBRACE
+     | T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE
      ;
 
 block_statements: block_statement
@@ -177,31 +207,30 @@ assignment_expression: conditional_or_expression
 assignment: identifier T_OP_EQ assignment_expression
           ;
 
-expression: assignment_expression { 
-
-}
+expression: assignment_expression
           ;
 
 %%
 
-int main(int argc, char **argv) {
-  if (argc == 3) {
-    yydebug = atoi(argv[1]);
-    yyin = fopen(argv[2], "r");
-  }
+// int main(int argc, char **argv) {
+//   if (argc == 3) {
+//     yydebug = atoi(argv[1]);
+//     yyin = fopen(argv[2], "r");
+//   }
 
-  if (argc == 2) {
-    if (isdigit(argv[1][0])) {
-      yydebug = atoi(argv[1]);
-    } else {
-      yyin = fopen(argv[1], "r");
-    }
-  }
+//   if (argc == 2) {
+//     if (isdigit(argv[1][0])) {
+//       yydebug = atoi(argv[1]);
+//     } else {
+//       yyin = fopen(argv[1], "r");
+//     }
+//   }
 
-  yyparse();
-  return 0;
-}
+//   yyparse();
+//   return 0;
+// }
 
-void yyerror(const char* err) {
-  fprintf(stderr, "error: %s\n", err);
+void yy::Parser::error(std::string const& msg) {
+	std::cerr << "Error: " << msg << "\n";
+	exit(1);
 }

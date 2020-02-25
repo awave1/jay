@@ -1,6 +1,8 @@
 #include "./include/Driver.h"
+#include <fstream>
 
 namespace yy {
+
 ASTNode *Driver::parse(std::istream *is) {
   m_ast = nullptr;
   m_lexer = std::make_unique<Lexer>(is);
@@ -11,15 +13,30 @@ ASTNode *Driver::parse(std::istream *is) {
 
 } // namespace yy
 
-int main() {
+int main(int argc, char **argv) {
   yy::Driver driver{};
-  if (auto *ast = driver.parse(&std::cin)) {
-    std::cout << "Success\n";
-    std::cout << *ast << "\n";
+  std::istream *is;
 
+  if (argc >= 2) {
+    std::ifstream file{argv[1]};
+    if (!file.is_open()) {
+      return 1;
+    } else {
+      is = &file;
+    }
   } else {
-    std::cerr << "Failed parsing\n";
+    is = &std::cin;
+  }
+
+  auto *ast = driver.parse(is);
+
+  if (ast) {
+    std::cout << "Success" << std::endl;
+    std::cout << *ast << std::endl;
+  } else {
+    std::cerr << "Failed parsing" << std::endl;
     return 1;
   }
+
   return 0;
 }

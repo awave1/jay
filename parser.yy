@@ -18,14 +18,14 @@
   int number;
 }
 
-%token T_ID
-%token T_STR
-%token T_NUM
+%token<str> T_ID "id"
+%token<str> T_STR
+%token<number> T_NUM
 %token T_TYPE_INT
 %token T_TYPE_BOOLEAN
 %token T_TYPE_VOID
-%token T_RESERVED_TRUE
-%token T_RESERVED_FALSE
+%token<str> T_RESERVED_TRUE "true"
+%token<str> T_RESERVED_FALSE "false"
 %token T_RESERVED_IF 
 %token T_RESERVED_ELSE
 %token T_RESERVED_WHILE
@@ -53,7 +53,6 @@
 %token T_OP_AND
 %token T_OP_OR
 
-%right '='
 %left '+' '-'
 %left '*' '/'
 %nonassoc '!' T_OP_MINUS
@@ -63,6 +62,7 @@
 %type<node> identifier
 %type<node> declarations
 %type<node> declaration
+%type<node> variable_declaration
 
 %start program
 
@@ -77,32 +77,35 @@
 %%
 
 program: /* empty */
-     | declarations
+     | declarations { driver.m_ast = new ASTNode{ "program", { $1 } }; }
      ;
 
-literal: T_NUM
-       | T_STR
-       | T_RESERVED_TRUE
-       | T_RESERVED_FALSE
+literal: T_NUM { $$ = new ASTNode{ std::to_string($1), { } }; }
+       | T_STR { $$ = new ASTNode{ *$1, { } }; }
+       | T_RESERVED_TRUE { $$ = new ASTNode{ *$1, {} }; }
+       | T_RESERVED_FALSE { $$ = new ASTNode{ *$1, { } }; }
        ;
 
-type: T_TYPE_INT
-    | T_TYPE_BOOLEAN
+type: T_TYPE_INT              { $$ = new ASTNode{"int", {}}; }
+    | T_TYPE_BOOLEAN          { $$ = new ASTNode{"boolean", {}}; }
     ;
 
-identifier: T_ID
+identifier: T_ID  {
+          std::string id(driver.m_lexer->YYText());
+          $$ = new ASTNode{id, {}};
+     }
           ;
 
-declarations: declaration
-            | declarations declaration
+declarations: declaration              { $$ = new ASTNode{ "declaration", { $1 } }; }
+            | declarations declaration { $$ = $1; }
             ;
 
-declaration: variable_declaration
+declaration: variable_declaration      { $$ = new ASTNode{ "variable_declaration", { $1 } }; }
            | function_declaration
            | main_function_declaration
            ;
 
-variable_declaration: type identifier T_SEPARATOR_SEMI
+variable_declaration: type identifier T_SEPARATOR_SEMI { $$ = new ASTNode{"var", { $1, $2 }}; }
                     ;
 
 function_declaration: function_header block
@@ -123,7 +126,7 @@ main_function_declarator: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN
                         ;
 
 param_list: param
-          | param_list T_SEPARATOR_COMMA param
+          | param T_SEPARATOR_COMMA param_list
           ;
 
 param: type identifier

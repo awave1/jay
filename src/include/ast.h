@@ -5,12 +5,18 @@
 #include <string>
 #include <vector>
 
+// namespace yy {
+
 struct ASTNode {
   std::string val;
   std::vector<ASTNode *> children;
 };
 
-inline void printAstNode(std::ostream &os, ASTNode const &node, int tabDepth) {
+// } // namespace yy
+
+// using ASTNode = yy::ASTNode;
+
+inline void printAstNode(std::ostream &os, ASTNode &node, int tabDepth) {
   for (int i = 0; i < tabDepth; ++i)
     os << "|\t";
 
@@ -20,7 +26,8 @@ inline void printAstNode(std::ostream &os, ASTNode const &node, int tabDepth) {
     printAstNode(os, *n, tabDepth + 1);
   }
 }
-inline std::ostream &operator<<(std::ostream &os, ASTNode const &node) {
+
+inline std::ostream &operator<<(std::ostream &os, ASTNode &node) {
   printAstNode(os, node, 0);
   return os;
 }

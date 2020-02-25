@@ -59,10 +59,11 @@
 %nonassoc '!' T_OP_MINUS
 
 %type<node> type
-%type<node> literal
+%type<str> literal
 %type<node> identifier
 %type<node> declarations
 %type<node> declaration
+%type<node> variable_declaration
 
 %start program
 
@@ -77,32 +78,32 @@
 %%
 
 program: /* empty */
-     | declarations { driver.m_ast = new ASTNode{ "program", {  } }; }
+     | declarations { driver.m_ast = new ASTNode{ "program", { $1 } }; }
      ;
 
-literal: T_NUM
-       | T_STR
-       | T_RESERVED_TRUE
-       | T_RESERVED_FALSE
+literal: T_NUM            { *$$ = std::string(driver.m_lexer->YYText()); }
+       | T_STR            { *$$ = std::string(driver.m_lexer->YYText()); }
+       | T_RESERVED_TRUE  { *$$ = "true"; }
+       | T_RESERVED_FALSE { *$$ = "false"; }
        ;
 
-type: T_TYPE_INT
-    | T_TYPE_BOOLEAN
+type: T_TYPE_INT          { $$ = new ASTNode{ "int", {} }; }
+    | T_TYPE_BOOLEAN      { $$ = new ASTNode{ "boolean", {} }; }
     ;
 
-identifier: T_ID
+identifier: T_ID          { $$ = new ASTNode{ "id", {} }; }
           ;
 
-declarations: declaration
-            | declarations declaration
+declarations: declaration               { $$ = $1; }
+            | declarations declaration  { $$ = $2; }
             ;
 
-declaration: variable_declaration
+declaration: variable_declaration       { $$ = $1; }
            | function_declaration
            | main_function_declaration
            ;
 
-variable_declaration: type identifier T_SEPARATOR_SEMI
+variable_declaration: type identifier T_SEPARATOR_SEMI { $$ = new ASTNode{ "globalVarDeclaration", { $1, $2 } }; }
                     ;
 
 function_declaration: function_header block

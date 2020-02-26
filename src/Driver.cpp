@@ -17,7 +17,6 @@ void build_ast(yy::Driver &driver, std::istream *is) {
   auto *ast = driver.parse(is);
 
   if (ast) {
-    std::cout << "Success" << std::endl << std::endl;
     std::cout << *ast << std::endl;
   } else {
     std::cerr << "Failed parsing" << std::endl;

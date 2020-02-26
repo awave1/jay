@@ -1,6 +1,7 @@
 COMPILER = jay
-C_FLAGS = -Wall -std=c++17
+CXXFLAGS = -Wall -std=c++17
 LDFLAGS = -lfl
+DFLAGS := 
 CXX = clang++
 
 HEADERS = parser.tab.hh src/include/ast.h src/include/string_builder.h src/include/Driver.h
@@ -15,7 +16,13 @@ parser.tab.hh parser.tab.cc &: src/parser.yy
 	bison --debug -d src/parser.yy
 
 $(COMPILER): $(HEADERS) $(SOURCES)
-	$(CXX) $(CFLAGS) -o $(COMPILER) $(SOURCES) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $(COMPILER) $(SOURCES) $(LDFLAGS)
+
+debug: DFLAGS=-g
+debug: clear
+debug: $(COMPILER)
 
 clean:
 	rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER)
+
+clear: clean

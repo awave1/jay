@@ -15,7 +15,9 @@
   #define WARNING_THRESHOLD 10
 
   int warning_count = 0;
-  string_builder_t *sb;
+
+  // ensure that string_builder is initialized within the scanner, otherwise reading string tokens will fail
+  static string_builder_t *sb = sb_init();
 %}
 
 %option yylineno

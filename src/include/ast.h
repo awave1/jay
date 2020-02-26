@@ -18,6 +18,8 @@ struct ast_node_t {
 
   // ast children
   std::vector<ast_node_t *> children;
+
+  bool is_num() { return type == "number"; }
 };
 
 } // namespace yy

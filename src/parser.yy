@@ -14,7 +14,6 @@
 
 %union {
   struct ast_node_t *node;
-  std::string *str;
   std::vector<struct ast_node_t *> *list;
   int number;
 }
@@ -59,7 +58,7 @@
 %left '*' '/'
 %nonassoc '!' T_OP_MINUS
 
-%type<str> literal
+%type<node> literal
 
 %type<node> type
 %type<node> identifier
@@ -74,12 +73,18 @@
 %type<node> block_statement
 %type<node> statement
 
-%type<node> assignment
-%type<node> assignment_expression
-%type<node> statement_expression
-
 %type<node> param_list
 %type<node> param
+
+%type<node> expression
+%type<node> assignment
+%type<node> multiplicative_expression
+%type<node> assignment_expression
+%type<node> statement_expression
+%type<node> unary_expression
+%type<node> postfix_expression
+
+%type<node> primary
 
 %start program
 
@@ -101,16 +106,23 @@ program: /* empty */
      ;
 
 literal: T_NUM {
-           *$$ = std::string(driver.m_lexer->YYText());
+           auto num_val = std::string(driver.m_lexer->YYText());
+           auto *num_node = new ast_node_t { "number", "number", num_val, {} };
+           $$ = num_node;
          }
        | T_STR {
-           *$$ = std::string(driver.m_lexer->YYText());
+          //  auto str_val = std::string(driver.m_lexer->YYText());
+           std::cout << driver.m_lexer->YYText() << std::endl;
+           auto *str_node = new ast_node_t { "string", "string", "", {} };
+           $$ = str_node;
          }
        | T_RESERVED_TRUE {
-           *$$ = "true";
+           auto *true_node = new ast_node_t { "boolean", "true", "true", {} };
+           $$ = true_node;
          }
        | T_RESERVED_FALSE {
-           *$$ = "false";
+           auto *false_node = new ast_node_t { "boolean", "false", "false", {} };
+           $$ = false_node;
          }
        ;
 
@@ -204,8 +216,7 @@ main_function_declaration: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN bloc
                              auto *void_t_node = new ast_node_t { "void", "void", "", {} };
                              auto *empty_formals = new ast_node_t { "formals", "formals", "", {} }; 
 
-                             $$ = new ast_node_t {
-                               "mainDecl",
+                             $$ = new ast_node_t {"mainDecl",
                                "mainDecl",
                                "",
                                { void_t_node, $1, empty_formals, $4 }
@@ -229,12 +240,7 @@ param: type identifier {
      ;
 
 block: T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE {
-       $$ = new ast_node_t {
-         "block",
-         "block",
-         "",
-         {}
-       };
+       $$ = new ast_node_t { "block", "block", "", {} };
      }
      | T_SEPARATOR_LBRACE block_statements T_SEPARATOR_RBRACE {
        auto *block_children = $2;
@@ -264,17 +270,37 @@ block_statement: variable_declaration {
                  }
                ;
 
-statement: block                                   { $$ = $1; }
-         | T_SEPARATOR_SEMI
-         | statement_expression T_SEPARATOR_SEMI   { $$ = $1; }
-         | T_RESERVED_BREAK T_SEPARATOR_SEMI
-         | T_RESERVED_RETURN T_SEPARATOR_SEMI
+statement: block {
+             $$ = $1;
+           }
+         | T_SEPARATOR_SEMI {
+             auto *null_statement = new ast_node_t { "nullStmt", "nullStmt", "", {} };
+             $$ = null_statement;
+           }
+         | statement_expression T_SEPARATOR_SEMI {
+             $$ = $1;
+           }
+         | T_RESERVED_BREAK T_SEPARATOR_SEMI {
+             auto *break_statement = new ast_node_t { "break", "break", "", {} };
+             $$ = break_statement;
+           }
+         | T_RESERVED_RETURN expression T_SEPARATOR_SEMI {
+             // TODO: add support for `return`inig expressions
+             auto *return_statement = new ast_node_t { "return", "return", "", { $2 } };
+             $$ = return_statement;
+           }
+         | T_RESERVED_RETURN T_SEPARATOR_SEMI {
+             auto *return_statement = new ast_node_t { "return", "return", "", {} };
+             $$ = return_statement;
+           }
          | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
          | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN T_RESERVED_ELSE
          | T_RESERVED_WHILE T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
          ;
 
-statement_expression: assignment { $$ = new ast_node_t{ "statementExpr", "statementExpr", "", { $1 } }; }
+statement_expression: assignment {
+                        $$ = new ast_node_t{ "statementExpr", "statementExpr", "", { $1 } };
+                      }
                     | function_invocation
                     ;
 
@@ -286,20 +312,42 @@ args_list: expression
          | args_list T_SEPARATOR_COMMA expression
          ;
 
-primary: literal
+primary: literal {
+           $$ = $1;
+         }
        | T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
        ;
 
-postfix_expression: identifier
-                  | primary
+postfix_expression: identifier {
+                      $$ = $1;
+                    }
+                  | primary {
+                      $$ = $1;
+                    }
                   ;
 
-unary_expression: T_OP_MINUS unary_expression
-                | T_OP_NOT unary_expression
-                | postfix_expression
+unary_expression: T_OP_MINUS unary_expression {
+                    auto *node = $2;
+                    if (node && node->is_num()) {
+                      node->attr = node->attr.insert(0, 1, '-');
+                      $$ = node;
+                    } else {
+                      auto *unary_minus_node = new ast_node_t{ "-", "-", "", { node } };
+                      $$ = unary_minus_node;
+                    }
+                  }
+                | T_OP_NOT unary_expression {
+                    auto *not_node = new ast_node_t{ "!", "!", "", { $2 } };
+                    $$ = not_node;
+                  }
+                | postfix_expression {
+                    $$ = $1;
+                  }
                 ;
 
-multiplicative_expression: unary_expression
+multiplicative_expression: unary_expression {
+                             $$ = $1;
+                           }
                          | multiplicative_expression T_OP_TIMES unary_expression
                          | multiplicative_expression T_OP_DIV unary_expression
                          | multiplicative_expression T_OP_MOD unary_expression
@@ -331,13 +379,19 @@ conditional_or_expression: conditional_and_expression
                          ;
 
 assignment_expression: conditional_or_expression
-                     | assignment
+                     | assignment {
+                         $$ = $1;
+                       }
                      ;
 
-assignment: identifier T_OP_EQ assignment_expression { $$ = new ast_node_t{ "=", "=", "", { $1, $3 } }; }
+assignment: identifier T_OP_EQ assignment_expression {
+              $$ = new ast_node_t{ "=", "=", "", { $1, $3 } };
+            }
           ;
 
-expression: assignment_expression
+expression: assignment_expression {
+              $$ = $1;
+            }
           ;
 
 %%

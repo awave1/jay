@@ -305,7 +305,12 @@ statement: block {
              auto *if_else_node = new ast_node_t { "ifElse", "ifElse", "", { expression_node, if_statement_node, else_statement_node } };
              $$ = if_else_node;
            }
-         | T_RESERVED_WHILE T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
+         | T_RESERVED_WHILE T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN statement {
+             auto *expression_node = $3;
+             auto *while_statement_node = $5;
+             auto *while_node = new ast_node_t { "while", "while", "", { expression_node, while_statement_node } };
+             $$ = while_node;
+           }
          ;
 
 statement_expression: assignment {

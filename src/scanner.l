@@ -84,12 +84,17 @@ number      [0-9]+
 
 \" {
   BEGIN(INITIAL);
+  if (!sb_is_empty(sb)) {
+    yytext = sb_build_str(sb);
+    sb_reset(sb);
+  }
+
   return yy::Parser::token::T_STR;
 }
 
 {string_char} {
-  if (yytext[0] != '\0') {
-    sb_append(sb, yytext);
+  if (YYText()[0] != '\0') {
+    sb_append(sb, YYText());
   }
 }
 

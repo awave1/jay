@@ -111,9 +111,8 @@ literal: T_NUM {
            $$ = num_node;
          }
        | T_STR {
-          //  auto str_val = std::string(driver.m_lexer->YYText());
-           std::cout << driver.m_lexer->YYText() << std::endl;
-           auto *str_node = new ast_node_t { "string", "string", "", {} };
+           auto str_val = std::string(driver.m_lexer->YYText());
+           auto *str_node = new ast_node_t { "string", "string", str_val, {} };
            $$ = str_node;
          }
        | T_RESERVED_TRUE {

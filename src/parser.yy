@@ -292,8 +292,19 @@ statement: block {
              auto *return_statement = new ast_node_t { "return", "return", "", {} };
              $$ = return_statement;
            }
-         | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
-         | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN T_RESERVED_ELSE
+         | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN statement {
+             auto *expression_node = $3;
+             auto *statement_node = $5;
+             auto *if_node = new ast_node_t { "if", "if", "", { expression_node, statement_node } };
+             $$ = if_node;
+           }
+         | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN statement T_RESERVED_ELSE statement {
+             auto *expression_node = $3;
+             auto *if_statement_node = $5;
+             auto *else_statement_node = $7;
+             auto *if_else_node = new ast_node_t { "ifElse", "ifElse", "", { expression_node, if_statement_node, else_statement_node } };
+             $$ = if_else_node;
+           }
          | T_RESERVED_WHILE T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
          ;
 

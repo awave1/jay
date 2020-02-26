@@ -1,3 +1,7 @@
 main() {
-  return "str";
+  if (a = b) {
+
+  } else {
+
+  }
 }

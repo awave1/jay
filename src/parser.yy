@@ -70,7 +70,7 @@
 %type<node> main_function_declaration
 
 %type<node> block
-%type<node> block_statements
+%type<list> block_statements
 %type<node> block_statement
 %type<node> statement
 
@@ -142,7 +142,6 @@ globaldeclaration: variable_declaration {
                      $$ = new ast_node_t { "globalVarDecl", "globalVarDecl", "", global_var_nodes };
                    }
                  | function_declaration {
-                   // TODO
                    std::vector<ast_node_t *> func_decl_nodes = *$1;
                    $$ = new ast_node_t { "funcDecl", "funcDecl", "", func_decl_nodes };
                  }
@@ -153,7 +152,8 @@ globaldeclaration: variable_declaration {
                  ;
 
 variable_declaration: type identifier T_SEPARATOR_SEMI {
-                        std::vector<ast_node_t *> *nodes = new std::vector<ast_node_t *>();
+                        auto *nodes = new std::vector<ast_node_t *>();
+
                         nodes->push_back($1);
                         nodes->push_back($2);
                         $$ = nodes;
@@ -161,15 +161,18 @@ variable_declaration: type identifier T_SEPARATOR_SEMI {
                     ;
 
 function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
-                        std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+                        auto *func_nodes = new std::vector<ast_node_t *>();
+                        auto *empty_formals = new ast_node_t { "formals", "formals", "", {} };
+
                         func_nodes->push_back($1);
                         func_nodes->push_back($2);
-                        func_nodes->push_back(new ast_node_t { "formals", "formals", "", {} });
+                        func_nodes->push_back(empty_formals);
                         func_nodes->push_back($5);
                         $$ = func_nodes;
                       }
                     | type identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN block {
                         std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+
                         func_nodes->push_back($1);
                         func_nodes->push_back($2);
                         func_nodes->push_back($4);
@@ -179,14 +182,16 @@ function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN bloc
                     | T_TYPE_VOID identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
                         ast_node_t *void_t_node = new ast_node_t { "void", "void", "", {} };
                         std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+
                         func_nodes->push_back(void_t_node);
                         func_nodes->push_back($2);
                         func_nodes->push_back($5);
                         $$ = func_nodes;
                       }
                     | T_TYPE_VOID identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN block {
-                        ast_node_t *void_t_node = new ast_node_t { "void", "void", "", {} };
-                        std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+                        auto *void_t_node = new ast_node_t { "void", "void", "", {} };
+                        auto *func_nodes = new std::vector<ast_node_t *>();
+
                         func_nodes->push_back(void_t_node);
                         func_nodes->push_back($2);
                         func_nodes->push_back($4);
@@ -196,14 +201,14 @@ function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN bloc
                     ;
 
 main_function_declaration: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
-                             ast_node_t *void_t_node = new ast_node_t { "void", "void", "", {} };
-                             ast_node_t *formals_node = new ast_node_t { "formals", "formals", "", {} }; 
+                             auto *void_t_node = new ast_node_t { "void", "void", "", {} };
+                             auto *empty_formals = new ast_node_t { "formals", "formals", "", {} }; 
 
                              $$ = new ast_node_t {
                                "mainDecl",
                                "mainDecl",
                                "",
-                               { void_t_node, $1, formals_node, $4 }
+                               { void_t_node, $1, empty_formals, $4 }
                              };
                            }
                          ;
@@ -232,28 +237,31 @@ block: T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE {
        };
      }
      | T_SEPARATOR_LBRACE block_statements T_SEPARATOR_RBRACE {
-       $$ = new ast_node_t {
-         "block",
-         "block",
-         "",
-         { $2 }
-       };
+       auto *block_children = $2;
+       auto *block = new ast_node_t { "block", "block", "", *block_children };
+
+       $$ = block;
      }
      ;
 
-block_statements: block_statement                  { $$ = $1; }
-                | block_statements block_statement { $$ = $2; }
+block_statements: block_statement {
+                    auto *block_statements = new std::vector<ast_node_t *>();
+                    block_statements->push_back($1);
+                    $$ = block_statements;
+                  }
+                | block_statements block_statement {
+                    $$ = $1;
+                    $$->push_back($2); 
+                  }
                 ;
 
 block_statement: variable_declaration {
-                   $$ = new ast_node_t { 
-                     "blockStatement",
-                     "blockStatement",
-                     "",
-                     *$1
-                   };
+                   auto *var_decl_node = new ast_node_t{ "varDecl", "varDecl", "", *$1 };
+                   $$ = var_decl_node;
                  }
-               | statement                         { $$ = $1; }
+               | statement {
+                   $$ = $1;
+                 }
                ;
 
 statement: block                                   { $$ = $1; }

@@ -15,7 +15,6 @@
 %union {
   struct ast_node_t *node;
   std::vector<struct ast_node_t *> *list;
-  int number;
 }
 
 %token T_ID
@@ -76,13 +75,22 @@
 %type<node> param_list
 %type<node> param
 
+%type<list> actuals
+
 %type<node> expression
 %type<node> assignment
-%type<node> multiplicative_expression
 %type<node> assignment_expression
 %type<node> statement_expression
+%type<node> function_invocation
 %type<node> unary_expression
 %type<node> postfix_expression
+%type<node> conditional_or_expression
+%type<node> conditional_and_expression
+%type<node> equality_expression
+%type<node> relational_expression
+%type<node> additive_expression
+%type<node> multiplicative_expression
+
 
 %type<node> primary
 
@@ -316,21 +324,40 @@ statement: block {
 statement_expression: assignment {
                         $$ = new ast_node_t{ "statementExpr", "statementExpr", "", { $1 } };
                       }
-                    | function_invocation
+                    | function_invocation {
+                        $$ = new ast_node_t { "statementExpr", "statementExpt", "", { $1 } };
+                      }
                     ;
 
-function_invocation: identifier T_SEPARATOR_LPAREN args_list T_SEPARATOR_RPAREN
-                   | identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN
+function_invocation: identifier T_SEPARATOR_LPAREN actuals T_SEPARATOR_RPAREN {
+                       auto *actuals_node = new ast_node_t { "actuals", "actuals", "", *$3 };
+                       auto *func_call_node = new ast_node_t { "funcCall", "funcCall", "", { $1, actuals_node } };
+                       $$ = func_call_node;
+                     }
+                   | identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN {
+                       auto *actuals_node = new ast_node_t { "actuals", "actuals", "", {} };
+                       auto *func_call_node = new ast_node_t { "funcCall", "funcCall", "", { $1, actuals_node } };
+                       $$ = func_call_node;
+                     }
                    ;
 
-args_list: expression
-         | args_list T_SEPARATOR_COMMA expression
-         ;
+actuals: expression {
+           auto *actuals_list = new std::vector<ast_node_t *>();
+           actuals_list->push_back($1);
+           $$ = actuals_list;
+         }
+       | actuals T_SEPARATOR_COMMA expression {
+           $$ = $1;
+           $$->push_back($3);
+         }
+       ;
 
 primary: literal {
            $$ = $1;
          }
-       | T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
+       | T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN {
+           $$ = $2;
+         }
        ;
 
 postfix_expression: identifier {
@@ -363,37 +390,88 @@ unary_expression: T_OP_MINUS unary_expression {
 multiplicative_expression: unary_expression {
                              $$ = $1;
                            }
-                         | multiplicative_expression T_OP_TIMES unary_expression
-                         | multiplicative_expression T_OP_DIV unary_expression
-                         | multiplicative_expression T_OP_MOD unary_expression
+                         | multiplicative_expression T_OP_TIMES unary_expression {
+                             auto *mul_node = new ast_node_t { "*", "*", "", { $1, $3 } };
+                             $$ = mul_node;
+                           }
+                         | multiplicative_expression T_OP_DIV unary_expression {
+                             auto *div_node = new ast_node_t { "/", "/", "", { $1, $3 } };
+                             $$ = div_node;
+                           }
+                         | multiplicative_expression T_OP_MOD unary_expression {
+                             auto *mod_node = new ast_node_t { "%", "%", "", { $1, $3 } };
+                             $$ = mod_node;
+                           }
                          ;
 
-additive_expression: multiplicative_expression
-                   | additive_expression T_OP_PLUS multiplicative_expression
-                   | additive_expression T_OP_MINUS multiplicative_expression
+additive_expression: multiplicative_expression {
+                       $$ = $1;
+                     }
+                   | additive_expression T_OP_PLUS multiplicative_expression {
+                       auto *add_node = new ast_node_t { "+", "+", "", { $1, $3 } };
+                       $$ = add_node;
+                     }
+                   | additive_expression T_OP_MINUS multiplicative_expression {
+                       auto *sub_node = new ast_node_t { "-", "-", "", { $1, $3 } };
+                       $$ = sub_node;
+                     }
                    ;
 
-relational_expression: additive_expression
-                     | relational_expression T_OP_LT additive_expression
-                     | relational_expression T_OP_GT additive_expression
-                     | relational_expression T_OP_LTEQ additive_expression
-                     | relational_expression T_OP_GTEQ additive_expression
+relational_expression: additive_expression {
+                         $$ = $1;
+                       }
+                     | relational_expression T_OP_LT additive_expression {
+                         auto *lt_node = new ast_node_t { "<", "<", "", { $1, $3 } };
+                         $$ = lt_node;
+                       }
+                     | relational_expression T_OP_GT additive_expression {
+                         auto *gt_node = new ast_node_t { ">", ">", "", { $1, $3 } };
+                         $$ = gt_node;
+                       }
+                     | relational_expression T_OP_LTEQ additive_expression {
+                         auto *lteq_node = new ast_node_t { "<=", "<=", "", { $1, $3 } };
+                         $$ = lteq_node;
+                       }
+                     | relational_expression T_OP_GTEQ additive_expression {
+                         auto *gteq_node = new ast_node_t { ">=", ">=", "", { $1, $3 } };
+                         $$ = gteq_node;
+                       }
                      ;
 
-equality_expression: relational_expression
-                   | equality_expression T_OP_EQEQ relational_expression
-                   | equality_expression T_OP_NOTEQ relational_expression
+equality_expression: relational_expression {
+                       $$ = $1;
+                     }
+                   | equality_expression T_OP_EQEQ relational_expression {
+                       auto *equality_node = new ast_node_t { "==", "==", "", { $1, $3 } };
+                       $$ = equality_node;
+                     }
+                   | equality_expression T_OP_NOTEQ relational_expression {
+                       auto *not_equality_node = new ast_node_t { "!=", "!=", "", { $1, $3 } };
+                       $$ = not_equality_node;
+                     }
                    ;
 
-conditional_and_expression: equality_expression
-                          | conditional_and_expression T_OP_AND equality_expression
+conditional_and_expression: equality_expression {
+                              $$ = $1;
+                            }
+                          | conditional_and_expression T_OP_AND equality_expression {
+                              auto *and_node = new ast_node_t { "&&", "&&", "", { $1, $3 } };
+                              $$ = and_node;
+                            }
                           ;
 
-conditional_or_expression: conditional_and_expression
-                         | conditional_or_expression T_OP_OR conditional_and_expression
+conditional_or_expression: conditional_and_expression {
+                             $$ = $1;
+                           }
+                         | conditional_or_expression T_OP_OR conditional_and_expression {
+                             auto *or_node = new ast_node_t { "||", "||", "", { $1, $3 } };
+                             $$ = or_node;
+                           }
                          ;
 
-assignment_expression: conditional_or_expression
+assignment_expression: conditional_or_expression {
+                         $$ = $1;
+                       }
                      | assignment {
                          $$ = $1;
                        }

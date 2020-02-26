@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include "src/include/ast.h"
+#define YYDEBUG 1
 %}
 
 %parse-param { struct Driver& driver }
@@ -292,7 +293,6 @@ statement: block {
              $$ = break_statement;
            }
          | T_RESERVED_RETURN expression T_SEPARATOR_SEMI {
-             // TODO: add support for `return`inig expressions
              auto *return_statement = new ast_node_t { "return", "return", "", { $2 } };
              $$ = return_statement;
            }
@@ -357,6 +357,9 @@ primary: literal {
          }
        | T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN {
            $$ = $2;
+         }
+       | function_invocation {
+           $$ = $1;
          }
        ;
 
@@ -491,5 +494,6 @@ expression: assignment_expression {
 
 void yy::Parser::error(std::string const& msg) {
 	std::cerr << "Error: " << msg << "\n";
+  std::cerr << "lineno: " << driver.m_lexer->lineno() << std::endl;
 	exit(1);
 }

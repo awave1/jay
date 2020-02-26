@@ -13,12 +13,12 @@ lex.yy.cc: src/scanner.l
 	flex src/scanner.l
 
 parser.tab.hh parser.tab.cc &: src/parser.yy
-	bison --debug -d src/parser.yy
+	bison -t -d src/parser.yy
 
 $(COMPILER): $(HEADERS) $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $(COMPILER) $(SOURCES) $(LDFLAGS)
 
-debug: DFLAGS=-g
+debug: DFLAGS=-g -DYYTRACE
 debug: clear
 debug: $(COMPILER)
 

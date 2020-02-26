@@ -3,12 +3,12 @@
 
 namespace yy {
 
-ASTNode *Driver::parse(std::istream *is) {
-  m_ast = nullptr;
+ast_node_t *Driver::parse(std::istream *is) {
+  ast = nullptr;
   m_lexer = std::make_unique<Lexer>(is);
   m_parser = std::make_unique<Parser>(*this);
   m_parser->parse();
-  return m_ast;
+  return ast;
 }
 
 } // namespace yy
@@ -26,7 +26,7 @@ void build_ast(yy::Driver &driver, std::istream *is) {
 }
 
 int main(int argc, char **argv) {
-  yy::Driver driver{};
+  yy::Driver driver;
 
   if (argc >= 2) {
     std::ifstream file{argv[1]};

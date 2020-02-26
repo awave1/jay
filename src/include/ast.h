@@ -7,28 +7,43 @@
 
 namespace yy {
 
-struct ASTNode {
-  std::string val;
-  std::vector<ASTNode *> children;
+struct ast_node_t {
+  std::string value;
+
+  // node info variables
+  std::string type;
+  std::string attr;
+  // TODO: line num support
+  // int lineno;
+
+  // ast children
+  std::vector<ast_node_t *> children;
 };
 
 } // namespace yy
 
-using ASTNode = yy::ASTNode;
+using ast_node_t = yy::ast_node_t;
 
-inline void printAstNode(std::ostream &os, ASTNode &node, int tabDepth) {
-  for (int i = 0; i < tabDepth; ++i)
+inline void print_ast_node(std::ostream &os, const ast_node_t &node,
+                           int depth) {
+  if (depth >= 10) {
+    // TODO: debug only
+    return;
+  }
+
+  for (int i = 0; i < depth; ++i)
     os << "|\t";
 
-  os << "| " << node.val << "\n";
+  os << node.value << "{ type: " << node.type << " attr: " << node.attr << " }"
+     << "\n";
 
   for (auto *n : node.children) {
-    printAstNode(os, *n, tabDepth + 1);
+    print_ast_node(os, *n, depth + 1);
   }
 }
 
-inline std::ostream &operator<<(std::ostream &os, ASTNode &node) {
-  printAstNode(os, node, 0);
+inline std::ostream &operator<<(std::ostream &os, const ast_node_t &node) {
+  print_ast_node(os, node, 0);
   return os;
 }
 

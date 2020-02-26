@@ -1,1 +1,4 @@
-int a;
+int foo() {}
+int bar(int a) {}
+int baz(int a, boolean b) {}
+main() {}

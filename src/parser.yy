@@ -4,17 +4,18 @@
 %debug
 
 %{
-  #include <iostream>
-  #include <string>
-  #include "src/include/ast.h"
+#include <iostream>
+#include <string>
+#include "src/include/ast.h"
 %}
 
 %parse-param { struct Driver& driver }
 %error-verbose
 
 %union {
-  struct ASTNode *node;
+  struct ast_node_t *node;
   std::string *str;
+  std::vector<struct ast_node_t *> *list;
   int number;
 }
 
@@ -58,93 +59,206 @@
 %left '*' '/'
 %nonassoc '!' T_OP_MINUS
 
-%type<node> type
 %type<str> literal
+
+%type<node> type
 %type<node> identifier
-%type<node> declarations
-%type<node> declaration
-%type<node> variable_declaration
+%type<list> globaldeclarations
+%type<node> globaldeclaration
+%type<list> variable_declaration
+%type<list> function_declaration 
+%type<node> main_function_declaration
+
+%type<node> block
+%type<node> block_statements
+%type<node> block_statement
+%type<node> statement
+
+%type<node> assignment
+%type<node> assignment_expression
+%type<node> statement_expression
+
+%type<node> param_list
+%type<node> param
 
 %start program
 
 %{
-#include "./src/include/Driver.h"
-#include "Lexer.h"
+  #include "./src/include/Driver.h"
+  #include "Lexer.h"
 
-#undef yylex
-#define yylex driver.m_lexer->lex
+  #undef yylex
+  #define yylex driver.m_lexer->lex
 %}
 
 %%
 
 program: /* empty */
-     | declarations { driver.m_ast = new ASTNode{ "program", { $1 } }; }
+     | globaldeclarations {
+         std::vector<ast_node_t *> nodes = *$1;
+         driver.ast = new ast_node_t{ "program", "program", "", nodes };
+       }
      ;
 
-literal: T_NUM            { *$$ = std::string(driver.m_lexer->YYText()); }
-       | T_STR            { *$$ = std::string(driver.m_lexer->YYText()); }
-       | T_RESERVED_TRUE  { *$$ = "true"; }
-       | T_RESERVED_FALSE { *$$ = "false"; }
+literal: T_NUM {
+           *$$ = std::string(driver.m_lexer->YYText());
+         }
+       | T_STR {
+           *$$ = std::string(driver.m_lexer->YYText());
+         }
+       | T_RESERVED_TRUE {
+           *$$ = "true";
+         }
+       | T_RESERVED_FALSE {
+           *$$ = "false";
+         }
        ;
 
-type: T_TYPE_INT          { $$ = new ASTNode{ "int", {} }; }
-    | T_TYPE_BOOLEAN      { $$ = new ASTNode{ "boolean", {} }; }
+type: T_TYPE_INT {
+        $$ = new ast_node_t{ "int", "int", "", {} };
+      }
+    | T_TYPE_BOOLEAN {
+        $$ = new ast_node_t{ "boolean", "boolean", "", {} };
+      }
     ;
 
-identifier: T_ID          { $$ = new ASTNode{ "id", {} }; }
+identifier: T_ID {
+              $$ = new ast_node_t{ "id", "id", std::string(driver.m_lexer->YYText()), {} };
+            }
           ;
 
-declarations: declaration               { $$ = $1; }
-            | declarations declaration  { $$ = $2; }
-            ;
+globaldeclarations: globaldeclaration {
+                      $$ = new std::vector<ast_node_t *>();
+                      $$->push_back($1);
+                    }
+                  | globaldeclarations globaldeclaration {
+                      $$ = $1;
+                      $$->push_back($2);
+                    }
+                  ;
 
-declaration: variable_declaration       { $$ = $1; }
-           | function_declaration
-           | main_function_declaration
-           ;
+globaldeclaration: variable_declaration {
+                     std::vector<ast_node_t *> global_var_nodes = *$1;
+                     $$ = new ast_node_t { "globalVarDecl", "globalVarDecl", "", global_var_nodes };
+                   }
+                 | function_declaration {
+                   // TODO
+                   std::vector<ast_node_t *> func_decl_nodes = *$1;
+                   $$ = new ast_node_t { "funcDecl", "funcDecl", "", func_decl_nodes };
+                 }
+                 | main_function_declaration {
+                     ast_node_t *main_func_node = $1;
+                     $$ = main_func_node; 
+                   } 
+                 ;
 
-variable_declaration: type identifier T_SEPARATOR_SEMI { $$ = new ASTNode{ "globalVarDeclaration", { $1, $2 } }; }
+variable_declaration: type identifier T_SEPARATOR_SEMI {
+                        std::vector<ast_node_t *> *nodes = new std::vector<ast_node_t *>();
+                        nodes->push_back($1);
+                        nodes->push_back($2);
+                        $$ = nodes;
+                      }
                     ;
 
-function_declaration: function_header block
+function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
+                        std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+                        func_nodes->push_back($1);
+                        func_nodes->push_back($2);
+                        func_nodes->push_back(new ast_node_t { "formals", "formals", "", {} });
+                        func_nodes->push_back($5);
+                        $$ = func_nodes;
+                      }
+                    | type identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN block {
+                        std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+                        func_nodes->push_back($1);
+                        func_nodes->push_back($2);
+                        func_nodes->push_back($4);
+                        func_nodes->push_back($6);
+                        $$ = func_nodes;
+                      }
+                    | T_TYPE_VOID identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
+                        ast_node_t *void_t_node = new ast_node_t { "void", "void", "", {} };
+                        std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+                        func_nodes->push_back(void_t_node);
+                        func_nodes->push_back($2);
+                        func_nodes->push_back($5);
+                        $$ = func_nodes;
+                      }
+                    | T_TYPE_VOID identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN block {
+                        ast_node_t *void_t_node = new ast_node_t { "void", "void", "", {} };
+                        std::vector<ast_node_t *> *func_nodes = new std::vector<ast_node_t *>();
+                        func_nodes->push_back(void_t_node);
+                        func_nodes->push_back($2);
+                        func_nodes->push_back($4);
+                        func_nodes->push_back($6);
+                        $$ = func_nodes;
+                      }
                     ;
 
-function_header: type function_declarator
-               | T_TYPE_VOID function_declarator
-               ;
+main_function_declaration: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
+                             ast_node_t *void_t_node = new ast_node_t { "void", "void", "", {} };
+                             ast_node_t *formals_node = new ast_node_t { "formals", "formals", "", {} }; 
 
-function_declarator: identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN
-                   | identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN
-                   ;
-
-main_function_declaration: main_function_declarator block
+                             $$ = new ast_node_t {
+                               "mainDecl",
+                               "mainDecl",
+                               "",
+                               { void_t_node, $1, formals_node, $4 }
+                             };
+                           }
                          ;
-
-main_function_declarator: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN
-                        ;
-
-param_list: param
-          | param_list T_SEPARATOR_COMMA param
+param_list: param {
+              $$ = new ast_node_t{ "formals", "formals", "", { $1 } };
+            }
+          | param_list T_SEPARATOR_COMMA param {
+              $$ = $1;
+              $$->children.push_back($3);
+              std::cout << "FORMALS (children) " <<  $$->children.size() << "\n";
+            }
           ;
 
-param: type identifier
+param: type identifier {
+         ast_node_t *formal_param_node = new ast_node_t { "formal", "formal", "", { $1, $2 } };
+         $$ = formal_param_node;
+       }
      ;
 
-block: T_SEPARATOR_LBRACE block_statements T_SEPARATOR_RBRACE
-     | T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE
+block: T_SEPARATOR_LBRACE T_SEPARATOR_RBRACE {
+       $$ = new ast_node_t {
+         "block",
+         "block",
+         "",
+         {}
+       };
+     }
+     | T_SEPARATOR_LBRACE block_statements T_SEPARATOR_RBRACE {
+       $$ = new ast_node_t {
+         "block",
+         "block",
+         "",
+         { $2 }
+       };
+     }
      ;
 
-block_statements: block_statement
-                | block_statements block_statement
+block_statements: block_statement                  { $$ = $1; }
+                | block_statements block_statement { $$ = $2; }
                 ;
 
-block_statement: variable_declaration
-               | statement
+block_statement: variable_declaration {
+                   $$ = new ast_node_t { 
+                     "blockStatement",
+                     "blockStatement",
+                     "",
+                     *$1
+                   };
+                 }
+               | statement                         { $$ = $1; }
                ;
 
-statement: block
+statement: block                                   { $$ = $1; }
          | T_SEPARATOR_SEMI
-         | statement_expression T_SEPARATOR_SEMI
+         | statement_expression T_SEPARATOR_SEMI   { $$ = $1; }
          | T_RESERVED_BREAK T_SEPARATOR_SEMI
          | T_RESERVED_RETURN T_SEPARATOR_SEMI
          | T_RESERVED_IF T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
@@ -152,7 +266,7 @@ statement: block
          | T_RESERVED_WHILE T_SEPARATOR_LPAREN expression T_SEPARATOR_RPAREN
          ;
 
-statement_expression: assignment
+statement_expression: assignment { $$ = new ast_node_t{ "statementExpr", "statementExpr", "", { $1 } }; }
                     | function_invocation
                     ;
 
@@ -212,7 +326,7 @@ assignment_expression: conditional_or_expression
                      | assignment
                      ;
 
-assignment: identifier T_OP_EQ assignment_expression
+assignment: identifier T_OP_EQ assignment_expression { $$ = new ast_node_t{ "=", "=", "", { $1, $3 } }; }
           ;
 
 expression: assignment_expression

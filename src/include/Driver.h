@@ -13,9 +13,9 @@ struct Driver {
 
   std::unique_ptr<Lexer> m_lexer;
   std::unique_ptr<Parser> m_parser;
-  ASTNode *m_ast;
+  ast_node_t *ast;
 
-  ASTNode *parse(std::istream *is);
+  ast_node_t *parse(std::istream *is);
 };
 
 } // namespace yy

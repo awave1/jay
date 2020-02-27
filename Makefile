@@ -6,7 +6,7 @@ DFLAGS :=
 TESTLIB := -I lib/catch2
 CXX = clang++
 
-HEADERS = parser.tab.hh src/include/ast.h src/include/string_builder.h src/include/Driver.h
+HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/Driver.hpp
 SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/Driver.cpp
 
 .PHONY: all
@@ -19,7 +19,7 @@ parser.tab.hh parser.tab.cc &: src/parser.yy
 	bison -t -d src/parser.yy
 
 $(COMPILER): $(HEADERS) $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $(COMPILER) $(SOURCES) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $(COMPILER) ./src/main.cpp $(SOURCES) $(LDFLAGS)
 
 .PHONY: debug
 debug: DFLAGS=-g -DYYTRACE
@@ -30,11 +30,9 @@ debug: $(COMPILER)
 test: clean
 test: $(TEST_EXEC)
 
-$(TEST_EXEC): test/jay.test.cpp
-	$(CXX) $(TESTLIB) test/jay.test.cpp -o $@
+$(TEST_EXEC): test/jay.test.cpp $(HEADERS) $(SOURCES)
+	$(CXX) $(TESTLIB) -I src/include test/jay.test.cpp $(SOURCES) -o $@
 	./$(TEST_EXEC)
 
-clean:
+clear clean:
 	-rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER) $(TEST_EXEC)
-
-clear: clean

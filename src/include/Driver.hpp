@@ -3,7 +3,7 @@
 
 #include "../../Lexer.h"
 #include "../../parser.tab.hh"
-#include "ast.h"
+#include "ast.hpp"
 
 namespace yy {
 

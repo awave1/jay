@@ -6,7 +6,7 @@
 %{
 #include <iostream>
 #include <string>
-#include "src/include/ast.h"
+#include "src/include/ast.hpp"
 #define YYDEBUG 1
 %}
 
@@ -98,7 +98,7 @@
 %start program
 
 %{
-  #include "./src/include/Driver.h"
+  #include "./src/include/Driver.hpp"
   #include "Lexer.h"
 
   #undef yylex

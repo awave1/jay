@@ -27,12 +27,14 @@ debug: clear
 debug: $(COMPILER)
 
 .PHONY: test
+test: clean
 test: $(TEST_EXEC)
 
 $(TEST_EXEC): test/jay.test.cpp
 	$(CXX) $(TESTLIB) test/jay.test.cpp -o $@
+	./$(TEST_EXEC)
 
 clean:
-	rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER)
+	-rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER) $(TEST_EXEC)
 
 clear: clean

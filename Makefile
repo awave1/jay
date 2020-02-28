@@ -47,8 +47,7 @@ test_runner:
 export: clean
 export: ARCHIVE_NAME := artem-golovin-$(MSPART)
 export:
-	# weird extension, because ucalgary ¯\_(ツ)_/¯
-	git archive -o $(ARCHIVE_NAME).totallynotzip HEAD
+	git archive -o $(ARCHIVE_NAME).zip HEAD
 
 clear clean:
 	@ echo "> cleaning build & misc files..."

@@ -27,7 +27,7 @@
 
 newline     (\r|\n|\r\n)
 whitespace  [ \t]
-input_char  [^(\r|\n|\r\n)]
+input_char  [^\r\n]
 string_char [^\r\n\"\\]
 comment     \/\/{input_char}*
 identifier  [a-zA-Z_]+[a-zA-Z0-9_]*

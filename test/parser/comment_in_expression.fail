@@ -1,0 +1,7 @@
+boolean is_even() {
+  if (a % 2 == 0 // check if even) {
+    return true;
+  } else {
+    return false;
+  }
+}

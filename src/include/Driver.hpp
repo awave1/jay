@@ -3,7 +3,7 @@
 
 #include "../../Lexer.h"
 #include "../../parser.tab.hh"
-#include "ast.h"
+#include "ast.hpp"
 
 namespace yy {
 
@@ -14,8 +14,9 @@ struct Driver {
   std::unique_ptr<Lexer> m_lexer;
   std::unique_ptr<Parser> m_parser;
   ast_node_t *ast;
+  std::string filename;
 
-  ast_node_t *parse(std::istream *is);
+  ast_node_t *parse(std::istream *is, std::string file);
 };
 
 } // namespace yy

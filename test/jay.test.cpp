@@ -45,7 +45,9 @@ TEST_CASE("parse.t2.fail : unterminated variable declaration", "[ast]") {
   SECTION("AST should not be initialized") { REQUIRE(ast == nullptr); }
 }
 
-TEST_CASE("parse.t19.pass", "[ast]") {
+TEST_CASE("parse.t19.pass: main function with nested if-else statement and "
+          "null block statements",
+          "[ast]") {
   yy::Driver driver;
   std::ifstream testfile(file("parse.t19.pass"));
   auto *ast = driver.parse(&testfile);
@@ -65,6 +67,15 @@ TEST_CASE("parse.t19.pass", "[ast]") {
 
     auto *main_func_node = children[0];
     REQUIRE(main_func_node->type == ast_node_t::Node::main_func_decl);
+  }
+
+  SECTION("should contain 2 null block statements") {
+    auto main_node = ast->children[0];
+
+    auto null_statements = std::vector<ast_node_t *>();
+    find_recursive(ast, ast_node_t::Node::null_statement, null_statements);
+    REQUIRE_FALSE(null_statements.empty());
+    REQUIRE(null_statements.size() == 2);
   }
 }
 

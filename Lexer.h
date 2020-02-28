@@ -10,12 +10,19 @@
 #include <FlexLexer.h>
 #endif
 
+/**
+ * @brief Lexer is C++ wrapper for flex, it inherits yyFlexLexer that is
+ * provided by the `flex`
+ */
 class Lexer : public yyFlexLexer {
 public:
+  using TokenType = yy::Parser::semantic_type;
+
   Lexer(std::istream *is = nullptr, std::ostream *os = nullptr)
       : yyFlexLexer(is, os) {}
-  using TokenType = yy::Parser::semantic_type;
+
   int yylex();
+
   int lex(TokenType *semval) {
     m_val = semval;
     return yylex();

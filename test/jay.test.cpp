@@ -1,5 +1,5 @@
 #define CATCH_CONFIG_MAIN
-#include "Driver.hpp"
+#include "JayCompiler.hpp"
 #include "catch.hpp"
 #include <fstream>
 #include <iostream>
@@ -7,7 +7,7 @@
 std::string file(std::string test_name) { return "./test/parser/" + test_name; }
 
 TEST_CASE("empty.fail: empty file", "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("empty.fail"));
   auto *ast = driver.parse(&testfile, file("empty.fail"));
 
@@ -15,7 +15,7 @@ TEST_CASE("empty.fail: empty file", "[ast]") {
 }
 
 TEST_CASE("single_node.pass: single global variable node", "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("single_node.pass"));
   auto *ast = driver.parse(&testfile, file("single_node.pass"));
 
@@ -48,7 +48,7 @@ TEST_CASE("single_node.pass: single global variable node", "[ast]") {
 TEST_CASE(
     "global_var_assign.fail: trying to set global variable in global scope",
     "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("global_var_assign.fail"));
   auto *ast = driver.parse(&testfile, file("global_var_assign.fail"));
 
@@ -56,7 +56,7 @@ TEST_CASE(
 }
 
 TEST_CASE("nested_function.fail: trying to create a nested function", "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("nested_function.fail"));
   auto *ast = driver.parse(&testfile, file("nested_function.fail"));
 
@@ -66,7 +66,7 @@ TEST_CASE("nested_function.fail: trying to create a nested function", "[ast]") {
 TEST_CASE("return_func_invocation.pass: return a function call that calls "
           "another function",
           "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("return_func_invocation.pass"));
   auto *ast = driver.parse(&testfile, file("return_func_invocation.pass"));
 
@@ -95,7 +95,7 @@ TEST_CASE("return_func_invocation.pass: return a function call that calls "
 
 TEST_CASE("comment_in_expression.fail: if statement contains a comment",
           "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("comment_in_expression.fail"));
   auto *ast = driver.parse(&testfile, file("comment_in_expression.fail"));
 
@@ -103,7 +103,7 @@ TEST_CASE("comment_in_expression.fail: if statement contains a comment",
 }
 
 TEST_CASE("c_style_while.pass: c style while loop", "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("c_style_while.pass"));
   auto *ast = driver.parse(&testfile, file("c_style_while.pass"));
 
@@ -128,7 +128,7 @@ TEST_CASE("c_style_while.pass: c style while loop", "[ast]") {
 }
 
 TEST_CASE("parse.t2.fail : unterminated variable declaration", "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("parse.t2.fail"));
   auto *ast = driver.parse(&testfile, file("parse.t2.fail"));
 
@@ -138,7 +138,7 @@ TEST_CASE("parse.t2.fail : unterminated variable declaration", "[ast]") {
 TEST_CASE("parse.t19.pass: main function with nested if-else statement and "
           "null block statements",
           "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("parse.t19.pass"));
   auto *ast = driver.parse(&testfile, file("parse.t19.pass"));
 
@@ -170,7 +170,7 @@ TEST_CASE("parse.t19.pass: main function with nested if-else statement and "
 }
 
 TEST_CASE("parse.t21.pass: main function with math expressions", "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("parse.t21.pass"));
   auto *ast = driver.parse(&testfile, file("parse.t21.pass"));
 
@@ -217,7 +217,7 @@ TEST_CASE("parse.t21.pass: main function with math expressions", "[ast]") {
 
 TEST_CASE("parse.t22.pass: main function with unary minus sign expressions",
           "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("parse.t22.pass"));
   auto *ast = driver.parse(&testfile, file("parse.t22.pass"));
 
@@ -239,7 +239,7 @@ TEST_CASE("parse.t22.pass: main function with unary minus sign expressions",
 
 TEST_CASE("gen.t18.pass: recursive descend parser implemented in j--",
           "[ast]") {
-  yy::Driver driver;
+  yy::JayCompiler driver;
   std::ifstream testfile(file("gen.t18.pass"));
   auto *ast = driver.parse(&testfile, file("gen.t18.pass"));
 

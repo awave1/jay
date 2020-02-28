@@ -1,8 +1,8 @@
-#include "./include/Driver.hpp"
+#include "./include/JayCompiler.hpp"
 #include <fstream>
 #include <iostream>
 
-void build_ast(yy::Driver &driver, std::istream *is, std::string file) {
+void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
   auto *ast = driver.parse(is, file);
 
   if (ast) {
@@ -14,7 +14,7 @@ void build_ast(yy::Driver &driver, std::istream *is, std::string file) {
 }
 
 int main(int argc, char **argv) {
-  yy::Driver driver;
+  yy::JayCompiler driver;
 
   if (argc >= 2) {
     std::string filename = argv[1];

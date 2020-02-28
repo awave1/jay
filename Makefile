@@ -7,8 +7,8 @@ INCLUDE := -I ./src/include/ -I parser.tab.hh
 TESTINCLUDE := -I lib/catch2
 CXX = clang++
 
-HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/Driver.hpp
-SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/Driver.cpp
+HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/JayCompiler.hpp
+SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/JayCompiler.cpp
 
 .PHONY: all
 all: $(COMPILER)

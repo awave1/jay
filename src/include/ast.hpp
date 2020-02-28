@@ -8,6 +8,16 @@
 
 namespace yy {
 
+/**
+ * @brief ast_node_t is the definition of Abstract Syntax Tree for J--. Each
+ * node in the tree contains some of the following information:
+ *   - node type - the type of the node, defined using ast_node_t::Note
+ *   - string value - value associated with the node, e.g. numberical value of
+ * an int
+ *   - linenum - the line number where a token can be found
+ *
+ *
+ */
 struct ast_node_t {
   enum class Node {
     program,

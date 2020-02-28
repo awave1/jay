@@ -29,11 +29,27 @@ debug: $(COMPILER)
 
 .PHONY: test
 test: clean
+test: $(COMPILER)
 test: $(TEST_EXEC)
 
 $(TEST_EXEC): test/jay.test.cpp $(HEADERS) $(SOURCES)
 	$(CXX) -g $(TESTINCLUDE) $(DFLAGS) -I src/include test/jay.test.cpp $(SOURCES) -o $@
 	./$(TEST_EXEC)
 
+.PHONY: test_runner
+test_runner: clean
+test_runner: $(COMPILER)
+test_runner:
+	./test.sh $(COMPONENT)
+
+.PHONY: export
+export: clean
+export: ARCHIVE_NAME := artem-golovin-$(MSPART)
+export:
+	# weird extension, because ucalgary ¯\_(ツ)_/¯
+	git archive -o $(ARCHIVE_NAME).totallynotzip HEAD
+
 clear clean:
-	-rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER) $(TEST_EXEC)
+	@ echo "> cleaning build & misc files..."
+	@ -rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER) $(TEST_EXEC) *.totallynotzip 2> /dev/null
+	@ echo "> done"

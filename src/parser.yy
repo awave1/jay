@@ -1,13 +1,15 @@
 %skeleton "lalr1.cc"
 %define "parser_class_name" {Parser}
 
-%debug
-
 %{
-#include <iostream>
-#include <string>
-#include "src/include/ast.hpp"
-#define YYDEBUG 1
+  #include <iostream>
+  #include <string>
+  #include "src/include/ast.hpp"
+  #include "./src/include/JayCompiler.hpp"
+  #include "Lexer.h"
+
+  #undef yylex
+  #define yylex driver.lexer->lex
 %}
 
 %parse-param { struct JayCompiler& driver }
@@ -95,14 +97,6 @@
 %type<node> primary
 
 %start program
-
-%{
-  #include "./src/include/JayCompiler.hpp"
-  #include "Lexer.h"
-
-  #undef yylex
-  #define yylex driver.lexer->lex
-%}
 
 %%
 

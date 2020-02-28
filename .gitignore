@@ -17,3 +17,7 @@ tests/reference/*
 parser.tab.*
 stack.hh
 lex.yy.*
+
+# exported
+*.zip
+*.totallynotzip

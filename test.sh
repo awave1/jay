@@ -2,7 +2,7 @@
 
 # Run the scanner against any *.t* files found in test/data directory
 
-TEST_FILES=$(find "$PWD/test/$1" -name "*.t*")
+TEST_FILES=$(find "$PWD/test/$1" -name "*.*")
 COMPILER=$PWD/jay
 
 echo -e "running tests...\n"

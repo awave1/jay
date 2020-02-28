@@ -4,12 +4,19 @@
 
 > J-- Compiler
 
-## Building Process
+## Getting Started
 
-To build the scanner, run the following command
+These are the steps to build the parser
+
+### Building
+
+To build the parser:
 
 ```sh
-make build
+make
+
+# or
+make all
 ```
 
 To remove the compiled and generated files:
@@ -18,30 +25,61 @@ To remove the compiled and generated files:
 make clear
 ```
 
-## Running the scanner
+### Running the parser
 
-> Note: instead of using `make run...` you can call ./scanner <args> instead
-
-Typically, to run a scanner on a specified file, run the following command:
+Executable will be generated in the project root. To run it:
 
 ```sh
-make run ARGS="./test/data/legit-token-salad.t3"
-
-# or
-./scanner ./test/data/legit-token-salad.t3
+./jay <path to a file>
 ```
 
-## Run tests
+If no file is specified, the parser will fallback to reading from `stdin`.
 
-> Note: instead of using `make test...` you can call ./test.sh <args> instead.
+### Running tests
 
-The `test.sh` runs all of the test files in the `test/data` directory. To run a single file, refer to **'Running the scanner'** section above.
+The project contains a regular, simple test runner and some unit tests. All test files are located in `test` directory.
 
-To run the tests, run the following command
+#### Test runner
+
+The `test.sh <dirname>` runs all of the test files in the `test/<dirname>` directory. To run a single file, refer to **'Running the parser'** section above.
+
+To run the test runner, run the following command (it will perform a clean build):
+
+```sh
+make test_runner
+```
+
+> Note: instead of using `make test...` you can also call ./test.sh <args> instead (ensure to make it executable using `chmod +x ./test.sh`).
+
+#### Unit Tests
+
+The project contains a test suite, built using [Catch2](https://github.com/catchorg/Catch2) test framework. To run the tests:
 
 ```sh
 make test
 ```
+
+`make test` will perform a clean build of both test and regular executables. The test executable that it produces, will be located in the project root. To run it:
+
+```sh
+./jay.test
+```
+
+To display more verbose output:
+
+```sh
+./jay.test -s
+```
+
+To display all possible options,
+
+```sh
+./jay.test -?
+
+# if using fish shell:
+./jay.test "-?"
+```
+
 
 ## Author
 

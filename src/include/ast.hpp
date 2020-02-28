@@ -19,6 +19,9 @@ namespace yy {
  *
  */
 struct ast_node_t {
+  /**
+   * @brief enum class that contains all possible node types in the AST
+   */
   enum class Node {
     program,
     main_func_decl,
@@ -73,6 +76,12 @@ struct ast_node_t {
   // ast children
   std::vector<ast_node_t *> children;
 
+  /**
+   * @brief find all direct children of specified type
+   *
+   * @param node_type type of node to be found
+   * @return std::vector<ast_node_t *> all nodes of specified type
+   */
   std::vector<ast_node_t *> find_all(Node node_type) {
     std::vector<ast_node_t *> res;
     std::copy_if(children.begin(), children.end(), std::back_inserter(res),
@@ -81,6 +90,13 @@ struct ast_node_t {
     return res;
   }
 
+  /**
+   * @brief finds all nodes with specified type and returns first, if found
+   * nodes exist
+   *
+   * @param node_type type of node to be found
+   * @return ast_node_t* single node, if it exists, nullptr otherwise
+   */
   ast_node_t *find_first(Node node_type) {
     auto nodes = find_all(node_type);
     if (!nodes.empty()) {
@@ -90,16 +106,40 @@ struct ast_node_t {
     return nullptr;
   }
 
+  /**
+   * @brief search for nodes of specified type recursively and return all
+   * matches
+   *
+   * @param node_type type of node to be found
+   * @return std::vector<ast_node_t *> all possible nodes of specified node type
+   */
   std::vector<ast_node_t *> find_recursive(Node node_type) {
     auto res = std::vector<ast_node_t *>();
     _find_recursive(this, node_type, res);
     return res;
   }
 
+  /**
+   * @brief check if a node is numeric
+   *
+   * @return true if it is a number
+   * @return false otherwise
+   */
   bool is_num() const { return type == Node::number; }
 
+  /**
+   * @brief check if a node has value set
+   *
+   * @return true if it has value st
+   * @return false otherwise
+   */
   bool has_value() const { return !value.empty(); }
 
+  /**
+   * @brief Get the type of the object
+   *
+   * @return std::string human readable representation of the type
+   */
   std::string get_type() const {
     switch (type) {
     case Node::program:
@@ -184,8 +224,16 @@ struct ast_node_t {
   }
 
 private:
-  inline void _find_recursive(ast_node_t *node, ast_node_t::Node node_type,
-                              std::vector<ast_node_t *> &res) {
+  /**
+   * @brief helper method for recursive node finder. starts searching from given
+   * node and writes results to specified vector
+   *
+   * @param node node to start search from
+   * @param node_type desired node type
+   * @param res resulting vector with all found nodes
+   */
+  void _find_recursive(ast_node_t *node, ast_node_t::Node node_type,
+                       std::vector<ast_node_t *> &res) {
     if (node->children.empty()) {
       return;
     }
@@ -203,20 +251,13 @@ private:
 
 using ast_node_t = yy::ast_node_t;
 
-inline void find_recursive(ast_node_t *node, ast_node_t::Node node_type,
-                           std::vector<ast_node_t *> &res) {
-  if (node->children.empty()) {
-    return;
-  }
-
-  for (auto *next : node->children) {
-    std::copy_if(next->children.begin(), next->children.end(),
-                 std::back_inserter(res),
-                 [&node_type](ast_node_t *n) { return n->type == node_type; });
-    find_recursive(next, node_type, res);
-  }
-}
-
+/**
+ * @brief pretty print given ast_node_t (and its children)
+ *
+ * @param os output stream
+ * @param node node to print
+ * @param depth value that specifies how deep down the tree should it go
+ */
 inline void print_ast_node(std::ostream &os, const ast_node_t &node,
                            int depth) {
   for (int i = 0; i < depth; i++) {

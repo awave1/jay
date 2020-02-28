@@ -1,39 +1,55 @@
-CXX=gcc
-CFLAGS=-Wall -std=c11
+COMPILER = jay
+TEST_EXEC = jay.test
+CXXFLAGS = -Wall -std=c++17
+LDFLAGS = -lfl
+DFLAGS := 
+INCLUDE := -I ./src/include/ -I parser.tab.hh
+TESTINCLUDE := -I lib/catch2
+CXX = clang++
 
-FLEX=flex
+HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/JayCompiler.hpp
+SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/JayCompiler.cpp
 
-SRC=./src
-BUILD=./build
-GENERATED_SRC=$(BUILD)/generated-sources
-BIN=$(BUILD)/bin
-TARGET=scanner
-LEX_EXT=yy.c
+.PHONY: all
+all: $(COMPILER)
 
-SOURCE = \
-				 src/string_builder.c
+lex.yy.cc: src/scanner.l
+	flex src/scanner.l
 
-HEADERS = \
-					src/include/string_builder.h
+parser.tab.hh parser.tab.cc &: src/parser.yy
+	bison -t -d src/parser.yy
 
-scanner:
-	$(FLEX) -o $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SRC)/scanner/scanner.l
+$(COMPILER): $(SOURCES) $(HEADERS)
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $@ ./src/main.cpp $(SOURCES) $(LDFLAGS)
 
-run:
-	$(BIN)/scanner ${ARGS}
+.PHONY: debug
+debug: DFLAGS=-g -DYYTRACE
+debug: clear
+debug: $(COMPILER)
 
-build: $(SOURCE) $(HEADERS)
-	mkdir -p $(BUILD)
-	mkdir -p $(BIN)
-	mkdir -p $(GENERATED_SRC)
-	$(MAKE) scanner
-	$(CXX) $(CFLAGS) $(GENERATED_SRC)/$(TARGET).$(LEX_EXT) $(SOURCE) -o $(BIN)/$(TARGET) -ll
-	ln -s $(BIN)/$(TARGET) $(TARGET)
+.PHONY: test
+test: clean
+test: $(COMPILER)
+test: $(TEST_EXEC)
 
-test: clear build
-	chmod +x ./test.sh
-	./test.sh
+$(TEST_EXEC): test/jay.test.cpp $(HEADERS) $(SOURCES)
+	$(CXX) -g $(TESTINCLUDE) $(DFLAGS) -I src/include test/jay.test.cpp $(SOURCES) -o $@
+	./$(TEST_EXEC)
 
-clear:
-	rm -rf build
-	rm $(TARGET)
+.PHONY: test_runner
+test_runner: clean
+test_runner: $(COMPILER)
+test_runner:
+	@ chmod +x ./test.sh
+	./test.sh $(COMPONENT)
+
+.PHONY: export
+export: clean
+export: ARCHIVE_NAME := artem-golovin-$(MSPART)
+export:
+	git archive -o $(ARCHIVE_NAME).zip HEAD
+
+clear clean:
+	@ echo "> cleaning build & misc files..."
+	@ -rm stack.hh *.tab.cc *.tab.hh *.yy.cc $(COMPILER) $(TEST_EXEC) *.totallynotzip 2> /dev/null
+	@ echo "> done"

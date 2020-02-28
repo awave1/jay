@@ -1,0 +1,898 @@
+Script started on 2020-02-28 13:17:56-07:00 [TERM="xterm-256color" TTY="/dev/pts/92" COLUMNS="170" LINES="33"]
+]0;artem.golovin@csx:~/dev/jayartem.golovin@csx:~/dev/jay$ make
+flex src/scanner.l
+bison -t -d src/parser.yy
+src/parser.yy: warning: 1 shift/reduce conflict [-Wconflicts-sr]
+clang++ -Wall -std=c++17  -o jay ./src/main.cpp lex.yy.cc parser.tab.cc src/string_builder.c src/JayCompiler.cpp -lfl
+clang-8: [0;1;35mwarning: [0mtreating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated][0m
+]0;artem.golovin@csx:~/dev/jayartem.golovin@csx:~/dev/jay$ make test_runner COMPONENT=parser
+> cleaning build & misc files...
+make: [Makefile:55: clean] Error 1 (ignored)
+> done
+flex src/scanner.l
+bison -t -d src/parser.yy
+src/parser.yy: warning: 1 shift/reduce conflict [-Wconflicts-sr]
+clang++ -Wall -std=c++17  -o jay ./src/main.cpp lex.yy.cc parser.tab.cc src/string_builder.c src/JayCompiler.cpp -lfl
+clang-8: [0;1;35mwarning: [0mtreating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated][0m
+./test.sh parser
+running tests...
+
+/home/uga/artem.golovin/dev/jay/test/parser/parse.t21.pass: AST
+program {  line: 5 }
+.  main_func_decl {  line: 4 }
+.  .  void {  line: 4 }
+.  .  id { value: 'main' line: 1 }
+.  .  formal_params {  }
+.  .  block {  line: 4 }
+.  .  .  statement_expt {  line: 2 }
+.  .  .  .  = {  line: 2 }
+.  .  .  .  .  id { value: 'x' line: 2 }
+.  .  .  .  .  + {  line: 2 }
+.  .  .  .  .  .  number { value: '1' line: 2 }
+.  .  .  .  .  .  * {  line: 2 }
+.  .  .  .  .  .  .  number { value: '2' line: 2 }
+.  .  .  .  .  .  .  number { value: '3' line: 2 }
+.  .  .  statement_expt {  line: 3 }
+.  .  .  .  = {  line: 3 }
+.  .  .  .  .  id { value: 'x' line: 3 }
+.  .  .  .  .  * {  line: 3 }
+.  .  .  .  .  .  + {  line: 3 }
+.  .  .  .  .  .  .  number { value: '1' line: 3 }
+.  .  .  .  .  .  .  number { value: '2' line: 3 }
+.  .  .  .  .  .  number { value: '3' line: 3 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/gen.t18.pass: AST
+program {  line: 246 }
+.  main_func_decl {  line: 9 }
+.  .  void {  line: 9 }
+.  .  id { value: 'calculator' line: 5 }
+.  .  formal_params {  }
+.  .  block {  line: 9 }
+.  .  .  statement_expt {  line: 7 }
+.  .  .  .  function_call {  line: 7 }
+.  .  .  .  .  id { value: 'init' line: 7 }
+.  .  .  .  .  actual_params {  }
+.  .  .  statement_expt {  line: 8 }
+.  .  .  .  function_call {  line: 8 }
+.  .  .  .  .  id { value: 'parser' line: 8 }
+.  .  .  .  .  actual_params {  }
+.  global_var_decl {  line: 15 }
+.  .  boolean {  line: 15 }
+.  .  id { value: '_havechar' line: 15 }
+.  global_var_decl {  line: 16 }
+.  .  int {  line: 16 }
+.  .  id { value: '_char' line: 16 }
+.  function_decl {  line: 25 }
+.  .  int {  line: 18 }
+.  .  id { value: 'getc' line: 18 }
+.  .  formal_params {  }
+.  .  block {  line: 25 }
+.  .  .  if {  line: 24 }
+.  .  .  .  id { value: '_havechar' line: 20 }
+.  .  .  .  block {  line: 23 }
+.  .  .  .  .  statement_expt {  line: 21 }
+.  .  .  .  .  .  = {  line: 21 }
+.  .  .  .  .  .  .  id { value: '_havechar' line: 21 }
+.  .  .  .  .  .  .  boolean { value: 'false' line: 21 }
+.  .  .  .  .  return {  line: 22 }
+.  .  .  .  .  .  id { value: '_char' line: 22 }
+.  .  .  return {  line: 24 }
+.  .  .  .  function_call {  line: 24 }
+.  .  .  .  .  id { value: 'getchar' line: 24 }
+.  .  .  .  .  actual_params {  }
+.  function_decl {  line: 35 }
+.  .  void {  line: 35 }
+.  .  id { value: 'ungetc' line: 27 }
+.  .  formal_params {  }
+.  .  .  formal {  line: 27 }
+.  .  .  .  int {  line: 27 }
+.  .  .  .  id { value: 'ch' line: 27 }
+.  .  block {  line: 35 }
+.  .  .  if {  line: 33 }
+.  .  .  .  id { value: '_havechar' line: 29 }
+.  .  .  .  block {  line: 32 }
+.  .  .  .  .  statement_expt {  line: 30 }
+.  .  .  .  .  .  function_call {  line: 30 }
+.  .  .  .  .  .  .  id { value: 'prints' line: 30 }
+.  .  .  .  .  .  .  actual_params {  line: 30 }
+.  .  .  .  .  .  .  .  string { value: 'Internal error: too many ungets!\n' line: 30 }
+.  .  .  .  .  statement_expt {  line: 31 }
+.  .  .  .  .  .  function_call {  line: 31 }
+.  .  .  .  .  .  .  id { value: 'halt' line: 31 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  statement_expt {  line: 33 }
+.  .  .  .  = {  line: 33 }
+.  .  .  .  .  id { value: '_havechar' line: 33 }
+.  .  .  .  .  boolean { value: 'true' line: 33 }
+.  .  .  statement_expt {  line: 34 }
+.  .  .  .  = {  line: 34 }
+.  .  .  .  .  id { value: '_char' line: 34 }
+.  .  .  .  .  id { value: 'ch' line: 34 }
+.  global_var_decl {  line: 41 }
+.  .  boolean {  line: 41 }
+.  .  id { value: '_havetoken' line: 41 }
+.  global_var_decl {  line: 42 }
+.  .  int {  line: 42 }
+.  .  id { value: '_token' line: 42 }
+.  global_var_decl {  line: 43 }
+.  .  int {  line: 43 }
+.  .  id { value: 'attr' line: 43 }
+.  function_decl {  line: 52 }
+.  .  int {  line: 45 }
+.  .  id { value: 'peek' line: 45 }
+.  .  formal_params {  }
+.  .  block {  line: 52 }
+.  .  .  if {  line: 50 }
+.  .  .  .  id { value: '_havetoken' line: 47 }
+.  .  .  .  return {  line: 48 }
+.  .  .  .  .  id { value: '_token' line: 48 }
+.  .  .  statement_expt {  line: 50 }
+.  .  .  .  = {  line: 50 }
+.  .  .  .  .  id { value: '_havetoken' line: 50 }
+.  .  .  .  .  boolean { value: 'true' line: 50 }
+.  .  .  return {  line: 51 }
+.  .  .  .  = {  line: 51 }
+.  .  .  .  .  id { value: '_token' line: 51 }
+.  .  .  .  .  function_call {  line: 51 }
+.  .  .  .  .  .  id { value: 'scanner' line: 51 }
+.  .  .  .  .  .  actual_params {  }
+.  function_decl {  line: 63 }
+.  .  void {  line: 63 }
+.  .  id { value: 'match' line: 54 }
+.  .  formal_params {  }
+.  .  .  formal {  line: 54 }
+.  .  .  .  int {  line: 54 }
+.  .  .  .  id { value: 'expect' line: 54 }
+.  .  block {  line: 63 }
+.  .  .  if {  line: 62 }
+.  .  .  .  != {  line: 56 }
+.  .  .  .  .  function_call {  line: 56 }
+.  .  .  .  .  .  id { value: 'peek' line: 56 }
+.  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  id { value: 'expect' line: 56 }
+.  .  .  .  block {  line: 61 }
+.  .  .  .  .  statement_expt {  line: 57 }
+.  .  .  .  .  .  function_call {  line: 57 }
+.  .  .  .  .  .  .  id { value: 'prints' line: 57 }
+.  .  .  .  .  .  .  actual_params {  line: 57 }
+.  .  .  .  .  .  .  .  string { value: 'Error: expected ' line: 57 }
+.  .  .  .  .  statement_expt {  line: 58 }
+.  .  .  .  .  .  function_call {  line: 58 }
+.  .  .  .  .  .  .  id { value: 'printc' line: 58 }
+.  .  .  .  .  .  .  actual_params {  line: 58 }
+.  .  .  .  .  .  .  .  id { value: 'expect' line: 58 }
+.  .  .  .  .  statement_expt {  line: 59 }
+.  .  .  .  .  .  function_call {  line: 59 }
+.  .  .  .  .  .  .  id { value: 'prints' line: 59 }
+.  .  .  .  .  .  .  actual_params {  line: 59 }
+.  .  .  .  .  .  .  .  string { value: '\n' line: 59 }
+.  .  .  .  .  statement_expt {  line: 60 }
+.  .  .  .  .  .  function_call {  line: 60 }
+.  .  .  .  .  .  .  id { value: 'halt' line: 60 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  statement_expt {  line: 62 }
+.  .  .  .  = {  line: 62 }
+.  .  .  .  .  id { value: '_havetoken' line: 62 }
+.  .  .  .  .  boolean { value: 'false' line: 62 }
+.  function_decl {  line: 93 }
+.  .  int {  line: 65 }
+.  .  id { value: 'scanner' line: 65 }
+.  .  formal_params {  }
+.  .  block {  line: 93 }
+.  .  .  variable_decl {  line: 67 }
+.  .  .  .  int {  line: 67 }
+.  .  .  .  id { value: 'ch' line: 67 }
+.  .  .  while {  line: 70 }
+.  .  .  .  function_call {  line: 69 }
+.  .  .  .  .  id { value: 'isspace' line: 69 }
+.  .  .  .  .  actual_params {  line: 69 }
+.  .  .  .  .  .  = {  line: 69 }
+.  .  .  .  .  .  .  id { value: 'ch' line: 69 }
+.  .  .  .  .  .  .  function_call {  line: 69 }
+.  .  .  .  .  .  .  .  id { value: 'getc' line: 69 }
+.  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  null_statement {  line: 70 }
+.  .  .  if {  line: 73 }
+.  .  .  .  == {  line: 72 }
+.  .  .  .  .  id { value: 'ch' line: 72 }
+.  .  .  .  .  id { value: 'EOF' line: 72 }
+.  .  .  .  return {  line: 72 }
+.  .  .  .  .  id { value: 'TK_EOF' line: 72 }
+.  .  .  if {  line: 74 }
+.  .  .  .  == {  line: 73 }
+.  .  .  .  .  id { value: 'ch' line: 73 }
+.  .  .  .  .  id { value: 'ASCII_NL' line: 73 }
+.  .  .  .  return {  line: 73 }
+.  .  .  .  .  id { value: 'TK_EOLN' line: 73 }
+.  .  .  if {  line: 75 }
+.  .  .  .  == {  line: 74 }
+.  .  .  .  .  id { value: 'ch' line: 74 }
+.  .  .  .  .  id { value: 'ASCII_PLUS' line: 74 }
+.  .  .  .  return {  line: 74 }
+.  .  .  .  .  id { value: 'TK_ADD' line: 74 }
+.  .  .  if {  line: 76 }
+.  .  .  .  == {  line: 75 }
+.  .  .  .  .  id { value: 'ch' line: 75 }
+.  .  .  .  .  id { value: 'ASCII_MINUS' line: 75 }
+.  .  .  .  return {  line: 75 }
+.  .  .  .  .  id { value: 'TK_SUB' line: 75 }
+.  .  .  if {  line: 77 }
+.  .  .  .  == {  line: 76 }
+.  .  .  .  .  id { value: 'ch' line: 76 }
+.  .  .  .  .  id { value: 'ASCII_STAR' line: 76 }
+.  .  .  .  return {  line: 76 }
+.  .  .  .  .  id { value: 'TK_MUL' line: 76 }
+.  .  .  if {  line: 78 }
+.  .  .  .  == {  line: 77 }
+.  .  .  .  .  id { value: 'ch' line: 77 }
+.  .  .  .  .  id { value: 'ASCII_SLASH' line: 77 }
+.  .  .  .  return {  line: 77 }
+.  .  .  .  .  id { value: 'TK_DIV' line: 77 }
+.  .  .  if {  line: 79 }
+.  .  .  .  == {  line: 78 }
+.  .  .  .  .  id { value: 'ch' line: 78 }
+.  .  .  .  .  id { value: 'ASCII_LPAREN' line: 78 }
+.  .  .  .  return {  line: 78 }
+.  .  .  .  .  id { value: 'TK_LPAREN' line: 78 }
+.  .  .  if {  line: 81 }
+.  .  .  .  == {  line: 79 }
+.  .  .  .  .  id { value: 'ch' line: 79 }
+.  .  .  .  .  id { value: 'ASCII_RPAREN' line: 79 }
+.  .  .  .  return {  line: 79 }
+.  .  .  .  .  id { value: 'TK_RPAREN' line: 79 }
+.  .  .  if {  line: 91 }
+.  .  .  .  function_call {  line: 81 }
+.  .  .  .  .  id { value: 'isdigit' line: 81 }
+.  .  .  .  .  actual_params {  line: 81 }
+.  .  .  .  .  .  id { value: 'ch' line: 81 }
+.  .  .  .  block {  line: 89 }
+.  .  .  .  .  statement_expt {  line: 82 }
+.  .  .  .  .  .  = {  line: 82 }
+.  .  .  .  .  .  .  id { value: 'attr' line: 82 }
+.  .  .  .  .  .  .  number { value: '0' line: 82 }
+.  .  .  .  .  while {  line: 86 }
+.  .  .  .  .  .  function_call {  line: 83 }
+.  .  .  .  .  .  .  id { value: 'isdigit' line: 83 }
+.  .  .  .  .  .  .  actual_params {  line: 83 }
+.  .  .  .  .  .  .  .  id { value: 'ch' line: 83 }
+.  .  .  .  .  .  block {  line: 86 }
+.  .  .  .  .  .  .  statement_expt {  line: 84 }
+.  .  .  .  .  .  .  .  = {  line: 84 }
+.  .  .  .  .  .  .  .  .  id { value: 'attr' line: 84 }
+.  .  .  .  .  .  .  .  .  + {  line: 84 }
+.  .  .  .  .  .  .  .  .  .  * {  line: 84 }
+.  .  .  .  .  .  .  .  .  .  .  id { value: 'attr' line: 84 }
+.  .  .  .  .  .  .  .  .  .  .  number { value: '10' line: 84 }
+.  .  .  .  .  .  .  .  .  .  - {  line: 84 }
+.  .  .  .  .  .  .  .  .  .  .  id { value: 'ch' line: 84 }
+.  .  .  .  .  .  .  .  .  .  .  id { value: 'ASCII_0' line: 84 }
+.  .  .  .  .  .  .  statement_expt {  line: 85 }
+.  .  .  .  .  .  .  .  = {  line: 85 }
+.  .  .  .  .  .  .  .  .  id { value: 'ch' line: 85 }
+.  .  .  .  .  .  .  .  .  function_call {  line: 85 }
+.  .  .  .  .  .  .  .  .  .  id { value: 'getc' line: 85 }
+.  .  .  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  statement_expt {  line: 87 }
+.  .  .  .  .  .  function_call {  line: 87 }
+.  .  .  .  .  .  .  id { value: 'ungetc' line: 87 }
+.  .  .  .  .  .  .  actual_params {  line: 87 }
+.  .  .  .  .  .  .  .  id { value: 'ch' line: 87 }
+.  .  .  .  .  return {  line: 88 }
+.  .  .  .  .  .  id { value: 'TK_NUMBER' line: 88 }
+.  .  .  statement_expt {  line: 91 }
+.  .  .  .  function_call {  line: 91 }
+.  .  .  .  .  id { value: 'prints' line: 91 }
+.  .  .  .  .  actual_params {  line: 91 }
+.  .  .  .  .  .  string { value: 'Error: invalid character.\n' line: 91 }
+.  .  .  statement_expt {  line: 92 }
+.  .  .  .  function_call {  line: 92 }
+.  .  .  .  .  id { value: 'halt' line: 92 }
+.  .  .  .  .  actual_params {  }
+.  function_decl {  line: 98 }
+.  .  boolean {  line: 95 }
+.  .  id { value: 'isdigit' line: 95 }
+.  .  formal_params {  }
+.  .  .  formal {  line: 95 }
+.  .  .  .  int {  line: 95 }
+.  .  .  .  id { value: 'ch' line: 95 }
+.  .  block {  line: 98 }
+.  .  .  return {  line: 97 }
+.  .  .  .  && {  line: 97 }
+.  .  .  .  .  >= {  line: 97 }
+.  .  .  .  .  .  id { value: 'ch' line: 97 }
+.  .  .  .  .  .  id { value: 'ASCII_0' line: 97 }
+.  .  .  .  .  <= {  line: 97 }
+.  .  .  .  .  .  id { value: 'ch' line: 97 }
+.  .  .  .  .  .  id { value: 'ASCII_9' line: 97 }
+.  function_decl {  line: 105 }
+.  .  boolean {  line: 100 }
+.  .  id { value: 'isspace' line: 100 }
+.  .  formal_params {  }
+.  .  .  formal {  line: 100 }
+.  .  .  .  int {  line: 100 }
+.  .  .  .  id { value: 'ch' line: 100 }
+.  .  block {  line: 105 }
+.  .  .  return {  line: 104 }
+.  .  .  .  || {  line: 104 }
+.  .  .  .  .  || {  line: 103 }
+.  .  .  .  .  .  == {  line: 102 }
+.  .  .  .  .  .  .  id { value: 'ch' line: 102 }
+.  .  .  .  .  .  .  id { value: 'ASCII_SPACE' line: 102 }
+.  .  .  .  .  .  == {  line: 103 }
+.  .  .  .  .  .  .  id { value: 'ch' line: 103 }
+.  .  .  .  .  .  .  id { value: 'ASCII_TAB' line: 103 }
+.  .  .  .  .  == {  line: 104 }
+.  .  .  .  .  .  id { value: 'ch' line: 104 }
+.  .  .  .  .  .  id { value: 'ASCII_CR' line: 104 }
+.  function_decl {  line: 123 }
+.  .  void {  line: 123 }
+.  .  id { value: 'parser' line: 111 }
+.  .  block {  line: 123 }
+.  .  .  variable_decl {  line: 113 }
+.  .  .  .  int {  line: 113 }
+.  .  .  .  id { value: 'result' line: 113 }
+.  .  .  while {  line: 122 }
+.  .  .  .  != {  line: 115 }
+.  .  .  .  .  function_call {  line: 115 }
+.  .  .  .  .  .  id { value: 'peek' line: 115 }
+.  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  id { value: 'TK_EOF' line: 115 }
+.  .  .  .  block {  line: 122 }
+.  .  .  .  .  statement_expt {  line: 116 }
+.  .  .  .  .  .  = {  line: 116 }
+.  .  .  .  .  .  .  id { value: 'result' line: 116 }
+.  .  .  .  .  .  .  function_call {  line: 116 }
+.  .  .  .  .  .  .  .  id { value: 'E' line: 116 }
+.  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  statement_expt {  line: 117 }
+.  .  .  .  .  .  function_call {  line: 117 }
+.  .  .  .  .  .  .  id { value: 'match' line: 117 }
+.  .  .  .  .  .  .  actual_params {  line: 117 }
+.  .  .  .  .  .  .  .  id { value: 'TK_EOLN' line: 117 }
+.  .  .  .  .  statement_expt {  line: 119 }
+.  .  .  .  .  .  function_call {  line: 119 }
+.  .  .  .  .  .  .  id { value: 'prints' line: 119 }
+.  .  .  .  .  .  .  actual_params {  line: 119 }
+.  .  .  .  .  .  .  .  string { value: ' = ' line: 119 }
+.  .  .  .  .  statement_expt {  line: 120 }
+.  .  .  .  .  .  function_call {  line: 120 }
+.  .  .  .  .  .  .  id { value: 'printi' line: 120 }
+.  .  .  .  .  .  .  actual_params {  line: 120 }
+.  .  .  .  .  .  .  .  id { value: 'result' line: 120 }
+.  .  .  .  .  statement_expt {  line: 121 }
+.  .  .  .  .  .  function_call {  line: 121 }
+.  .  .  .  .  .  .  id { value: 'prints' line: 121 }
+.  .  .  .  .  .  .  actual_params {  line: 121 }
+.  .  .  .  .  .  .  .  string { value: '\n' line: 121 }
+.  function_decl {  line: 142 }
+.  .  int {  line: 125 }
+.  .  id { value: 'E' line: 125 }
+.  .  formal_params {  }
+.  .  block {  line: 142 }
+.  .  .  variable_decl {  line: 127 }
+.  .  .  .  int {  line: 127 }
+.  .  .  .  id { value: 'l' line: 127 }
+.  .  .  variable_decl {  line: 128 }
+.  .  .  .  int {  line: 128 }
+.  .  .  .  id { value: 'r' line: 128 }
+.  .  .  variable_decl {  line: 129 }
+.  .  .  .  int {  line: 129 }
+.  .  .  .  id { value: 'token' line: 129 }
+.  .  .  statement_expt {  line: 131 }
+.  .  .  .  = {  line: 131 }
+.  .  .  .  .  id { value: 'l' line: 131 }
+.  .  .  .  .  function_call {  line: 131 }
+.  .  .  .  .  .  id { value: 'T' line: 131 }
+.  .  .  .  .  .  actual_params {  }
+.  .  .  while {  line: 140 }
+.  .  .  .  || {  line: 132 }
+.  .  .  .  .  == {  line: 132 }
+.  .  .  .  .  .  function_call {  line: 132 }
+.  .  .  .  .  .  .  id { value: 'peek' line: 132 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  .  id { value: 'TK_ADD' line: 132 }
+.  .  .  .  .  == {  line: 132 }
+.  .  .  .  .  .  function_call {  line: 132 }
+.  .  .  .  .  .  .  id { value: 'peek' line: 132 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  .  id { value: 'TK_SUB' line: 132 }
+.  .  .  .  block {  line: 140 }
+.  .  .  .  .  statement_expt {  line: 133 }
+.  .  .  .  .  .  function_call {  line: 133 }
+.  .  .  .  .  .  .  id { value: 'match' line: 133 }
+.  .  .  .  .  .  .  actual_params {  line: 133 }
+.  .  .  .  .  .  .  .  = {  line: 133 }
+.  .  .  .  .  .  .  .  .  id { value: 'token' line: 133 }
+.  .  .  .  .  .  .  .  .  function_call {  line: 133 }
+.  .  .  .  .  .  .  .  .  .  id { value: 'peek' line: 133 }
+.  .  .  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  statement_expt {  line: 134 }
+.  .  .  .  .  .  = {  line: 134 }
+.  .  .  .  .  .  .  id { value: 'r' line: 134 }
+.  .  .  .  .  .  .  function_call {  line: 134 }
+.  .  .  .  .  .  .  .  id { value: 'T' line: 134 }
+.  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  if_else {  line: 139 }
+.  .  .  .  .  .  == {  line: 136 }
+.  .  .  .  .  .  .  id { value: 'token' line: 136 }
+.  .  .  .  .  .  .  id { value: 'TK_ADD' line: 136 }
+.  .  .  .  .  .  statement_expt {  line: 137 }
+.  .  .  .  .  .  .  = {  line: 137 }
+.  .  .  .  .  .  .  .  id { value: 'l' line: 137 }
+.  .  .  .  .  .  .  .  + {  line: 137 }
+.  .  .  .  .  .  .  .  .  id { value: 'l' line: 137 }
+.  .  .  .  .  .  .  .  .  id { value: 'r' line: 137 }
+.  .  .  .  .  .  statement_expt {  line: 139 }
+.  .  .  .  .  .  .  = {  line: 139 }
+.  .  .  .  .  .  .  .  id { value: 'l' line: 139 }
+.  .  .  .  .  .  .  .  - {  line: 139 }
+.  .  .  .  .  .  .  .  .  id { value: 'l' line: 139 }
+.  .  .  .  .  .  .  .  .  id { value: 'r' line: 139 }
+.  .  .  return {  line: 141 }
+.  .  .  .  id { value: 'l' line: 141 }
+.  function_decl {  line: 161 }
+.  .  int {  line: 144 }
+.  .  id { value: 'T' line: 144 }
+.  .  formal_params {  }
+.  .  block {  line: 161 }
+.  .  .  variable_decl {  line: 146 }
+.  .  .  .  int {  line: 146 }
+.  .  .  .  id { value: 'l' line: 146 }
+.  .  .  variable_decl {  line: 147 }
+.  .  .  .  int {  line: 147 }
+.  .  .  .  id { value: 'r' line: 147 }
+.  .  .  variable_decl {  line: 148 }
+.  .  .  .  int {  line: 148 }
+.  .  .  .  id { value: 'token' line: 148 }
+.  .  .  statement_expt {  line: 150 }
+.  .  .  .  = {  line: 150 }
+.  .  .  .  .  id { value: 'l' line: 150 }
+.  .  .  .  .  function_call {  line: 150 }
+.  .  .  .  .  .  id { value: 'F' line: 150 }
+.  .  .  .  .  .  actual_params {  }
+.  .  .  while {  line: 159 }
+.  .  .  .  || {  line: 151 }
+.  .  .  .  .  == {  line: 151 }
+.  .  .  .  .  .  function_call {  line: 151 }
+.  .  .  .  .  .  .  id { value: 'peek' line: 151 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  .  id { value: 'TK_MUL' line: 151 }
+.  .  .  .  .  == {  line: 151 }
+.  .  .  .  .  .  function_call {  line: 151 }
+.  .  .  .  .  .  .  id { value: 'peek' line: 151 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  .  id { value: 'TK_DIV' line: 151 }
+.  .  .  .  block {  line: 159 }
+.  .  .  .  .  statement_expt {  line: 152 }
+.  .  .  .  .  .  function_call {  line: 152 }
+.  .  .  .  .  .  .  id { value: 'match' line: 152 }
+.  .  .  .  .  .  .  actual_params {  line: 152 }
+.  .  .  .  .  .  .  .  = {  line: 152 }
+.  .  .  .  .  .  .  .  .  id { value: 'token' line: 152 }
+.  .  .  .  .  .  .  .  .  function_call {  line: 152 }
+.  .  .  .  .  .  .  .  .  .  id { value: 'peek' line: 152 }
+.  .  .  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  statement_expt {  line: 153 }
+.  .  .  .  .  .  = {  line: 153 }
+.  .  .  .  .  .  .  id { value: 'r' line: 153 }
+.  .  .  .  .  .  .  function_call {  line: 153 }
+.  .  .  .  .  .  .  .  id { value: 'F' line: 153 }
+.  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  if_else {  line: 158 }
+.  .  .  .  .  .  == {  line: 155 }
+.  .  .  .  .  .  .  id { value: 'token' line: 155 }
+.  .  .  .  .  .  .  id { value: 'TK_MUL' line: 155 }
+.  .  .  .  .  .  statement_expt {  line: 156 }
+.  .  .  .  .  .  .  = {  line: 156 }
+.  .  .  .  .  .  .  .  id { value: 'l' line: 156 }
+.  .  .  .  .  .  .  .  * {  line: 156 }
+.  .  .  .  .  .  .  .  .  id { value: 'l' line: 156 }
+.  .  .  .  .  .  .  .  .  id { value: 'r' line: 156 }
+.  .  .  .  .  .  statement_expt {  line: 158 }
+.  .  .  .  .  .  .  = {  line: 158 }
+.  .  .  .  .  .  .  .  id { value: 'l' line: 158 }
+.  .  .  .  .  .  .  .  / {  line: 158 }
+.  .  .  .  .  .  .  .  .  id { value: 'l' line: 158 }
+.  .  .  .  .  .  .  .  .  id { value: 'r' line: 158 }
+.  .  .  return {  line: 160 }
+.  .  .  .  id { value: 'l' line: 160 }
+.  function_decl {  line: 188 }
+.  .  int {  line: 163 }
+.  .  id { value: 'F' line: 163 }
+.  .  formal_params {  }
+.  .  block {  line: 188 }
+.  .  .  variable_decl {  line: 165 }
+.  .  .  .  int {  line: 165 }
+.  .  .  .  id { value: 'result' line: 165 }
+.  .  .  variable_decl {  line: 167 }
+.  .  .  .  int {  line: 167 }
+.  .  .  .  id { value: 'token' line: 167 }
+.  .  .  statement_expt {  line: 168 }
+.  .  .  .  = {  line: 168 }
+.  .  .  .  .  id { value: 'token' line: 168 }
+.  .  .  .  .  function_call {  line: 168 }
+.  .  .  .  .  .  id { value: 'peek' line: 168 }
+.  .  .  .  .  .  actual_params {  }
+.  .  .  if_else {  line: 186 }
+.  .  .  .  == {  line: 170 }
+.  .  .  .  .  id { value: 'token' line: 170 }
+.  .  .  .  .  id { value: 'TK_LPAREN' line: 170 }
+.  .  .  .  block {  line: 175 }
+.  .  .  .  .  statement_expt {  line: 171 }
+.  .  .  .  .  .  function_call {  line: 171 }
+.  .  .  .  .  .  .  id { value: 'match' line: 171 }
+.  .  .  .  .  .  .  actual_params {  line: 171 }
+.  .  .  .  .  .  .  .  id { value: 'TK_LPAREN' line: 171 }
+.  .  .  .  .  statement_expt {  line: 172 }
+.  .  .  .  .  .  = {  line: 172 }
+.  .  .  .  .  .  .  id { value: 'result' line: 172 }
+.  .  .  .  .  .  .  function_call {  line: 172 }
+.  .  .  .  .  .  .  .  id { value: 'E' line: 172 }
+.  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  statement_expt {  line: 173 }
+.  .  .  .  .  .  function_call {  line: 173 }
+.  .  .  .  .  .  .  id { value: 'match' line: 173 }
+.  .  .  .  .  .  .  actual_params {  line: 173 }
+.  .  .  .  .  .  .  .  id { value: 'TK_RPAREN' line: 173 }
+.  .  .  .  if_else {  line: 186 }
+.  .  .  .  .  == {  line: 175 }
+.  .  .  .  .  .  id { value: 'token' line: 175 }
+.  .  .  .  .  .  id { value: 'TK_SUB' line: 175 }
+.  .  .  .  .  block {  line: 179 }
+.  .  .  .  .  .  statement_expt {  line: 176 }
+.  .  .  .  .  .  .  function_call {  line: 176 }
+.  .  .  .  .  .  .  .  id { value: 'match' line: 176 }
+.  .  .  .  .  .  .  .  actual_params {  line: 176 }
+.  .  .  .  .  .  .  .  .  id { value: 'TK_SUB' line: 176 }
+.  .  .  .  .  .  statement_expt {  line: 177 }
+.  .  .  .  .  .  .  = {  line: 177 }
+.  .  .  .  .  .  .  .  id { value: 'result' line: 177 }
+.  .  .  .  .  .  .  .  - {  line: 177 }
+.  .  .  .  .  .  .  .  .  function_call {  line: 177 }
+.  .  .  .  .  .  .  .  .  .  id { value: 'F' line: 177 }
+.  .  .  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  if_else {  line: 186 }
+.  .  .  .  .  .  == {  line: 179 }
+.  .  .  .  .  .  .  id { value: 'token' line: 179 }
+.  .  .  .  .  .  .  id { value: 'TK_NUMBER' line: 179 }
+.  .  .  .  .  .  block {  line: 183 }
+.  .  .  .  .  .  .  statement_expt {  line: 180 }
+.  .  .  .  .  .  .  .  function_call {  line: 180 }
+.  .  .  .  .  .  .  .  .  id { value: 'match' line: 180 }
+.  .  .  .  .  .  .  .  .  actual_params {  line: 180 }
+.  .  .  .  .  .  .  .  .  .  id { value: 'TK_NUMBER' line: 180 }
+.  .  .  .  .  .  .  statement_expt {  line: 181 }
+.  .  .  .  .  .  .  .  = {  line: 181 }
+.  .  .  .  .  .  .  .  .  id { value: 'result' line: 181 }
+.  .  .  .  .  .  .  .  .  id { value: 'attr' line: 181 }
+.  .  .  .  .  .  block {  line: 186 }
+.  .  .  .  .  .  .  statement_expt {  line: 184 }
+.  .  .  .  .  .  .  .  function_call {  line: 184 }
+.  .  .  .  .  .  .  .  .  id { value: 'prints' line: 184 }
+.  .  .  .  .  .  .  .  .  actual_params {  line: 184 }
+.  .  .  .  .  .  .  .  .  .  string { value: 'Error: expected factor.\n' line: 184 }
+.  .  .  .  .  .  .  statement_expt {  line: 185 }
+.  .  .  .  .  .  .  .  function_call {  line: 185 }
+.  .  .  .  .  .  .  .  .  id { value: 'halt' line: 185 }
+.  .  .  .  .  .  .  .  .  actual_params {  }
+.  .  .  return {  line: 187 }
+.  .  .  .  id { value: 'result' line: 187 }
+.  global_var_decl {  line: 194 }
+.  .  int {  line: 194 }
+.  .  id { value: 'EOF' line: 194 }
+.  global_var_decl {  line: 196 }
+.  .  int {  line: 196 }
+.  .  id { value: 'TK_EOF' line: 196 }
+.  global_var_decl {  line: 197 }
+.  .  int {  line: 197 }
+.  .  id { value: 'TK_EOLN' line: 197 }
+.  global_var_decl {  line: 198 }
+.  .  int {  line: 198 }
+.  .  id { value: 'TK_NUMBER' line: 198 }
+.  global_var_decl {  line: 199 }
+.  .  int {  line: 199 }
+.  .  id { value: 'TK_ADD' line: 199 }
+.  global_var_decl {  line: 200 }
+.  .  int {  line: 200 }
+.  .  id { value: 'TK_SUB' line: 200 }
+.  global_var_decl {  line: 201 }
+.  .  int {  line: 201 }
+.  .  id { value: 'TK_MUL' line: 201 }
+.  global_var_decl {  line: 202 }
+.  .  int {  line: 202 }
+.  .  id { value: 'TK_DIV' line: 202 }
+.  global_var_decl {  line: 203 }
+.  .  int {  line: 203 }
+.  .  id { value: 'TK_LPAREN' line: 203 }
+.  global_var_decl {  line: 204 }
+.  .  int {  line: 204 }
+.  .  id { value: 'TK_RPAREN' line: 204 }
+.  global_var_decl {  line: 206 }
+.  .  int {  line: 206 }
+.  .  id { value: 'ASCII_0' line: 206 }
+.  global_var_decl {  line: 207 }
+.  .  int {  line: 207 }
+.  .  id { value: 'ASCII_9' line: 207 }
+.  global_var_decl {  line: 208 }
+.  .  int {  line: 208 }
+.  .  id { value: 'ASCII_PLUS' line: 208 }
+.  global_var_decl {  line: 209 }
+.  .  int {  line: 209 }
+.  .  id { value: 'ASCII_MINUS' line: 209 }
+.  global_var_decl {  line: 210 }
+.  .  int {  line: 210 }
+.  .  id { value: 'ASCII_STAR' line: 210 }
+.  global_var_decl {  line: 211 }
+.  .  int {  line: 211 }
+.  .  id { value: 'ASCII_SLASH' line: 211 }
+.  global_var_decl {  line: 212 }
+.  .  int {  line: 212 }
+.  .  id { value: 'ASCII_LPAREN' line: 212 }
+.  global_var_decl {  line: 213 }
+.  .  int {  line: 213 }
+.  .  id { value: 'ASCII_RPAREN' line: 213 }
+.  global_var_decl {  line: 214 }
+.  .  int {  line: 214 }
+.  .  id { value: 'ASCII_SPACE' line: 214 }
+.  global_var_decl {  line: 215 }
+.  .  int {  line: 215 }
+.  .  id { value: 'ASCII_TAB' line: 215 }
+.  global_var_decl {  line: 216 }
+.  .  int {  line: 216 }
+.  .  id { value: 'ASCII_CR' line: 216 }
+.  global_var_decl {  line: 217 }
+.  .  int {  line: 217 }
+.  .  id { value: 'ASCII_NL' line: 217 }
+.  function_decl {  line: 245 }
+.  .  void {  line: 245 }
+.  .  id { value: 'init' line: 219 }
+.  .  block {  line: 245 }
+.  .  .  statement_expt {  line: 221 }
+.  .  .  .  = {  line: 221 }
+.  .  .  .  .  id { value: 'EOF' line: 221 }
+.  .  .  .  .  number { value: '-1' line: 221 }
+.  .  .  statement_expt {  line: 223 }
+.  .  .  .  = {  line: 223 }
+.  .  .  .  .  id { value: 'ASCII_0' line: 223 }
+.  .  .  .  .  number { value: '48' line: 223 }
+.  .  .  statement_expt {  line: 224 }
+.  .  .  .  = {  line: 224 }
+.  .  .  .  .  id { value: 'ASCII_9' line: 224 }
+.  .  .  .  .  number { value: '57' line: 224 }
+.  .  .  statement_expt {  line: 225 }
+.  .  .  .  = {  line: 225 }
+.  .  .  .  .  id { value: 'ASCII_PLUS' line: 225 }
+.  .  .  .  .  number { value: '43' line: 225 }
+.  .  .  statement_expt {  line: 226 }
+.  .  .  .  = {  line: 226 }
+.  .  .  .  .  id { value: 'ASCII_MINUS' line: 226 }
+.  .  .  .  .  number { value: '45' line: 226 }
+.  .  .  statement_expt {  line: 227 }
+.  .  .  .  = {  line: 227 }
+.  .  .  .  .  id { value: 'ASCII_STAR' line: 227 }
+.  .  .  .  .  number { value: '42' line: 227 }
+.  .  .  statement_expt {  line: 228 }
+.  .  .  .  = {  line: 228 }
+.  .  .  .  .  id { value: 'ASCII_SLASH' line: 228 }
+.  .  .  .  .  number { value: '47' line: 228 }
+.  .  .  statement_expt {  line: 229 }
+.  .  .  .  = {  line: 229 }
+.  .  .  .  .  id { value: 'ASCII_LPAREN' line: 229 }
+.  .  .  .  .  number { value: '40' line: 229 }
+.  .  .  statement_expt {  line: 230 }
+.  .  .  .  = {  line: 230 }
+.  .  .  .  .  id { value: 'ASCII_RPAREN' line: 230 }
+.  .  .  .  .  number { value: '41' line: 230 }
+.  .  .  statement_expt {  line: 231 }
+.  .  .  .  = {  line: 231 }
+.  .  .  .  .  id { value: 'ASCII_SPACE' line: 231 }
+.  .  .  .  .  number { value: '32' line: 231 }
+.  .  .  statement_expt {  line: 232 }
+.  .  .  .  = {  line: 232 }
+.  .  .  .  .  id { value: 'ASCII_TAB' line: 232 }
+.  .  .  .  .  number { value: '9' line: 232 }
+.  .  .  statement_expt {  line: 233 }
+.  .  .  .  = {  line: 233 }
+.  .  .  .  .  id { value: 'ASCII_CR' line: 233 }
+.  .  .  .  .  number { value: '13' line: 233 }
+.  .  .  statement_expt {  line: 234 }
+.  .  .  .  = {  line: 234 }
+.  .  .  .  .  id { value: 'ASCII_NL' line: 234 }
+.  .  .  .  .  number { value: '10' line: 234 }
+.  .  .  statement_expt {  line: 236 }
+.  .  .  .  = {  line: 236 }
+.  .  .  .  .  id { value: 'TK_EOF' line: 236 }
+.  .  .  .  .  number { value: '256' line: 236 }
+.  .  .  statement_expt {  line: 237 }
+.  .  .  .  = {  line: 237 }
+.  .  .  .  .  id { value: 'TK_NUMBER' line: 237 }
+.  .  .  .  .  number { value: '257' line: 237 }
+.  .  .  statement_expt {  line: 238 }
+.  .  .  .  = {  line: 238 }
+.  .  .  .  .  id { value: 'TK_ADD' line: 238 }
+.  .  .  .  .  id { value: 'ASCII_PLUS' line: 238 }
+.  .  .  statement_expt {  line: 239 }
+.  .  .  .  = {  line: 239 }
+.  .  .  .  .  id { value: 'TK_SUB' line: 239 }
+.  .  .  .  .  id { value: 'ASCII_MINUS' line: 239 }
+.  .  .  statement_expt {  line: 240 }
+.  .  .  .  = {  line: 240 }
+.  .  .  .  .  id { value: 'TK_MUL' line: 240 }
+.  .  .  .  .  id { value: 'ASCII_STAR' line: 240 }
+.  .  .  statement_expt {  line: 241 }
+.  .  .  .  = {  line: 241 }
+.  .  .  .  .  id { value: 'TK_DIV' line: 241 }
+.  .  .  .  .  id { value: 'ASCII_SLASH' line: 241 }
+.  .  .  statement_expt {  line: 242 }
+.  .  .  .  = {  line: 242 }
+.  .  .  .  .  id { value: 'TK_LPAREN' line: 242 }
+.  .  .  .  .  id { value: 'ASCII_LPAREN' line: 242 }
+.  .  .  statement_expt {  line: 243 }
+.  .  .  .  = {  line: 243 }
+.  .  .  .  .  id { value: 'TK_RPAREN' line: 243 }
+.  .  .  .  .  id { value: 'ASCII_RPAREN' line: 243 }
+.  .  .  statement_expt {  line: 244 }
+.  .  .  .  = {  line: 244 }
+.  .  .  .  .  id { value: 'TK_EOLN' line: 244 }
+.  .  .  .  .  id { value: 'ASCII_NL' line: 244 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/parse.t2.fail: AST
+filename: /home/uga/artem.golovin/dev/jay/test/parser/parse.t2.fail
+-----------------------------
+Error: syntax error, unexpected T_OP_NOT, expecting T_SEPARATOR_LPAREN or T_SEPARATOR_SEMI
+lineno: 1
+Failed parsing
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/null_str.pass: AST
+program {  line: 7 }
+.  main_func_decl {  line: 7 }
+.  .  void {  line: 7 }
+.  .  id { value: 'main' line: 5 }
+.  .  formal_params {  }
+.  .  block {  line: 7 }
+.  .  .  statement_expt {  line: 6 }
+.  .  .  .  function_call {  line: 6 }
+.  .  .  .  .  id { value: 'foo' line: 6 }
+.  .  .  .  .  actual_params {  line: 6 }
+.  .  .  .  .  .  string { value: 'abcd' line: 6 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/nested_function.fail: AST
+filename: /home/uga/artem.golovin/dev/jay/test/parser/nested_function.fail
+-----------------------------
+Error: syntax error, unexpected T_SEPARATOR_LPAREN, expecting T_SEPARATOR_SEMI
+lineno: 7
+Failed parsing
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/parse.t22.pass: AST
+program {  line: 6 }
+.  main_func_decl {  line: 5 }
+.  .  void {  line: 5 }
+.  .  id { value: 'main' line: 1 }
+.  .  formal_params {  }
+.  .  block {  line: 5 }
+.  .  .  statement_expt {  line: 2 }
+.  .  .  .  = {  line: 2 }
+.  .  .  .  .  id { value: 'x' line: 2 }
+.  .  .  .  .  - {  line: 2 }
+.  .  .  .  .  .  id { value: 'a' line: 2 }
+.  .  .  .  .  .  number { value: '-1' line: 2 }
+.  .  .  statement_expt {  line: 3 }
+.  .  .  .  = {  line: 3 }
+.  .  .  .  .  id { value: 'x' line: 3 }
+.  .  .  .  .  - {  line: 3 }
+.  .  .  .  .  .  id { value: 'a' line: 3 }
+.  .  .  .  .  .  - {  line: 3 }
+.  .  .  .  .  .  .  id { value: 'b' line: 3 }
+.  .  .  statement_expt {  line: 4 }
+.  .  .  .  = {  line: 4 }
+.  .  .  .  .  id { value: 'x' line: 4 }
+.  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  .  .  .  .  .  - {  line: 4 }
+.  .  .  .  .  .  .  .  .  .  .  .  id { value: 'x' line: 4 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/parse.t19.pass: AST
+program {  line: 8 }
+.  main_func_decl {  line: 7 }
+.  .  void {  line: 7 }
+.  .  id { value: 'main' line: 1 }
+.  .  formal_params {  }
+.  .  block {  line: 7 }
+.  .  .  if {  line: 7 }
+.  .  .  .  boolean { value: 'true' line: 2 }
+.  .  .  .  if_else {  line: 6 }
+.  .  .  .  .  boolean { value: 'true' line: 3 }
+.  .  .  .  .  null_statement {  line: 4 }
+.  .  .  .  .  null_statement {  line: 6 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/comment_in_expression.fail: AST
+filename: /home/uga/artem.golovin/dev/jay/test/parser/comment_in_expression.fail
+-----------------------------
+Error: syntax error, unexpected T_RESERVED_RETURN, expecting T_SEPARATOR_RPAREN
+lineno: 8
+Failed parsing
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/return_func_invocation.pass: AST
+program {  line: 7 }
+.  function_decl {  line: 7 }
+.  .  int {  line: 5 }
+.  .  id { value: 'foo' line: 5 }
+.  .  formal_params {  }
+.  .  block {  line: 7 }
+.  .  .  return {  line: 6 }
+.  .  .  .  function_call {  line: 6 }
+.  .  .  .  .  id { value: 'bar' line: 6 }
+.  .  .  .  .  actual_params {  line: 6 }
+.  .  .  .  .  .  function_call {  line: 6 }
+.  .  .  .  .  .  .  id { value: 'baz' line: 6 }
+.  .  .  .  .  .  .  actual_params {  line: 6 }
+.  .  .  .  .  .  .  .  number { value: '42' line: 6 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/global_var_assign.fail: AST
+filename: /home/uga/artem.golovin/dev/jay/test/parser/global_var_assign.fail
+-----------------------------
+Error: syntax error, unexpected T_OP_EQ, expecting T_SEPARATOR_LPAREN
+lineno: 7
+Failed parsing
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/empty.fail: AST
+Failed parsing
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/single_node.pass: AST
+program {  line: 6 }
+.  global_var_decl {  line: 6 }
+.  .  int {  line: 6 }
+.  .  id { value: 'a' line: 6 }
+
+------------------------------------
+
+/home/uga/artem.golovin/dev/jay/test/parser/c_style_while.pass: AST
+program {  line: 14 }
+.  function_decl {  line: 14 }
+.  .  int {  line: 8 }
+.  .  id { value: 'foo' line: 8 }
+.  .  formal_params {  }
+.  .  block {  line: 14 }
+.  .  .  variable_decl {  line: 9 }
+.  .  .  .  int {  line: 9 }
+.  .  .  .  id { value: 'a' line: 9 }
+.  .  .  while {  line: 11 }
+.  .  .  .  != {  line: 10 }
+.  .  .  .  .  = {  line: 10 }
+.  .  .  .  .  .  id { value: 'a' line: 10 }
+.  .  .  .  .  .  function_call {  line: 10 }
+.  .  .  .  .  .  .  id { value: 'bar' line: 10 }
+.  .  .  .  .  .  .  actual_params {  }
+.  .  .  .  .  number { value: '0' line: 10 }
+.  .  .  .  null_statement {  line: 11 }
+.  .  .  return {  line: 13 }
+.  .  .  .  number { value: '42' line: 13 }
+
+------------------------------------
+
+done!
+]0;artem.golovin@csx:~/dev/jayartem.golovin@csx:~/dev/jay$ qq
+exit
+
+Script done on 2020-02-28 13:18:32-07:00 [COMMAND_EXIT_CODE="0"]

@@ -1,0 +1,7 @@
+// should pass
+// -------------------------------------------------------------------
+// should pass, since it is a valid statement according to the grammar
+
+int foo() {
+  return bar(baz(42));
+}

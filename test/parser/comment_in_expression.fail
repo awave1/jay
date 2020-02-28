@@ -1,0 +1,12 @@
+// should fail
+// ----------------------------------------------------------------
+// the parser should fail to produce an ast due to a comment inside
+// the if statement
+
+boolean is_even() {
+  if (a % 2 == 0 // check if even) {
+    return true;
+  } else {
+    return false;
+  }
+}

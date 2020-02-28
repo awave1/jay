@@ -1,9 +1,23 @@
+# executables
+jay
+jay.test
+
 build/
 scanner
 .ccls-cache
 *.o
 *.so
 tests/reference/*
+
+# editor folders
 .vscode
 .idea
 
+# bison + flex generated files
+parser.tab.*
+stack.hh
+lex.yy.*
+
+# exported
+*.zip
+*.totallynotzip

@@ -1,0 +1,14 @@
+// should pass
+// ----------------------------------------------------------------
+// ensures that the parser will correctly recognize
+// assignment inside the while statement
+// it also includes a nulstatement block after the while expression
+// which should be a child of while loop
+
+int foo() {
+  int a;
+  while ((a = bar()) != 0)
+    ;
+  
+  return 42;
+}

@@ -68,8 +68,6 @@ struct ast_node_t {
     std::copy_if(children.begin(), children.end(), std::back_inserter(res),
                  [&node_type](ast_node_t *n) { return n->type == node_type; });
 
-    std::cout << res.size() << std::endl;
-
     return res;
   }
 
@@ -80,6 +78,12 @@ struct ast_node_t {
     }
 
     return nullptr;
+  }
+
+  std::vector<ast_node_t *> find_recursive(Node node_type) {
+    auto res = std::vector<ast_node_t *>();
+    _find_recursive(this, node_type, res);
+    return res;
   }
 
   bool is_num() const { return type == Node::number; }
@@ -168,6 +172,21 @@ struct ast_node_t {
       return "void";
     }
   }
+
+private:
+  inline void _find_recursive(ast_node_t *node, ast_node_t::Node node_type,
+                              std::vector<ast_node_t *> &res) {
+    if (node->children.empty()) {
+      return;
+    }
+
+    for (auto *next : node->children) {
+      std::copy_if(
+          next->children.begin(), next->children.end(), std::back_inserter(res),
+          [&node_type](ast_node_t *n) { return n->type == node_type; });
+      _find_recursive(next, node_type, res);
+    }
+  }
 };
 
 } // namespace yy
@@ -191,7 +210,8 @@ inline void find_recursive(ast_node_t *node, ast_node_t::Node node_type,
 inline void print_ast_node(std::ostream &os, const ast_node_t &node,
                            int depth) {
   for (int i = 0; i < depth; i++) {
-    os << "|\t";
+    os << "."
+       << "  ";
   }
 
   os << node.get_type();

@@ -20,7 +20,6 @@ parser.tab.hh parser.tab.cc &: src/parser.yy
 	bison -t -d src/parser.yy
 
 $(COMPILER): $(SOURCES) $(HEADERS)
-	echo $(INCLUDE)
 	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $@ ./src/main.cpp $(SOURCES) $(LDFLAGS)
 
 .PHONY: debug

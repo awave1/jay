@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "JayCompiler.hpp"
 #include "catch.hpp"
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
@@ -90,6 +91,29 @@ TEST_CASE("return_func_invocation.pass: return a function call that calls "
     auto func_calls =
         function_decl->find_recursive(ast_node_t::Node::function_call);
     REQUIRE(func_calls.size() == 2);
+  }
+}
+
+TEST_CASE("null_str.pass: string with null character in the middle", "[ast]") {
+  yy::JayCompiler driver;
+  std::ifstream testfile(file("null_str.pass"));
+  auto *ast = driver.parse(&testfile, file("null_str.pass"));
+
+  SECTION("AST should be initialized") {
+    REQUIRE_FALSE(ast == nullptr);
+#ifdef SHOWAST
+    if (ast) {
+      std::cout << *ast << std::endl;
+    }
+#endif
+  }
+
+  SECTION("should contain a string 'abcd'") {
+    auto string_node = ast->find_recursive(ast_node_t::Node::string)[0];
+    REQUIRE_FALSE(string_node == nullptr);
+
+    auto value = string_node->value;
+    REQUIRE_THAT(value, Catch::Matchers::Equals("abcd"));
   }
 }
 

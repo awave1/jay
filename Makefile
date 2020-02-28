@@ -32,7 +32,7 @@ test: clean
 test: $(TEST_EXEC)
 
 $(TEST_EXEC): test/jay.test.cpp $(HEADERS) $(SOURCES)
-	$(CXX) $(TESTINCLUDE) $(DFLAGS) -I src/include test/jay.test.cpp $(SOURCES) -o $@
+	$(CXX) -g $(TESTINCLUDE) $(DFLAGS) -I src/include test/jay.test.cpp $(SOURCES) -o $@
 	./$(TEST_EXEC)
 
 clear clean:

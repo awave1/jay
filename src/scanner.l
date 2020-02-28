@@ -95,6 +95,8 @@ number      [0-9]+
 {string_char} {
   if (YYText()[0] != '\0') {
     sb_append(sb, YYText());
+  } else {
+    sb_append(sb, "\00");
   }
 }
 

@@ -3,7 +3,8 @@ TEST_EXEC = jay.test
 CXXFLAGS = -Wall -std=c++17
 LDFLAGS = -lfl
 DFLAGS := 
-TESTLIB := -I lib/catch2
+INCLUDE := -I ./src/include/ -I parser.tab.hh
+TESTINCLUDE := -I lib/catch2
 CXX = clang++
 
 HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/Driver.hpp
@@ -18,8 +19,9 @@ lex.yy.cc: src/scanner.l
 parser.tab.hh parser.tab.cc &: src/parser.yy
 	bison -t -d src/parser.yy
 
-$(COMPILER): $(HEADERS) $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $(COMPILER) ./src/main.cpp $(SOURCES) $(LDFLAGS)
+$(COMPILER): $(SOURCES) $(HEADERS)
+	echo $(INCLUDE)
+	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $@ ./src/main.cpp $(SOURCES) $(LDFLAGS)
 
 .PHONY: debug
 debug: DFLAGS=-g -DYYTRACE
@@ -31,7 +33,7 @@ test: clean
 test: $(TEST_EXEC)
 
 $(TEST_EXEC): test/jay.test.cpp $(HEADERS) $(SOURCES)
-	$(CXX) $(TESTLIB) -I src/include test/jay.test.cpp $(SOURCES) -o $@
+	$(CXX) $(TESTINCLUDE) $(DFLAGS) -I src/include test/jay.test.cpp $(SOURCES) -o $@
 	./$(TEST_EXEC)
 
 clear clean:

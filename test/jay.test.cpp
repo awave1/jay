@@ -4,10 +4,33 @@
 #include <fstream>
 #include <iostream>
 
-TEST_CASE("temp test", "[ast]") {
-  std::ifstream simple("./test/parser/parse.t19");
+TEST_CASE("single global variable node", "[ast]") {
   yy::Driver driver;
+  std::ifstream simple("./test/parser/single_node.pass");
   auto *ast = driver.parse(&simple);
-  std::cout << *ast << std::endl;
-  REQUIRE_FALSE(false);
+
+  SECTION("ast should be initialized") {
+    REQUIRE_FALSE(ast == nullptr);
+#ifdef SHOWAST
+    if (ast) {
+      std::cout << *ast << std::endl;
+    }
+#endif
+  }
+
+  SECTION("should contain only one direct child") {
+    REQUIRE(ast->children.size() == 1);
+  }
+
+  SECTION("should contain only one global variable") {
+    auto *global_var_node = ast->children[0];
+
+    REQUIRE_FALSE(global_var_node == nullptr);
+
+    auto children = global_var_node->children;
+    REQUIRE(children.size() == 2);
+
+    REQUIRE(children[0]->type == "int");
+    REQUIRE(children[1]->type == "id");
+  }
 }

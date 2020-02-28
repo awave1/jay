@@ -491,7 +491,8 @@ expression: assignment_expression {
 %%
 
 void yy::Parser::error(std::string const& msg) {
-	std::cerr << "Error: " << msg << "\n";
+  std::cerr << "filename: " << driver.filename << std::endl;
+  std::cerr << "-----------------------------" << std::endl;
+	std::cerr << "Error: " << msg << std::endl;
   std::cerr << "lineno: " << driver.m_lexer->lineno() << std::endl;
-	exit(1);
 }

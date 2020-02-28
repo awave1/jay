@@ -40,6 +40,7 @@ $(TEST_EXEC): test/jay.test.cpp $(HEADERS) $(SOURCES)
 test_runner: clean
 test_runner: $(COMPILER)
 test_runner:
+	@ chmod +x ./test.sh
 	./test.sh $(COMPONENT)
 
 .PHONY: export

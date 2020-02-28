@@ -1,3 +1,8 @@
+// should fail
+// ------------------------------------------------------
+// should fail to produce an ast, because nested function
+// definitions are not allowed
+
 foo() {
   int bar() {
     return 42;

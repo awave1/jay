@@ -1,0 +1,3 @@
+// should fail
+// ------------------------------------------------------
+// should fail to produce an ast, since the file is empty

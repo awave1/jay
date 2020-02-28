@@ -1,1 +1,6 @@
+// should pass
+// ------------------------------------------------------------------
+// should pass, since declaring global variables outside of functions
+// is allowed 
+
 int a;

@@ -1,2 +1,7 @@
+// should fail
+// ----------------------------------------------------------
+// should fail to produce an ast, because global declarations
+// are not allowed
+
 int a;
 a = 42;

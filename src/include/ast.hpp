@@ -220,6 +220,8 @@ struct ast_node_t {
       return "boolean";
     case Node::void_t:
       return "void";
+    default:
+      return "";
     }
   }
 

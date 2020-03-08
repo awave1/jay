@@ -5,7 +5,7 @@ LDFLAGS = -lfl
 DFLAGS := 
 INCLUDE := -I ./src/include/ -I parser.tab.hh
 TESTINCLUDE := -I lib/catch2
-CXX = clang++
+CXX = g++
 
 HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/JayCompiler.hpp
 SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/JayCompiler.cpp

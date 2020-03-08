@@ -115,7 +115,7 @@ struct ast_node_t {
    */
   std::vector<ast_node_t *> find_recursive(Node node_type) {
     auto res = std::vector<ast_node_t *>();
-    _find_recursive(this, node_type, res);
+    find_recursive(this, node_type, res);
     return res;
   }
 
@@ -225,6 +225,44 @@ struct ast_node_t {
     }
   }
 
+  /**
+   * @brief pretty print given ast_node_t (and its children)
+   *
+   * @param os output stream
+   * @param node node to print
+   * @param depth value that specifies how deep down the tree should it go
+   */
+  void print_ast_node(std::ostream &os, const ast_node_t &node,
+                      int depth) const {
+    for (int i = 0; i < depth; i++) {
+      os << "."
+         << "  ";
+    }
+
+    os << node.get_type();
+    os << " { ";
+
+    if (node.has_value()) {
+      os << "value: '" << node.value << "'";
+    }
+
+    if (node.linenum != 0) {
+      os << " line: " << node.linenum;
+    }
+
+    os << " }" << std::endl;
+
+    for (auto *n : node.children) {
+      print_ast_node(os, *n, depth + 1);
+    }
+  }
+
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const yy::ast_node_t &node) {
+    node.print_ast_node(os, node, 0);
+    return os;
+  }
+
 private:
   /**
    * @brief helper method for recursive node finder. starts searching from given
@@ -234,8 +272,8 @@ private:
    * @param node_type desired node type
    * @param res resulting vector with all found nodes
    */
-  void _find_recursive(ast_node_t *node, ast_node_t::Node node_type,
-                       std::vector<ast_node_t *> &res) {
+  void find_recursive(ast_node_t *node, ast_node_t::Node node_type,
+                      std::vector<ast_node_t *> &res) {
     if (node->children.empty()) {
       return;
     }
@@ -244,50 +282,11 @@ private:
       std::copy_if(
           next->children.begin(), next->children.end(), std::back_inserter(res),
           [&node_type](ast_node_t *n) { return n->type == node_type; });
-      _find_recursive(next, node_type, res);
+      find_recursive(next, node_type, res);
     }
   }
 };
 
 } // namespace yy
-
-using ast_node_t = yy::ast_node_t;
-
-/**
- * @brief pretty print given ast_node_t (and its children)
- *
- * @param os output stream
- * @param node node to print
- * @param depth value that specifies how deep down the tree should it go
- */
-inline void print_ast_node(std::ostream &os, const ast_node_t &node,
-                           int depth) {
-  for (int i = 0; i < depth; i++) {
-    os << "."
-       << "  ";
-  }
-
-  os << node.get_type();
-  os << " { ";
-
-  if (node.has_value()) {
-    os << "value: '" << node.value << "'";
-  }
-
-  if (node.linenum != 0) {
-    os << " line: " << node.linenum;
-  }
-
-  os << " }" << std::endl;
-
-  for (auto *n : node.children) {
-    print_ast_node(os, *n, depth + 1);
-  }
-}
-
-inline std::ostream &operator<<(std::ostream &os, const ast_node_t &node) {
-  print_ast_node(os, node, 0);
-  return os;
-}
 
 #endif /* AST_H */

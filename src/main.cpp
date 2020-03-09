@@ -2,6 +2,13 @@
 #include <fstream>
 #include <iostream>
 
+/**
+ * @brief build an ast from bison generated parser
+ *
+ * @param driver main driver, contains lexer and parser
+ * @param is input stream from where parser will be reading input
+ * @param file filename, if input stream is a fstream
+ */
 void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
   auto *ast = driver.parse(is, file);
 

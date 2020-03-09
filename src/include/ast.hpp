@@ -15,8 +15,6 @@ namespace yy {
  *   - string value - value associated with the node, e.g. numberical value of
  * an int
  *   - linenum - the line number where a token can be found
- *
- *
  */
 struct ast_node_t {
   /**
@@ -84,6 +82,9 @@ struct ast_node_t {
    */
   std::vector<ast_node_t *> find_all(Node node_type) {
     std::vector<ast_node_t *> res;
+    // filter direct children by desired node type
+    // copy_if takes in an array of children and inserts matched elements
+    // into res vector
     std::copy_if(children.begin(), children.end(), std::back_inserter(res),
                  [&node_type](ast_node_t *n) { return n->type == node_type; });
 

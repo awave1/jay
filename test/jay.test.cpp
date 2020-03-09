@@ -1,4 +1,5 @@
 #define CATCH_CONFIG_MAIN
+
 #include "JayCompiler.hpp"
 #include "catch.hpp"
 #include <cstring>

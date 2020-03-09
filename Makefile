@@ -27,6 +27,17 @@ debug: DFLAGS=-g -DYYTRACE
 debug: clear
 debug: $(COMPILER)
 
+.PHONY: run
+run: clear
+run: $(COMPILER)
+run:
+	./$(COMPILER) $(FILE)
+
+.PHONY: run
+run_debug: debug
+run_debug:
+	./$(COMPILER) $(FILE)
+
 .PHONY: test
 test: clean
 test: $(COMPILER)

@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
       build_ast(driver, &file, filename);
     }
   } else {
-    build_ast(driver, &std::cin, "");
+    std::cerr << "please specify the filename" << std::endl;
   }
 
   return 0;

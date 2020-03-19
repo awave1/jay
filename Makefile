@@ -7,8 +7,9 @@ INCLUDE := -I ./src/include/ -I parser.tab.hh
 TESTINCLUDE := -I lib/catch2
 CXX = g++
 
-HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/SemanticAnalyzer.hpp src/include/JayCompiler.hpp
-SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/SemanticAnalyzer.cpp src/JayCompiler.cpp
+# TODO: Make this more generic
+HEADERS = parser.tab.hh src/include/ast.hpp src/include/string_builder.h src/include/SymTable.hpp src/include/SemanticAnalyzer.hpp src/include/JayCompiler.hpp
+SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/SymTable.cpp src/SemanticAnalyzer.cpp src/JayCompiler.cpp
 
 .PHONY: all
 all: $(COMPILER)

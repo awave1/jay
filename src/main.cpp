@@ -1,6 +1,8 @@
 #include "./include/JayCompiler.hpp"
+#include "./include/SemanticAnalyzer.hpp"
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 /**
  * @brief build an ast from bison generated parser
@@ -10,10 +12,13 @@
  * @param file filename, if input stream is a fstream
  */
 void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
-  auto *ast = driver.parse(is, file);
+  std::shared_ptr<ast_node_t> ast(driver.parse(is, file));
 
   if (ast) {
-    std::cout << *ast << std::endl;
+    std::unique_ptr<SemanticAnalyzer> semanticAnalyzer(
+        new SemanticAnalyzer(ast));
+
+    std::cout << *semanticAnalyzer->get_ast() << std::endl;
   } else {
     std::cerr << "Failed parsing" << std::endl;
     exit(1);

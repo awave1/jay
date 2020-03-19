@@ -5,6 +5,7 @@
 
 #include "../../Lexer.h"
 #include "../../parser.tab.hh"
+#include "SemanticAnalyzer.hpp"
 #include "ast.hpp"
 
 namespace yy {
@@ -18,6 +19,7 @@ struct JayCompiler {
 
   std::unique_ptr<Lexer> lexer;
   std::unique_ptr<Parser> parser;
+  std::unique_ptr<SemanticAnalyzer> semanticAnalyzer;
   ast_node_t *ast;
   std::string filename;
 

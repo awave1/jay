@@ -17,6 +17,8 @@ public:
 
   bool insert(std::string symbol_name, int scope);
 
+  bool set(std::string symbol_name, int scope);
+
   void push_scope();
 
   std::unordered_map<std::string, int> pop_scope();

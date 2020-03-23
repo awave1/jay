@@ -1,3 +1,5 @@
-main() {
-  int foo;
-}
+int foo;
+
+void bar() {}
+
+main() {}

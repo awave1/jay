@@ -15,10 +15,12 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
   std::shared_ptr<ast_node_t> ast(driver.parse(is, file));
 
   if (ast) {
-    std::unique_ptr<SemanticAnalyzer> semanticAnalyzer(
-        new SemanticAnalyzer(ast));
+    std::shared_ptr<SymTable> sym_table(new SymTable());
+    std::unique_ptr<SemanticAnalyzer> semantic_analyzer(
+        new SemanticAnalyzer(ast, sym_table));
 
-    std::cout << *semanticAnalyzer->get_ast() << std::endl;
+    std::cout << *semantic_analyzer->get_ast() << std::endl << std::endl;
+    semantic_analyzer->validate();
   } else {
     std::cerr << "Failed parsing" << std::endl;
     exit(1);

@@ -8,87 +8,106 @@ bool SemanticAnalyzer::validate() {
                  std::bind(&SemanticAnalyzer::globals_post_order_pass, this,
                            std::placeholders::_1));
 
+  this->traverse(
+      this->ast.get(),
+      std::bind(&SemanticAnalyzer::build_scope, this, std::placeholders::_1),
+      std::bind(&SemanticAnalyzer::sym_table_pre_post_order_pass, this,
+                std::placeholders::_1));
+
   std::cout << *sym_table << std::endl;
 
-  // // Pass 2
-  this->traverse(this->ast.get(),
-                 std::bind(&SemanticAnalyzer::sym_table_pre_post_order_pass,
-                           this, std::placeholders::_1),
-                 std::bind(&SemanticAnalyzer::sym_table_pre_post_order_pass,
-                           this, std::placeholders::_1));
+  // Pass 2
 
-  // // Pass 3
-  // this->traverse(this->ast.get(), nullptr,
-  // &type_checking_post_order_pass);
+  // Pass 3
 
-  // // Pass 4
-  // this->traverse(this->ast.get(), &catch_all_pre_post_order_pass,
-  //                &catch_all_pre_post_order_pass);
+  // Pass 4
 
   return false;
 }
 
-void SemanticAnalyzer::traverse(ast_node_t *node,
+bool SemanticAnalyzer::traverse(ast_node_t *node,
                                 std::function<bool(ast_node_t *n)> pre,
-                                std::function<bool(ast_node_t *n)> post) {
+                                std::function<void(ast_node_t *n)> post) {
 
-  if (pre != nullptr) {
-    pre(node);
+  if (pre != nullptr && !pre(node)) {
+    return false;
   }
 
   for (auto *next : node->children) {
-    traverse(next, pre, post);
+    if (!traverse(next, pre, post)) {
+      return false;
+    }
   }
 
   if (post != nullptr) {
     post(node);
   }
+
+  return true;
 }
 
 // pass 1
-bool SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
+void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
   // ignore top-level root as it's useless for symbol table
+  switch (node->type) {
+  case ast_node_t::Node::main_func_decl:
+    if (node->children.empty()) {
+      // TODO: Error here?
+      break;
+    }
+
+    sym_table->define(FunctionSymbol("main", {}, ast_node_t::Node::void_t));
+
+    break;
+
+  case ast_node_t::Node::function_decl:
+    if (node->children.empty()) {
+      break;
+    }
+
+    sym_table->define(
+        FunctionSymbol(node->children[1]->value, {}, node->children[0]->type));
+    break;
+
+  case ast_node_t::Node::global_var_decl:
+    if (node->children.empty()) {
+      break;
+    }
+
+    sym_table->define(
+        Symbol(node->children[1]->value, "variable", node->children[0]->type));
+
+    break;
+  default:
+    break;
+  }
+}
+
+// pass 2
+void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
   if (node->type != ast_node_t::Node::program) {
     switch (node->type) {
-    case ast_node_t::Node::main_func_decl:
-      if (node->children.empty()) {
-        return false;
-      }
-
-      sym_table->insert(Symbol("main", ast_node_t::Node::void_t), 1);
-
-      break;
-    case ast_node_t::Node::global_var_decl:
+    case ast_node_t::Node::variable_decl: {
       if (node->children.empty()) {
         break;
       }
 
-      sym_table->insert(
-          Symbol(node->children[1]->value, node->children[0]->type), 1);
+      auto type_node = node->children[0];
+      auto id_node = node->children[1];
 
-      break;
-    case ast_node_t::Node::function_decl:
-      if (node->children.empty()) {
-        break;
+      if (!sym_table->has(id_node->value)) {
+        sym_table->define(Symbol(id_node->value, "variable", type_node->type));
+      } else {
+        std::cout << type_node->value << " " << id_node->value
+                  << " has already been defined" << std::endl;
       }
 
-      sym_table->insert(
-          Symbol(node->children[1]->value, node->children[0]->type), 1);
       break;
+    }
     default:
       break;
     }
   }
-
-  return false;
-}
-
-// pass 2
-bool SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
-  if (node->type != ast_node_t::Node::program) {
-    std::cout << "pass 2:\n" << *node << std::endl;
-  }
-  return false;
 }
 
 // pass 3
@@ -101,4 +120,12 @@ bool SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
 bool SemanticAnalyzer::catch_all_pre_post_order_pass(ast_node_t *node) {
   std::cout << "pass 4: globals post order pass\n" << *node << std::endl;
   return false;
+}
+
+bool SemanticAnalyzer::build_scope(ast_node_t *node) {
+  if (node->type != ast_node_t::Node::program &&
+      node->type == ast_node_t::Node::block) {
+    sym_table->push_scope();
+  }
+  return true;
 }

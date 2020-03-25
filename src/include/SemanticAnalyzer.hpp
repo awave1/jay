@@ -1,7 +1,9 @@
 #ifndef SEMANTIC_ANALYZER_H
 #define SEMANTIC_ANALYZER_H
 
+#include "FunctionSymbol.hpp"
 #include "SymTable.hpp"
+#include "Symbol.hpp"
 #include "ast.hpp"
 #include <iostream>
 #include <memory>
@@ -23,19 +25,22 @@ private:
   std::shared_ptr<ast_node_t> ast;
   std::shared_ptr<SymTable> sym_table;
 
-  void traverse(ast_node_t *node, std::function<bool(ast_node_t *n)> pre,
-                std::function<bool(ast_node_t *n)> post);
+  bool traverse(ast_node_t *node, std::function<bool(ast_node_t *n)> pre,
+                std::function<void(ast_node_t *n)> post);
 
   // pass 1
-  bool globals_post_order_pass(ast_node_t *node);
+  void globals_post_order_pass(ast_node_t *node);
 
   // pass 2
-  bool sym_table_pre_post_order_pass(ast_node_t *node);
+  void sym_table_pre_post_order_pass(ast_node_t *node);
+
   // pass 3
   bool type_checking_post_order_pass(ast_node_t *node);
 
   // pass 4
   bool catch_all_pre_post_order_pass(ast_node_t *node);
+
+  bool build_scope(ast_node_t *node);
 };
 
 #endif /* SEMANTIC_ANALYZER_H */

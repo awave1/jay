@@ -1,5 +1,12 @@
 int foo;
-
-void bar() {}
-
-main() {}
+main() {
+  int foo2;
+  int foo3;
+  {
+    int foo4;
+  }
+}
+int bar;
+void foo() {
+  int foo;
+}

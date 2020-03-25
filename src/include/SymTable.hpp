@@ -1,6 +1,7 @@
 #ifndef SYM_TABLE_HPP
 #define SYM_TABLE_HPP
 
+#include "FunctionSymbol.hpp"
 #include "Symbol.hpp"
 #include "ast.hpp"
 #include <algorithm>
@@ -14,22 +15,21 @@
 using namespace yy;
 
 typedef std::size_t scope_t;
+typedef std::map<std::string, Symbol> symbol_table_t;
 
 class SymTable {
 public:
   SymTable();
 
-  // bool has(std::string symbol_name);
-
-  // int get(std::string symbol_name);
-
   bool insert(Symbol symbol, scope_t scope);
 
-  // bool set(Symbol symbol, int scope);
+  void push_scope();
 
-  // void push_scope();
+  void define(Symbol symbol);
 
-  // std::map<Symbol, int> pop_scope();
+  Symbol lookup(std::string name);
+
+  bool has(std::string name);
 
   friend std::ostream &operator<<(std::ostream &os, const SymTable &sym_table);
 
@@ -38,8 +38,9 @@ private:
   const scope_t GLOBAL_SCOPE = 1;
 
   // represent symbol table as a scope stack
-  // map stored: <key: symbol, val: scope (position in the vector)>
-  std::vector<std::map<Symbol, scope_t>> scope_stack;
+  // map stored: <key: symbol name, val: symbol>
+  // position of the map
+  std::vector<symbol_table_t> scope_stack;
 
   void add_predefined_symbols();
 };

@@ -2,53 +2,50 @@
 
 SymTable::SymTable() {
   add_predefined_symbols();
-
-  // insert empty global scope
-  this->scope_stack.push_back({});
+  push_scope();
 }
 
-bool SymTable::insert(Symbol symbol, scope_t scope) {
-  auto *symtable = &scope_stack[scope];
+void SymTable::define(Symbol symbol) {
+  auto *symtable = &scope_stack.back();
+  symtable->insert(std::pair<std::string, Symbol>(symbol.name, symbol));
+}
 
-  symtable->insert(std::pair<Symbol, scope_t>(symbol, scope));
-
-  return false;
+bool SymTable::has(std::string name) {
+  auto symtable = scope_stack.back();
+  auto iter = symtable.find(name);
+  return iter != symtable.end();
 }
 
 /**
  * @brief pre-populate based on the predefined symbols
  */
 void SymTable::add_predefined_symbols() {
-  auto getchar_fun_sym = Symbol("getchar", ast_node_t::Node::int_t);
-  auto halt_fun_sym = Symbol("halt", ast_node_t::Node::void_t);
-  auto printb_fun_sym = Symbol("printb", ast_node_t::Node::void_t);
-  auto printc_fun_sym = Symbol("printc", ast_node_t::Node::void_t);
-  auto printi_fun_sym = Symbol("printi", ast_node_t::Node::void_t);
-  auto prints_fun_sym = Symbol("prints", ast_node_t::Node::void_t);
+  using namespace std;
 
-  std::map<Symbol, scope_t> predefined_scope;
+  // built-in functions
+  auto getchar_fun_sym = FunctionSymbol("getchar", {}, ast_node_t::Node::int_t);
+  auto halt_fun_sym = FunctionSymbol("halt", {}, ast_node_t::Node::void_t);
+  auto printb_fun_sym = FunctionSymbol("printb", {}, ast_node_t::Node::void_t);
+  auto printc_fun_sym = FunctionSymbol("printc", {}, ast_node_t::Node::void_t);
+  auto printi_fun_sym = FunctionSymbol("printi", {}, ast_node_t::Node::void_t);
+  auto prints_fun_sym = FunctionSymbol("prints", {}, ast_node_t::Node::void_t);
 
-  predefined_scope.insert(
-      std::pair<Symbol, scope_t>(getchar_fun_sym, PREDEFINED_SCOPE));
-  predefined_scope.insert(
-      std::pair<Symbol, scope_t>(halt_fun_sym, PREDEFINED_SCOPE));
-  predefined_scope.insert(
-      std::pair<Symbol, scope_t>(printb_fun_sym, PREDEFINED_SCOPE));
-  predefined_scope.insert(
-      std::pair<Symbol, scope_t>(printc_fun_sym, PREDEFINED_SCOPE));
-  predefined_scope.insert(
-      std::pair<Symbol, scope_t>(printi_fun_sym, PREDEFINED_SCOPE));
-  predefined_scope.insert(
-      std::pair<Symbol, scope_t>(prints_fun_sym, PREDEFINED_SCOPE));
+  push_scope();
 
-  this->scope_stack.push_back(predefined_scope);
+  define(getchar_fun_sym);
+  define(halt_fun_sym);
+  define(printb_fun_sym);
+  define(printc_fun_sym);
+  define(printi_fun_sym);
+  define(prints_fun_sym);
 }
+
+void SymTable::push_scope() { scope_stack.push_back({}); }
 
 std::ostream &operator<<(std::ostream &os, const SymTable &sym_table) {
   for (scope_t i = 0; i < sym_table.scope_stack.size(); i++) {
     auto symtable = sym_table.scope_stack[i];
     os << "scope: " << i << std::endl;
-    os << "symbol" << std::setw(20) << "scope" << std::endl;
     os << "----------------------------------" << std::endl;
     for (auto const &[symbol, scope] : symtable) {
       os << symbol << std::setw(10) << scope << std::endl;

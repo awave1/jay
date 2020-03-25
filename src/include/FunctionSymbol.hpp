@@ -14,6 +14,15 @@ public:
       : Symbol(name, "function", type), params(params){};
 
   std::vector<Symbol> params;
+
+  void print(std::ostream &os) const {
+    os << "<" << kind << ": " << get_str_for_type(type) << ", " << name
+       << ", params: ";
+    for (auto p : params) {
+      os << p << " ";
+    }
+    os << ">";
+  }
 };
 
 #endif /* FUNCTION_SYMBOL_HPP */

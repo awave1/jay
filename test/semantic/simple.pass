@@ -7,6 +7,6 @@ main() {
   }
 }
 int bar;
-void foo() {
+void f(int a, int b, boolean c) {
   int foo;
 }

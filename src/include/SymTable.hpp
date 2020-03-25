@@ -15,7 +15,7 @@
 using namespace yy;
 
 typedef std::size_t scope_t;
-typedef std::map<std::string, Symbol> symbol_table_t;
+typedef std::map<std::string, Symbol *> symbol_table_t;
 
 class SymTable {
 public:
@@ -25,7 +25,7 @@ public:
 
   void push_scope();
 
-  void define(Symbol symbol);
+  void define(Symbol *symbol);
 
   Symbol lookup(std::string name);
 

@@ -5,9 +5,9 @@ SymTable::SymTable() {
   push_scope();
 }
 
-void SymTable::define(Symbol symbol) {
+void SymTable::define(Symbol *symbol) {
   auto *symtable = &scope_stack.back();
-  symtable->insert(std::pair<std::string, Symbol>(symbol.name, symbol));
+  symtable->insert(std::pair<std::string, Symbol *>(symbol->name, symbol));
 }
 
 bool SymTable::has(std::string name) {
@@ -23,12 +23,17 @@ void SymTable::add_predefined_symbols() {
   using namespace std;
 
   // built-in functions
-  auto getchar_fun_sym = FunctionSymbol("getchar", {}, ast_node_t::Node::int_t);
-  auto halt_fun_sym = FunctionSymbol("halt", {}, ast_node_t::Node::void_t);
-  auto printb_fun_sym = FunctionSymbol("printb", {}, ast_node_t::Node::void_t);
-  auto printc_fun_sym = FunctionSymbol("printc", {}, ast_node_t::Node::void_t);
-  auto printi_fun_sym = FunctionSymbol("printi", {}, ast_node_t::Node::void_t);
-  auto prints_fun_sym = FunctionSymbol("prints", {}, ast_node_t::Node::void_t);
+  auto *getchar_fun_sym =
+      new FunctionSymbol("getchar", {}, ast_node_t::Node::int_t);
+  auto *halt_fun_sym = new FunctionSymbol("halt", {}, ast_node_t::Node::void_t);
+  auto *printb_fun_sym =
+      new FunctionSymbol("printb", {}, ast_node_t::Node::void_t);
+  auto *printc_fun_sym =
+      new FunctionSymbol("printc", {}, ast_node_t::Node::void_t);
+  auto *printi_fun_sym =
+      new FunctionSymbol("printi", {}, ast_node_t::Node::void_t);
+  auto *prints_fun_sym =
+      new FunctionSymbol("prints", {}, ast_node_t::Node::void_t);
 
   push_scope();
 
@@ -47,8 +52,8 @@ std::ostream &operator<<(std::ostream &os, const SymTable &sym_table) {
     auto symtable = sym_table.scope_stack[i];
     os << "scope: " << i << std::endl;
     os << "----------------------------------" << std::endl;
-    for (auto const &[symbol, scope] : symtable) {
-      os << symbol << std::setw(10) << scope << std::endl;
+    for (auto const &[name, symbol] : symtable) {
+      os << name << std::setw(10) << *symbol << std::endl;
     }
     os << "----------------------------------" << std::endl;
   }

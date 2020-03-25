@@ -16,9 +16,12 @@ public:
   Symbol(std::string name, std::string kind, ast_node_t::Node type)
       : name(name), kind(kind), type(type) {}
 
+  virtual void print(std::ostream &os) const {
+    os << "<" << kind << ": " << get_str_for_type(type) << ", " << name << ">";
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Symbol &s) {
-    os << "<" << s.kind << ": " << get_str_for_type(s.type) << ", " << s.name
-       << ">";
+    s.print(os);
     return os;
   }
 };

@@ -56,26 +56,40 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
       break;
     }
 
-    sym_table->define(FunctionSymbol("main", {}, ast_node_t::Node::void_t));
+    sym_table->define(new FunctionSymbol("main", {}, ast_node_t::Node::void_t));
 
     break;
 
-  case ast_node_t::Node::function_decl:
+  case ast_node_t::Node::function_decl: {
     if (node->children.empty()) {
       break;
     }
 
-    sym_table->define(
-        FunctionSymbol(node->children[1]->value, {}, node->children[0]->type));
-    break;
+    auto id = node->children[1]->value;
+    auto type = node->children[0]->type;
+    auto *params = node->find_first(ast_node_t::Node::formal_params);
 
+    std::vector<Symbol> sym_params;
+    if (params != nullptr) {
+      for (auto *formal : params->children) {
+        auto *formal_id = formal->children[1];
+        auto *formal_type = formal->children[0];
+
+        sym_params.push_back(
+            Symbol(formal_id->value, "parameter", formal_type->type));
+      }
+    }
+
+    sym_table->define(new FunctionSymbol(id, sym_params, type));
+    break;
+  }
   case ast_node_t::Node::global_var_decl:
     if (node->children.empty()) {
       break;
     }
 
-    sym_table->define(
-        Symbol(node->children[1]->value, "variable", node->children[0]->type));
+    sym_table->define(new Symbol(node->children[1]->value, "variable",
+                                 node->children[0]->type));
 
     break;
   default:
@@ -96,7 +110,8 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       auto id_node = node->children[1];
 
       if (!sym_table->has(id_node->value)) {
-        sym_table->define(Symbol(id_node->value, "variable", type_node->type));
+        sym_table->define(
+            new Symbol(id_node->value, "variable", type_node->type));
       } else {
         std::cout << type_node->value << " " << id_node->value
                   << " has already been defined" << std::endl;

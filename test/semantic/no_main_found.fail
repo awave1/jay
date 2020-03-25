@@ -1,0 +1,6 @@
+// should fail, because there's no main declaration
+
+int foo;
+int bar;
+
+void validfunction() {}

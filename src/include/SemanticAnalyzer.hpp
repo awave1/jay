@@ -7,6 +7,7 @@
 #include "ast.hpp"
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 
 using namespace yy;
 

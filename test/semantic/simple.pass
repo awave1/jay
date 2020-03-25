@@ -2,9 +2,6 @@ int foo;
 main() {
   int foo2;
   int foo3;
-  {
-    int foo4;
-  }
 }
 int bar;
 void f(int a, int b, boolean c) {

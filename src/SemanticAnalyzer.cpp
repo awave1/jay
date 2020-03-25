@@ -3,26 +3,36 @@
 std::shared_ptr<ast_node_t> SemanticAnalyzer::get_ast() { return ast; }
 
 bool SemanticAnalyzer::validate() {
-  // Pass 1
-  this->traverse(this->ast.get(), nullptr,
-                 std::bind(&SemanticAnalyzer::globals_post_order_pass, this,
-                           std::placeholders::_1));
+  auto main = ast->find_recursive(ast_node_t::Node::main_func_decl);
+  if (!main.empty()) {
+    if (main.size() > 1) {
+      std::throw_with_nested(
+          std::runtime_error("Multiple `main()` declarations found. Aborting"));
+      return false;
+    }
+    // Pass 1
+    this->traverse(this->ast.get(), nullptr,
+                   std::bind(&SemanticAnalyzer::globals_post_order_pass, this,
+                             std::placeholders::_1));
 
-  this->traverse(
-      this->ast.get(),
-      std::bind(&SemanticAnalyzer::build_scope, this, std::placeholders::_1),
-      std::bind(&SemanticAnalyzer::sym_table_pre_post_order_pass, this,
-                std::placeholders::_1));
+    // Pass 2
+    this->traverse(
+        this->ast.get(),
+        std::bind(&SemanticAnalyzer::build_scope, this, std::placeholders::_1),
+        std::bind(&SemanticAnalyzer::sym_table_pre_post_order_pass, this,
+                  std::placeholders::_1));
 
-  std::cout << *sym_table << std::endl;
+    std::cout << *sym_table << std::endl;
 
-  // Pass 2
+    // Pass 3
 
-  // Pass 3
+    // Pass 4
+  } else {
+    std::throw_with_nested(std::runtime_error("No `main()` found. Aborting"));
+    return false;
+  }
 
-  // Pass 4
-
-  return false;
+  return true;
 }
 
 bool SemanticAnalyzer::traverse(ast_node_t *node,
@@ -48,7 +58,8 @@ bool SemanticAnalyzer::traverse(ast_node_t *node,
 
 // pass 1
 void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
-  // ignore top-level root as it's useless for symbol table
+  std::cout << "pass1" << std::endl << *node << std::endl;
+
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
     if (node->children.empty()) {
@@ -99,10 +110,13 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
 
 // pass 2
 void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
+  std::cout << "pass2" << std::endl << *node << std::endl;
   if (node->type != ast_node_t::Node::program) {
     switch (node->type) {
     case ast_node_t::Node::variable_decl: {
       if (node->children.empty()) {
+        std::throw_with_nested(
+            std::runtime_error("Wrong variable declaration"));
         break;
       }
 
@@ -113,8 +127,9 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
         sym_table->define(
             new Symbol(id_node->value, "variable", type_node->type));
       } else {
-        std::cout << type_node->value << " " << id_node->value
-                  << " has already been defined" << std::endl;
+        std::throw_with_nested(
+            std::runtime_error("'" + get_str_for_type(type_node->type) + " " +
+                               id_node->value + "' has already been defined!"));
       }
 
       break;

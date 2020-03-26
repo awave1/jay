@@ -116,8 +116,6 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     if (block != nullptr) {
       block->is_while_block = true;
     }
-
-    std::cout << *node << std::endl;
     break;
   }
   default:
@@ -203,6 +201,20 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
         }
         default:
           break;
+        }
+      }
+
+      if (node->is_return_block) {
+        auto *return_node =
+            node->find_first(ast_node_t::Node::return_statement);
+        // TODO: get more descriptive error message (like fun name and return
+        // type) from symbol table
+        if (return_node == nullptr) {
+          std::cerr << "Error: missing `return` statement. Line: "
+                    << node->linenum << std::endl;
+        } else if (return_node->children.empty()) {
+          std::cerr << "Error: the function should return a value. Line: "
+                    << node->linenum << std::endl;
         }
       }
 

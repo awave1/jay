@@ -40,6 +40,8 @@ public:
 
   bool has(std::string name);
 
+  FunctionSymbol *find_function(std::string name);
+
   friend std::ostream &operator<<(std::ostream &os, const SymTable &sym_table);
 
 private:

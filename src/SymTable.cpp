@@ -17,6 +17,11 @@ bool SymTable::has(std::string name) {
   return iter != symtable.end();
 }
 
+FunctionSymbol *SymTable::find_function(std::string name) {
+  auto symtable = scope_stack[GLOBAL_SCOPE];
+  return dynamic_cast<FunctionSymbol *>(symtable.at(name));
+}
+
 /**
  * @brief pre-populate based on the predefined symbols
  */

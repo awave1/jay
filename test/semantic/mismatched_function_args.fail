@@ -1,0 +1,15 @@
+void fun0() {}
+
+void fun1(int a) {}
+
+void fun2(int a, int b) {}
+
+void fun3(int a, int b, boolean c) {}
+
+main() {
+  fun0();
+  fun1(1);
+  fun2(1, 2);
+  fun3(1, 2, false);
+  a = b + c;
+}

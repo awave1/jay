@@ -125,10 +125,11 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       auto id_node = node->children[1];
 
       if (!is_declaration_allowed()) {
-        std::throw_with_nested(std::runtime_error(
-            "'" + get_str_for_type(type_node->type) + " " + id_node->value +
-            "' A local declaration was not in an outermost block. Line: " +
-            std::to_string(node->linenum)));
+        std::cerr
+            << "'" + get_str_for_type(type_node->type) + " " << id_node->value
+            << "' A local declaration was not in an outermost block. Line: "
+            << node->linenum << std::endl;
+        ;
       }
 
       if (!sym_table->has(id_node->value)) {
@@ -136,9 +137,9 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
                                      type_node->type,
                                      sym_table->current_scope));
       } else {
-        std::throw_with_nested(
-            std::runtime_error("'" + get_str_for_type(type_node->type) + " " +
-                               id_node->value + "' has already been defined!"));
+        std::cerr << "'" << get_str_for_type(type_node->type) << " "
+                  << id_node->value + "' has already been defined!"
+                  << std::endl;
       }
 
       break;
@@ -146,6 +147,36 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
     case ast_node_t::Node::block: {
       std::cout << "EXIT SCOPE: " << sym_table->current_scope << std::endl;
       std::cout << *node << std::endl;
+      std::cout << node->children.size() << std::endl;
+
+      for (auto *c : node->children) {
+        switch (c->type) {
+        case ast_node_t::Node::statement_expr: {
+          if (c->children.empty()) {
+            break;
+          }
+
+          auto *fun_call = c->children[0];
+          if (fun_call->type == ast_node_t::Node::function_call) {
+            auto *actual_params =
+                fun_call->find_first(ast_node_t::Node::actual_params);
+
+            auto *fun_name = fun_call->find_first(ast_node_t::Node::id);
+            auto *fun_sym = sym_table->find_function(fun_name->value);
+
+            if (actual_params->children.size() != fun_sym->params.size()) {
+              std::cerr << "Mismatched number of actual parameters. Expected: "
+                        << fun_sym->params.size() << ", but got "
+                        << actual_params->children.size()
+                        << ". Line: " << fun_call->linenum << std::endl;
+            }
+          }
+        }
+        default:
+          break;
+        }
+      }
+
       // skip the empty block
       sym_table->exit_scope();
       break;

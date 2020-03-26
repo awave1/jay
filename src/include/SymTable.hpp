@@ -14,16 +14,25 @@
 
 using namespace yy;
 
-typedef std::size_t scope_t;
+typedef int scope_t;
 typedef std::map<std::string, Symbol *> symbol_table_t;
 
 class SymTable {
 public:
+  // scope nesting level
+  scope_t current_scope = PREDEFINED_SCOPE;
+
   SymTable();
 
   bool insert(Symbol symbol, scope_t scope);
 
   void push_scope();
+
+  scope_t get_scope();
+
+  void enter_scope();
+
+  void exit_scope();
 
   void define(Symbol *symbol);
 

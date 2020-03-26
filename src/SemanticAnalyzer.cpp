@@ -3,7 +3,9 @@
 std::shared_ptr<ast_node_t> SemanticAnalyzer::get_ast() { return ast; }
 
 bool SemanticAnalyzer::validate() {
-  auto main = ast->find_recursive(ast_node_t::Node::main_func_decl);
+  std::vector<ast_node_t *> main =
+      ast->find_all(ast_node_t::Node::main_func_decl);
+
   if (!main.empty()) {
     if (main.size() > 1) {
       std::throw_with_nested(
@@ -16,6 +18,7 @@ bool SemanticAnalyzer::validate() {
                              std::placeholders::_1));
 
     // Pass 2
+    // fill out symbol table
     this->traverse(
         this->ast.get(),
         std::bind(&SemanticAnalyzer::build_scope, this, std::placeholders::_1),
@@ -58,17 +61,14 @@ bool SemanticAnalyzer::traverse(ast_node_t *node,
 
 // pass 1
 void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
-  std::cout << "pass1" << std::endl << *node << std::endl;
-
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
     if (node->children.empty()) {
-      // TODO: Error here?
       break;
     }
 
-    sym_table->define(new FunctionSymbol("main", {}, ast_node_t::Node::void_t));
-
+    sym_table->define(new FunctionSymbol("main", {}, ast_node_t::Node::void_t,
+                                         sym_table->current_scope));
     break;
 
   case ast_node_t::Node::function_decl: {
@@ -86,12 +86,14 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
         auto *formal_id = formal->children[1];
         auto *formal_type = formal->children[0];
 
-        sym_params.push_back(
-            Symbol(formal_id->value, "parameter", formal_type->type));
+        sym_params.push_back(Symbol(formal_id->value, "parameter",
+                                    formal_type->type,
+                                    sym_table->current_scope));
       }
     }
 
-    sym_table->define(new FunctionSymbol(id, sym_params, type));
+    sym_table->define(
+        new FunctionSymbol(id, sym_params, type, sym_table->current_scope));
     break;
   }
   case ast_node_t::Node::global_var_decl:
@@ -100,8 +102,8 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     }
 
     sym_table->define(new Symbol(node->children[1]->value, "variable",
-                                 node->children[0]->type));
-
+                                 node->children[0]->type,
+                                 sym_table->current_scope));
     break;
   default:
     break;
@@ -110,7 +112,7 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
 
 // pass 2
 void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
-  std::cout << "pass2" << std::endl << *node << std::endl;
+  // std::cout << "pass2" << std::endl << *node << std::endl;
   if (node->type != ast_node_t::Node::program) {
     switch (node->type) {
     case ast_node_t::Node::variable_decl: {
@@ -123,15 +125,29 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       auto type_node = node->children[0];
       auto id_node = node->children[1];
 
+      if (!is_declaration_allowed()) {
+        std::throw_with_nested(std::runtime_error(
+            "'" + get_str_for_type(type_node->type) + " " + id_node->value +
+            "' cannot be defined in nested scopes"));
+      }
+
       if (!sym_table->has(id_node->value)) {
-        sym_table->define(
-            new Symbol(id_node->value, "variable", type_node->type));
+        sym_table->define(new Symbol(id_node->value, "variable",
+                                     type_node->type,
+                                     sym_table->current_scope));
       } else {
         std::throw_with_nested(
             std::runtime_error("'" + get_str_for_type(type_node->type) + " " +
                                id_node->value + "' has already been defined!"));
       }
 
+      break;
+    }
+    case ast_node_t::Node::block: {
+      std::cout << "EXIT SCOPE: " << sym_table->current_scope << std::endl;
+      std::cout << *node << std::endl;
+      // skip the empty block
+      sym_table->exit_scope();
       break;
     }
     default:
@@ -156,6 +172,15 @@ bool SemanticAnalyzer::build_scope(ast_node_t *node) {
   if (node->type != ast_node_t::Node::program &&
       node->type == ast_node_t::Node::block) {
     sym_table->push_scope();
+    sym_table->enter_scope();
+    std::cout << "ENTER SCOPE: " << sym_table->get_scope() << std::endl;
+    std::cout << *node << std::endl;
   }
   return true;
+}
+
+bool SemanticAnalyzer::is_declaration_allowed() {
+  auto scope = sym_table->current_scope;
+  // declaration allowed only at levels 1 and 2
+  return scope == 1 || scope == 2;
 }

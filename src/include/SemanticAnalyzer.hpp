@@ -22,6 +22,8 @@ public:
 
   bool validate();
 
+  bool is_declaration_allowed();
+
 private:
   std::shared_ptr<ast_node_t> ast;
   std::shared_ptr<SymTable> sym_table;

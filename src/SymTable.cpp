@@ -3,6 +3,7 @@
 SymTable::SymTable() {
   add_predefined_symbols();
   push_scope();
+  enter_scope();
 }
 
 void SymTable::define(Symbol *symbol) {
@@ -23,17 +24,18 @@ void SymTable::add_predefined_symbols() {
   using namespace std;
 
   // built-in functions
-  auto *getchar_fun_sym =
-      new FunctionSymbol("getchar", {}, ast_node_t::Node::int_t);
-  auto *halt_fun_sym = new FunctionSymbol("halt", {}, ast_node_t::Node::void_t);
-  auto *printb_fun_sym =
-      new FunctionSymbol("printb", {}, ast_node_t::Node::void_t);
-  auto *printc_fun_sym =
-      new FunctionSymbol("printc", {}, ast_node_t::Node::void_t);
-  auto *printi_fun_sym =
-      new FunctionSymbol("printi", {}, ast_node_t::Node::void_t);
-  auto *prints_fun_sym =
-      new FunctionSymbol("prints", {}, ast_node_t::Node::void_t);
+  auto *getchar_fun_sym = new FunctionSymbol(
+      "getchar", {}, ast_node_t::Node::int_t, PREDEFINED_SCOPE);
+  auto *halt_fun_sym = new FunctionSymbol("halt", {}, ast_node_t::Node::void_t,
+                                          PREDEFINED_SCOPE);
+  auto *printb_fun_sym = new FunctionSymbol(
+      "printb", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+  auto *printc_fun_sym = new FunctionSymbol(
+      "printc", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+  auto *printi_fun_sym = new FunctionSymbol(
+      "printi", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+  auto *prints_fun_sym = new FunctionSymbol(
+      "prints", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
 
   push_scope();
 
@@ -46,6 +48,18 @@ void SymTable::add_predefined_symbols() {
 }
 
 void SymTable::push_scope() { scope_stack.push_back({}); }
+
+void SymTable::exit_scope() {
+  current_scope--;
+  std::cout << "exit scope: current scope " << current_scope << std::endl;
+}
+
+void SymTable::enter_scope() {
+  current_scope++;
+  std::cout << "enter scope: current scope " << current_scope << std::endl;
+}
+
+scope_t SymTable::get_scope() { return current_scope; }
 
 std::ostream &operator<<(std::ostream &os, const SymTable &sym_table) {
   for (scope_t i = 0; i < sym_table.scope_stack.size(); i++) {

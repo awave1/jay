@@ -12,9 +12,11 @@ public:
   std::string name;
   std::string kind;
   ast_node_t::Node type;
+  std::size_t scope;
 
-  Symbol(std::string name, std::string kind, ast_node_t::Node type)
-      : name(name), kind(kind), type(type) {}
+  Symbol(std::string name, std::string kind, ast_node_t::Node type,
+         std::size_t scope)
+      : name(name), kind(kind), type(type), scope(scope) {}
 
   virtual void print(std::ostream &os) const {
     os << "<" << kind << ": " << get_str_for_type(type) << ", " << name << ">";

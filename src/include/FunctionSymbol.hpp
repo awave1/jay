@@ -10,8 +10,8 @@ using namespace yy;
 class FunctionSymbol : public Symbol {
 public:
   FunctionSymbol(std::string name, std::vector<Symbol> params,
-                 ast_node_t::Node type)
-      : Symbol(name, "function", type), params(params){};
+                 ast_node_t::Node type, std::size_t scope)
+      : Symbol(name, "function", type, scope), params(params){};
 
   std::vector<Symbol> params;
 

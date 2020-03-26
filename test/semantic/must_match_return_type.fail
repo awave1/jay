@@ -5,5 +5,7 @@ int foo() {
 }
 
 boolean bar() { 
-  return false;
+  return "lol";
 }
+
+boolean foo2() { return 2; }

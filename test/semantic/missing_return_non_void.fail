@@ -1,9 +1,11 @@
 main() {}
 
+boolean huh() {}
+
 int foo() {
-  return 42;
+  return;
 }
 
 void bar() {
-  return;
+  return false;
 }

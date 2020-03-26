@@ -56,12 +56,12 @@ void SymTable::push_scope() { scope_stack.push_back({}); }
 
 void SymTable::exit_scope() {
   current_scope--;
-  std::cout << "exit scope: current scope " << current_scope << std::endl;
+  // std::cout << "exit scope: current scope " << current_scope << std::endl;
 }
 
 void SymTable::enter_scope() {
   current_scope++;
-  std::cout << "enter scope: current scope " << current_scope << std::endl;
+  // std::cout << "enter scope: current scope " << current_scope << std::endl;
 }
 
 scope_t SymTable::get_scope() { return current_scope; }

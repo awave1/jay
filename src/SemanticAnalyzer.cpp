@@ -139,8 +139,9 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
 
       if (!is_declaration_allowed()) {
         std::cerr
-            << "'" + get_str_for_type(type_node->type) + " " << id_node->value
-            << "' A local declaration was not in an outermost block. Line: "
+            << "Error: `" + get_str_for_type(type_node->type) + " "
+            << id_node->value
+            << "` A local declaration was not in an outermost block. Line: "
             << node->linenum << std::endl;
         ;
       }
@@ -150,17 +151,41 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
                                      type_node->type,
                                      sym_table->current_scope));
       } else {
-        std::cerr << "'" << get_str_for_type(type_node->type) << " "
-                  << id_node->value + "' has already been defined!"
-                  << std::endl;
+        std::cerr << "Error: `" << get_str_for_type(type_node->type) << " "
+                  << id_node->value + "` has already been defined. Line: "
+                  << node->linenum << std::endl;
+      }
+
+      break;
+    }
+    case ast_node_t::Node::function_decl: {
+      auto *block = node->find_first(ast_node_t::Node::block);
+      auto *return_node = block->find_first(ast_node_t::Node::return_statement);
+      auto *type = node->children[0];
+
+      if (block->is_return_block) {
+        // TODO: get more descriptive error message (like fun name and return
+        // type) from symbol table
+        if (return_node == nullptr) {
+          std::cerr << "Error: missing `return` statement. Line: "
+                    << node->linenum << std::endl;
+        } else if (return_node->children.empty()) {
+          std::cerr << "Error: function should return a value. Line: "
+                    << return_node->linenum << std::endl;
+        }
+      } else if (type->type == ast_node_t::Node::void_t) {
+        if (return_node != nullptr && !return_node->children.empty()) {
+          std::cerr << "Error: void function cannot return values. Line: "
+                    << return_node->linenum << std::endl;
+        }
       }
 
       break;
     }
     case ast_node_t::Node::block: {
-      std::cout << "EXIT SCOPE: " << sym_table->current_scope << std::endl;
-      std::cout << *node << std::endl;
-      std::cout << node->children.size() << std::endl;
+      // std::cout << "EXIT SCOPE: " << sym_table->current_scope << std::endl;
+      // std::cout << *node << std::endl;
+      // std::cout << node->children.size() << std::endl;
 
       for (auto *c : node->children) {
         switch (c->type) {
@@ -204,20 +229,6 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
         }
       }
 
-      if (node->is_return_block) {
-        auto *return_node =
-            node->find_first(ast_node_t::Node::return_statement);
-        // TODO: get more descriptive error message (like fun name and return
-        // type) from symbol table
-        if (return_node == nullptr) {
-          std::cerr << "Error: missing `return` statement. Line: "
-                    << node->linenum << std::endl;
-        } else if (return_node->children.empty()) {
-          std::cerr << "Error: the function should return a value. Line: "
-                    << node->linenum << std::endl;
-        }
-      }
-
       // skip the empty block
       sym_table->exit_scope();
       break;
@@ -236,7 +247,6 @@ bool SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
 
 // pass 4
 bool SemanticAnalyzer::catch_all_pre_post_order_pass(ast_node_t *node) {
-  std::cout << "pass 4: globals post order pass\n" << *node << std::endl;
   return false;
 }
 
@@ -245,8 +255,8 @@ bool SemanticAnalyzer::build_scope(ast_node_t *node) {
       node->type == ast_node_t::Node::block) {
     sym_table->push_scope();
     sym_table->enter_scope();
-    std::cout << "ENTER SCOPE: " << sym_table->get_scope() << std::endl;
-    std::cout << *node << std::endl;
+    // std::cout << "ENTER SCOPE: " << sym_table->get_scope() << std::endl;
+    // std::cout << *node << std::endl;
   }
   return true;
 }

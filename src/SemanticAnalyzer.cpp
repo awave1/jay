@@ -112,7 +112,6 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
 
 // pass 2
 void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
-  // std::cout << "pass2" << std::endl << *node << std::endl;
   if (node->type != ast_node_t::Node::program) {
     switch (node->type) {
     case ast_node_t::Node::variable_decl: {
@@ -128,7 +127,8 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       if (!is_declaration_allowed()) {
         std::throw_with_nested(std::runtime_error(
             "'" + get_str_for_type(type_node->type) + " " + id_node->value +
-            "' cannot be defined in nested scopes"));
+            "' A local declaration was not in an outermost block. Line: " +
+            std::to_string(node->linenum)));
       }
 
       if (!sym_table->has(id_node->value)) {

@@ -172,6 +172,15 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
         } else if (return_node->children.empty()) {
           std::cerr << "Error: function should return a value. Line: "
                     << return_node->linenum << std::endl;
+        } else {
+          // return exists, check if value matches function return type
+          auto *return_val = return_node->children[0];
+          if (return_val->type != type->type) {
+            std::cerr << "Error: mismatched return type. Was expecting `"
+                      << get_str_for_type(type->type) << "`, but got `"
+                      << get_str_for_type(return_val->type)
+                      << "`. Line: " << return_node->linenum << std::endl;
+          }
         }
       } else if (type->type == ast_node_t::Node::void_t) {
         if (return_node != nullptr && !return_node->children.empty()) {

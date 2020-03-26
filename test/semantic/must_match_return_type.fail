@@ -1,0 +1,9 @@
+main() {}
+
+int foo() {
+  return true;
+}
+
+boolean bar() { 
+  return false;
+}

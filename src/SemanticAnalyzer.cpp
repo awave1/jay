@@ -164,11 +164,19 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
             auto *fun_name = fun_call->find_first(ast_node_t::Node::id);
             auto *fun_sym = sym_table->find_function(fun_name->value);
 
+            if (fun_name->value == "main") {
+              std::cerr
+                  << "Error: Cannot call `main()` function directly. Line: "
+                  << fun_call->linenum << std::endl;
+              break;
+            }
+
             if (actual_params->children.size() != fun_sym->params.size()) {
-              std::cerr << "Mismatched number of actual parameters. Expected: "
-                        << fun_sym->params.size() << ", but got "
-                        << actual_params->children.size()
-                        << ". Line: " << fun_call->linenum << std::endl;
+              std::cerr
+                  << "Error: Mismatched number of actual parameters. Expected: "
+                  << fun_sym->params.size() << ", but got "
+                  << actual_params->children.size()
+                  << ". Line: " << fun_call->linenum << std::endl;
             }
           }
         }

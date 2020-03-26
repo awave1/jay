@@ -1,0 +1,13 @@
+main() {
+  while(true) {
+    break;
+  }
+
+  if (true) {
+    break;
+  }
+}
+
+int foo() {
+  break;
+}

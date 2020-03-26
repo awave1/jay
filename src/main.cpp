@@ -21,6 +21,7 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
 
     std::cout << *semantic_analyzer->get_ast() << std::endl << std::endl;
     semantic_analyzer->validate();
+    std::cout << *ast << std::endl;
   } else {
     std::cerr << "Failed parsing" << std::endl;
     exit(1);

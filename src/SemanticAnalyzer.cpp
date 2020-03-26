@@ -79,6 +79,7 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     auto id = node->children[1]->value;
     auto type = node->children[0]->type;
     auto *params = node->find_first(ast_node_t::Node::formal_params);
+    auto *block = node->find_first(ast_node_t::Node::block);
 
     std::vector<Symbol> sym_params;
     if (params != nullptr) {
@@ -90,6 +91,11 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
                                     formal_type->type,
                                     sym_table->current_scope));
       }
+    }
+
+    // mark if the block supposed to have return statement
+    if (block != nullptr) {
+      block->is_return_block = type != ast_node_t::Node::void_t;
     }
 
     sym_table->define(
@@ -105,6 +111,15 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
                                  node->children[0]->type,
                                  sym_table->current_scope));
     break;
+  case ast_node_t::Node::while_statement: {
+    auto *block = node->find_first(ast_node_t::Node::block);
+    if (block != nullptr) {
+      block->is_while_block = true;
+    }
+
+    std::cout << *node << std::endl;
+    break;
+  }
   default:
     break;
   }
@@ -178,6 +193,12 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
                   << actual_params->children.size()
                   << ". Line: " << fun_call->linenum << std::endl;
             }
+          }
+        }
+        case ast_node_t::Node::break_statement: {
+          if (!node->is_while_block) {
+            std::cerr << "Error: `block` statement can only be inside `while` "
+                      << "loops. Line: " << c->linenum << std::endl;
           }
         }
         default:

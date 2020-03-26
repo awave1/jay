@@ -75,6 +75,9 @@ struct ast_node_t {
   // ast children
   std::vector<ast_node_t *> children;
 
+  bool is_while_block = false;
+  bool is_return_block = false;
+
   /**
    * Need to do several passes of the AST
    *
@@ -216,6 +219,11 @@ struct ast_node_t {
 
     if (node.has_value()) {
       os << "value: '" << node.value << "'";
+    }
+
+    if (node.type == Node::block) {
+      os << std::boolalpha << "is_while_block: " << node.is_while_block
+         << " is_return_block: " << node.is_return_block;
     }
 
     if (node.linenum != 0) {

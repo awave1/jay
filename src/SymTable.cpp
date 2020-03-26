@@ -17,6 +17,17 @@ bool SymTable::has(std::string name) {
   return iter != symtable.end();
 }
 
+bool SymTable::exists(std::string name) {
+  for (auto i = scope_stack.rbegin(); i != scope_stack.rend(); i++) {
+    auto table = *i;
+    if (table.find(name) != table.end()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 FunctionSymbol *SymTable::find_function(std::string name) {
   auto symtable = scope_stack[GLOBAL_SCOPE];
   return dynamic_cast<FunctionSymbol *>(symtable.at(name));

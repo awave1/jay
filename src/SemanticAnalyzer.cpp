@@ -182,6 +182,21 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
 
       break;
     }
+    case ast_node_t::Node::while_statement: {
+      auto *block = node->find_first(ast_node_t::Node::block);
+
+      if (block == nullptr) {
+        break;
+      }
+
+      // TODO: handle break statement here
+      // if (!node->is_while_block) {
+      //   std::cerr << "Error: `block` statement can only be inside `while` "
+      //             << "loops. Line: " << c->linenum << std::endl;
+      // }
+
+      break;
+    }
     case ast_node_t::Node::block: {
       // std::cout << "EXIT SCOPE: " << sym_table->current_scope << std::endl;
       // std::cout << *node << std::endl;
@@ -194,18 +209,18 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
             break;
           }
 
-          auto *fun_call = c->children[0];
-          if (fun_call->type == ast_node_t::Node::function_call) {
+          auto *expression = c->children[0];
+          if (expression->type == ast_node_t::Node::function_call) {
             auto *actual_params =
-                fun_call->find_first(ast_node_t::Node::actual_params);
+                expression->find_first(ast_node_t::Node::actual_params);
 
-            auto *fun_name = fun_call->find_first(ast_node_t::Node::id);
+            auto *fun_name = expression->find_first(ast_node_t::Node::id);
             auto *fun_sym = sym_table->find_function(fun_name->value);
 
             if (fun_name->value == "main") {
               std::cerr
                   << "Error: Cannot call `main()` function directly. Line: "
-                  << fun_call->linenum << std::endl;
+                  << expression->linenum << std::endl;
               break;
             }
 
@@ -214,14 +229,14 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
                   << "Error: Mismatched number of actual parameters. Expected: "
                   << fun_sym->params.size() << ", but got "
                   << actual_params->children.size()
-                  << ". Line: " << fun_call->linenum << std::endl;
+                  << ". Line: " << expression->linenum << std::endl;
             }
-          }
-        }
-        case ast_node_t::Node::break_statement: {
-          if (!node->is_while_block) {
-            std::cerr << "Error: `block` statement can only be inside `while` "
-                      << "loops. Line: " << c->linenum << std::endl;
+          } else if (expression->type == ast_node_t::Node::eq_op) {
+            auto *id = expression->children[0];
+            if (!sym_table->exists(id->value)) {
+              std::cerr << "Error: undefined identifier `" << id->value
+                        << "`. Line: " << expression->linenum << std::endl;
+            }
           }
         }
         default:

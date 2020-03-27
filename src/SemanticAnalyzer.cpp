@@ -514,7 +514,8 @@ void SemanticAnalyzer::type_checking_post_order_pass(
         err_stack.push_back(false);
         break;
       }
-    } else if (expr->is_num_expr()) {
+    } else if (expr->is_num_expr() ||
+               expr->type != ast_node_t::Node::boolean_t) {
       semantic_error("Invalid boolean expression used in `" +
                          get_str_for_type(node->type) + "` expression.",
                      expr->linenum);

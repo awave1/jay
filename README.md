@@ -46,12 +46,14 @@ The `test.sh <dirname>` runs all of the test files in the `test/<dirname>` direc
 To run the test runner, run the following command (it will perform a clean build):
 
 ```sh
-make test_runner
+make test_runner COMPONENT=[lexer|parser|semantic]
 ```
 
-> Note: instead of using `make test...` you can also call ./test.sh <args> instead (ensure to make it executable using `chmod +x ./test.sh`).
+> Note: instead of using `make test_runner` you can also call `./test.sh [lexer|parser|semantic]` instead (ensure to make it executable using `chmod +x ./test.sh`).
 
 #### Unit Tests
+
+> Note: unit tests implemented for parser only.
 
 The project contains a test suite, built using [Catch2](https://github.com/catchorg/Catch2) test framework. To run the tests:
 
@@ -79,7 +81,6 @@ To display all possible options,
 # if using fish shell:
 ./jay.test "-?"
 ```
-
 
 ## Author
 

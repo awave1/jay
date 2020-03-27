@@ -1,3 +1,5 @@
+// should show an error for redeclaring `int i`
+
 int glob;
 main() {
   int glob;

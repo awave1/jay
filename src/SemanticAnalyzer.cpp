@@ -570,14 +570,16 @@ void SemanticAnalyzer::type_checking_post_order_pass(
       }
     }
 
-    types_match = sym->type == found_type;
-    if (!types_match) {
-      semantic_error("unexpected assignment to variable `" + id->value +
-                         "` of type `" + get_str_for_type(sym->type) +
-                         "`, found type `" + get_str_for_type(found_type),
-                     node->linenum);
-      err_stack.push_back(false);
-      break;
+    if (sym != nullptr) {
+      types_match = sym->type == found_type;
+      if (!types_match) {
+        semantic_error("unexpected assignment to variable `" + id->value +
+                           "` of type `" + get_str_for_type(sym->type) +
+                           "`, found type `" + get_str_for_type(found_type),
+                       node->linenum);
+        err_stack.push_back(false);
+        break;
+      }
     }
 
     break;

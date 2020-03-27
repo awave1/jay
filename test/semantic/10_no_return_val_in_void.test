@@ -1,0 +1,11 @@
+main() {
+  return;
+}
+
+void f() {
+  return 41;
+}
+
+void f() {
+  return true;
+}

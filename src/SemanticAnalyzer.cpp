@@ -547,7 +547,9 @@ void SemanticAnalyzer::type_checking_post_order_pass(
         auto *fun_sym = sym_table->find_function(id->value);
         found_type = fun_sym->type;
       } else if (assigned->is_num_expr()) {
-        found_type = assigned->expected_type;
+        found_type = ast_node_t::Node::int_t;
+      } else if (assigned->is_bool_expr()) {
+        found_type = ast_node_t::Node::boolean_t;
       }
     }
 

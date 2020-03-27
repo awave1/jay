@@ -1,0 +1,26 @@
+main() {
+  int num;
+  boolean bool;
+
+  num = 1 + 1;
+  num = foo() + 2;
+  num = foo() + bar();
+
+  bool = true;
+  bool = "true";
+  bool = true && "false";
+  bool = true && false; 
+
+}
+
+int foo() {
+  return 42;
+}
+
+void bar() {
+
+}
+
+boolean baz() {
+  return false;
+}

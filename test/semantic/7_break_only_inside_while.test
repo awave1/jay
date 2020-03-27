@@ -1,0 +1,16 @@
+// should fail as break should appear only in while statements
+
+main() {
+  while(true) {
+    break;
+  }
+
+  if (true) {
+    break;
+  }
+}
+
+int foo() {
+  break;
+  return 1;
+}

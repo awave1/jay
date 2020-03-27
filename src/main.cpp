@@ -19,8 +19,6 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
     std::unique_ptr<SemanticAnalyzer> semantic_analyzer(
         new SemanticAnalyzer(ast, sym_table));
 
-    std::cout << *ast << std::endl;
-
     bool is_valid = semantic_analyzer->validate();
     if (is_valid) {
       std::cout << *ast << std::endl;

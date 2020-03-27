@@ -42,8 +42,6 @@ bool SemanticAnalyzer::validate() {
                    type_checking_err_stack);
     bool type_checking_pass = type_checking_err_stack.empty();
 
-    // std::cout << *sym_table << std::endl;
-
     return global_pass && sym_table_pass && type_checking_pass;
   } else {
     semantic_error("No `main()` found. Aborting");
@@ -381,15 +379,6 @@ void SemanticAnalyzer::type_checking_post_order_pass(
   case ast_node_t::Node::function_decl:
     sym_table->current_scope--;
     break;
-  case ast_node_t::Node::variable_decl: {
-    auto *id = node->find_first(ast_node_t::Node::id);
-    // if (sym_table->lookup(id->value, id->function_name) != nullptr) {
-    //   std::cout << *node << std::endl;
-    //   semantic_error("Unknown identifier `" + id->value + "`.",
-    //   node->linenum); err_stack.push_back(false);
-    // }
-    break;
-  }
   case ast_node_t::Node::id: {
     if (sym_table->lookup(node->value, node->function_name) == nullptr) {
       semantic_error("Unknown identifier `" + node->value + "`.",

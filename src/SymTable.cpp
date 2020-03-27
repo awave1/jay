@@ -17,12 +17,17 @@ void SymTable::define(Symbol *symbol, std::string fun_name) {
 }
 
 FunctionSymbol *SymTable::find_function(std::string name) {
-  auto symtable = scope_stack.find(GLOBAL_SCOPE_NAME)->second;
-  if (symtable.find(name) != symtable.end()) {
-    return dynamic_cast<FunctionSymbol *>(symtable.at(name));
-  } else {
-    return nullptr;
+  auto glob_symtable = scope_stack.find(GLOBAL_SCOPE_NAME)->second;
+  if (glob_symtable.find(name) != glob_symtable.end()) {
+    return dynamic_cast<FunctionSymbol *>(glob_symtable.at(name));
   }
+
+  auto predefined_symtable = scope_stack.find(PREDEFINED_SCOPE_NAME)->second;
+  if (predefined_symtable.find(name) != predefined_symtable.end()) {
+    return dynamic_cast<FunctionSymbol *>(predefined_symtable.at(name));
+  }
+
+  return nullptr;
 }
 
 /**
@@ -85,14 +90,20 @@ void SymTable::add_predefined_symbols() {
       "getchar", {}, ast_node_t::Node::int_t, PREDEFINED_SCOPE, 0);
   auto *halt_fun_sym = new FunctionSymbol("halt", {}, ast_node_t::Node::void_t,
                                           PREDEFINED_SCOPE, 0);
+
   auto *printb_fun_sym = new FunctionSymbol(
-      "printb", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "printb", {Symbol("b", "parameter", ast_node_t::Node::boolean_t, 0, 0)},
+      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+
   auto *printc_fun_sym = new FunctionSymbol(
-      "printc", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "printc", {Symbol("c", "parameter", ast_node_t::Node::int_t, 0, 0)},
+      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
   auto *printi_fun_sym = new FunctionSymbol(
-      "printi", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "printi", {Symbol("i", "parameter", ast_node_t::Node::int_t, 0, 0)},
+      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
   auto *prints_fun_sym = new FunctionSymbol(
-      "prints", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "prints", {Symbol("s", "parameter", ast_node_t::Node::string, 0, 0)},
+      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
 
   push_scope(PREDEFINED_SCOPE_NAME);
 
@@ -111,17 +122,9 @@ void SymTable::push_scope(std::string fun_name) {
   current_scope++;
 }
 
-void SymTable::exit_scope() {
-  current_scope_level--;
-  // std::cout << "exit scope: current scope " << current_scope_level <<
-  // std::endl;
-}
+void SymTable::exit_scope() { current_scope_level--; }
 
-void SymTable::enter_scope() {
-  current_scope_level++;
-  // std::cout << "enter scope: current scope " << current_scope_level <<
-  // std::endl;
-}
+void SymTable::enter_scope() { current_scope_level++; }
 
 scope_t SymTable::get_scope() { return current_scope_level; }
 

@@ -1,9 +1,6 @@
+int i;
 main() {
-  int j;
-  boolean i;
-  if (f()) {
-
-  }
+  i = 1 + 2 * 2;
 }
 
 boolean f() {

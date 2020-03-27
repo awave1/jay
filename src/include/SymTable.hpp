@@ -54,9 +54,6 @@ private:
   const std::string PREDEFINED_SCOPE_NAME = "predefined";
   const std::string GLOBAL_SCOPE_NAME = "global";
 
-  // represent symbol table as a scope stack
-  // map stored: <key: symbol name, val: symbol>
-  // position of the map
   std::map<std::string, symbol_table_t> scope_stack;
 
   void add_predefined_symbols();

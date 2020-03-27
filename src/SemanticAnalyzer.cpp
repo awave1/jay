@@ -141,6 +141,13 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     }
     break;
   }
+  case ast_node_t::Node::add_op:
+  case ast_node_t::Node::sub_op:
+  case ast_node_t::Node::mul_op:
+  case ast_node_t::Node::div_op:
+  case ast_node_t::Node::mod_op:
+    node->expected_type = ast_node_t::Node::int_t;
+    break;
   default:
     break;
   }
@@ -170,19 +177,10 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
         break;
       }
 
-      if (sym_table->lookup(id_node->value, id_node->function_name) ==
-          nullptr) {
-        sym_table->define(new Symbol(id_node->value, "variable",
-                                     type_node->type,
-                                     sym_table->current_scope_level,
-                                     sym_table->current_scope),
-                          id_node->function_name);
-      } else {
-        std::cerr << "Error: `" << get_str_for_type(type_node->type) << " "
-                  << id_node->value + "` has already been defined. Line: "
-                  << node->linenum << std::endl;
-      }
-
+      sym_table->define(new Symbol(id_node->value, "variable", type_node->type,
+                                   sym_table->current_scope_level,
+                                   sym_table->current_scope),
+                        id_node->function_name);
       break;
     }
     case ast_node_t::Node::function_decl: {
@@ -370,6 +368,47 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
                   << get_str_for_type(id_symbol->type)
                   << "`. Line: " << expr->linenum << std::endl;
       }
+    }
+
+    break;
+  }
+  case ast_node_t::Node::eq_op: {
+    std::cout << "type eq check\n";
+    auto *id = node->children[0];
+    auto *assigned = node->children[1];
+    auto *sym = sym_table->lookup(id->value, id->function_name);
+    ast_node_t::Node found_type;
+
+    bool types_match = true;
+
+    if (assigned->children.empty()) {
+      // if it's just a single value OR an id
+      if (assigned->type == ast_node_t::Node::id) {
+        found_type =
+            sym_table->lookup(assigned->value, assigned->function_name)->type;
+      } else {
+        found_type = assigned->type;
+      }
+    } else {
+      // if it's something else (expression or function call)
+      std::cout << "assignmed: " << std::endl;
+      std::cout << *assigned << std::endl;
+      if (assigned->type == ast_node_t::Node::function_call) {
+        auto *id = assigned->find_first(ast_node_t::Node::id);
+        auto *fun_sym = sym_table->find_function(id->value);
+        found_type = fun_sym->type;
+      } else if (assigned->is_num_expr()) {
+        found_type = assigned->expected_type;
+      }
+    }
+
+    types_match = sym->type == found_type;
+    if (!types_match) {
+      std::cerr << "Error: unexpected assignment to variable `" << id->value
+                << "` of type `" << get_str_for_type(sym->type)
+                << "`, found type `" << get_str_for_type(found_type)
+                << "`. Line: " << node->linenum << std::endl;
+      break;
     }
 
     break;

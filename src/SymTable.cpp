@@ -25,17 +25,21 @@ FunctionSymbol *SymTable::find_function(std::string name) {
   }
 }
 
+/**
+ * a symbol can be defined either:
+ *   - predefined (0)
+ *   - globally (1)
+ *   - locally (2...n), where n is scope for a function on the scope stack
+ * first, lookup in the local scope
+ * then check if it exists in global or predefined scope
+ * if not found, return nullptr
+ *
+ * @param name
+ * @param fun
+ * @return Symbol*
+ */
 Symbol *SymTable::lookup(std::string name, std::string fun) {
-  // a symbol can be defined either:
-  //   - predefined (0)
-  //   - globally (1)
-  //   - locally (2...n), where n is scope for a function on the scope stack
-  // first, lookup in the local scope
-  // then check if it exists in global or predefined scope
-  // if not found, return nullptr
-
   if (scope_stack.find(fun) != scope_stack.end()) {
-    std::cout << "look in " << fun << std::endl;
     auto local_table = scope_stack.at(fun);
     auto it = local_table.find(name);
     if (it != local_table.end()) {

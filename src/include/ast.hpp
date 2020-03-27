@@ -79,6 +79,7 @@ struct ast_node_t {
   bool is_return_block = false;
 
   std::string function_name;
+  Node expected_type;
 
   /**
    * Need to do several passes of the AST
@@ -195,6 +196,11 @@ struct ast_node_t {
            type == Node::bin_or_op;
   }
 
+  bool is_num_expr() const {
+    return type == Node::add_op || type == Node::sub_op ||
+           type == Node::mul_op || type == Node::div_op || type == Node::mod_op;
+  }
+
   /**
    * @brief check if a node has value set
    *
@@ -234,6 +240,10 @@ struct ast_node_t {
     if (node.type == Node::block) {
       os << std::boolalpha << "is_while_block: " << node.is_while_block
          << " is_return_block: " << node.is_return_block;
+    }
+
+    if (node.is_num_expr()) {
+      os << " expected_type: " << type_to_str(expected_type);
     }
 
     if (node.type == Node::id) {

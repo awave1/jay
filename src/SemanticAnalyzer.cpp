@@ -318,43 +318,10 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
 
         auto *l = expr->children[0];
         auto *r = expr->children[1];
-        ast_node_t::Node l_type;
-        ast_node_t::Node r_type;
 
-        // todo: get the types of l & r
+        is_bool = validate_bool_expr(l, expected_types) &&
+                  validate_bool_expr(r, expected_types);
 
-        if (l->type == ast_node_t::Node::id) {
-          auto sym = sym_table->lookup(l->value, l->function_name);
-          l_type = sym->type;
-        } else if (l->type == ast_node_t::Node::function_call) {
-          auto id = l->find_first(ast_node_t::Node::id);
-          auto sym = sym_table->find_function(id->value);
-          std::cout << *sym << std::endl;
-          l_type = sym->type;
-        } else {
-          l_type = l->type;
-        }
-
-        if (r->type == ast_node_t::Node::id) {
-          auto sym = sym_table->lookup(r->value, r->function_name);
-          r_type = sym->type;
-        } else if (r->type == ast_node_t::Node::function_call) {
-          auto id = r->find_first(ast_node_t::Node::id);
-          auto sym = sym_table->find_function(id->value);
-          r_type = sym->type;
-        } else {
-          r_type = r->type;
-        }
-
-        if (expected_types.size() == 2) {
-          auto r1 = expected_types[0];
-          auto r2 = expected_types[1];
-          is_bool = (l_type == r1[0] && r_type == r1[1]) ||
-                    (l_type == r2[0] && r_type == r2[1]);
-        } else {
-          auto r1 = expected_types[0];
-          is_bool = (l_type == r1[0] && r_type == r1[1]);
-        }
       } else {
         // check unary expression
         auto *r = expr->children[0];
@@ -452,4 +419,42 @@ bool SemanticAnalyzer::is_declaration_allowed() {
   auto scope = sym_table->current_scope_level;
   // declaration allowed only at levels 1 and 2
   return scope == 1 || scope == 2;
+}
+
+bool SemanticAnalyzer::validate_bool_expr(ast_node_t *l,
+                                          expr_list_t expected_types) {
+  ast_node_t::Node l_type;
+
+  std::cout << "validating: \n" << *l << std::endl;
+  std::cout << "exprected types bool or int " << expected_types.size()
+            << std::endl;
+
+  if (l->type == ast_node_t::Node::id) {
+    auto sym = sym_table->lookup(l->value, l->function_name);
+    l_type = sym->type;
+  } else if (l->type == ast_node_t::Node::function_call) {
+    auto id = l->find_first(ast_node_t::Node::id);
+    auto sym = sym_table->find_function(id->value);
+    std::cout << *sym << std::endl;
+    l_type = sym->type;
+  } else if (l->is_bool_expr()) {
+    auto expected = expression_types.at(l->type);
+    if (l->children.size() == 2) {
+      return validate_bool_expr(l->children[0], expected) &&
+             validate_bool_expr(l->children[1], expected);
+    } else {
+      return validate_bool_expr(l->children[0], expected);
+    }
+  } else {
+    l_type = l->type;
+  }
+
+  if (expected_types.size() == 2) {
+    auto r1 = expected_types[0];
+    auto r2 = expected_types[1];
+    return l_type == r1[0] || l_type == r2[0];
+  } else {
+    auto r1 = expected_types[0];
+    return l_type == r1[0];
+  }
 }

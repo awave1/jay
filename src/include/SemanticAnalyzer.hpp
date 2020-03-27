@@ -118,6 +118,8 @@ private:
   bool enter_scope(ast_node_t *node);
 
   bool build_scope(ast_node_t *node);
+
+  bool validate_bool_expr(ast_node_t *expr, expr_list_t expected_tyes);
 };
 
 #endif /* SEMANTIC_ANALYZER_H */

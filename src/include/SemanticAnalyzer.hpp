@@ -13,14 +13,7 @@
 
 using namespace yy;
 
-struct bool_expr_record {
-  ast_node_t::Node l;
-  ast_node_t::Node r;
-  ast_node_t::Node result;
-};
-
 typedef std::vector<std::vector<ast_node_t::Node>> expr_list_t;
-// typedef std::vector<bool_expr_record> expr_list_t;
 
 class SemanticAnalyzer {
 public:
@@ -34,7 +27,8 @@ public:
     expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
         ast_node_t::Node::sub_op,
         {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t}}));
+          ast_node_t::Node::int_t},
+         {ast_node_t::Node::int_t, ast_node_t::Node::int_t}}));
     expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
         ast_node_t::Node::div_op,
         {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
@@ -119,7 +113,7 @@ private:
 
   bool build_scope(ast_node_t *node);
 
-  bool validate_bool_expr(ast_node_t *expr, expr_list_t expected_tyes);
+  bool validate_expr(ast_node_t *expr, expr_list_t expected_tyes);
 };
 
 #endif /* SEMANTIC_ANALYZER_H */

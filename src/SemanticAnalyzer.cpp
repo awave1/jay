@@ -184,53 +184,65 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       break;
     }
     case ast_node_t::Node::function_decl: {
-      // TODO: must look for return *recursively*
       auto *block = node->find_first(ast_node_t::Node::block);
-      auto *return_node = block->find_first(ast_node_t::Node::return_statement);
+      auto return_nodes =
+          block->find_recursive(ast_node_t::Node::return_statement);
       auto *type = node->children[0];
 
       if (block->is_return_block) {
-        // TODO: get more descriptive error message (like fun name and return
-        // type) from symbol table
-        if (return_node == nullptr) {
+        if (return_nodes.empty()) {
           std::cerr << "Error: missing `return` statement. Line: "
                     << node->linenum << std::endl;
-        } else if (return_node->children.empty()) {
-          std::cerr << "Error: function should return a value. Line: "
-                    << return_node->linenum << std::endl;
+          break;
         } else {
-          // return exists, check if value matches function return type
-          auto *return_val = return_node->children[0];
-          if (return_val->type != type->type) {
-            std::cerr << "Error: mismatched return type. Was expecting `"
-                      << get_str_for_type(type->type) << "`, but got `"
-                      << get_str_for_type(return_val->type)
-                      << "`. Line: " << return_node->linenum << std::endl;
+          for (auto *return_node : return_nodes) {
+            if (return_node->children.empty()) {
+              std::cerr << "Error: function should return a value. Line: "
+                        << return_node->linenum << std::endl;
+            } else {
+              // return exists, check if value matches function return type
+              auto *return_val = return_node->children[0];
+              bool is_valid_return = true;
+              ast_node_t::Node found_type;
+
+              if (return_val->type == ast_node_t::Node::id) {
+                auto *sym = sym_table->lookup(return_val->value,
+                                              return_val->function_name);
+                found_type = sym->type;
+                is_valid_return = sym->type == type->type;
+              } else if (return_val->type == ast_node_t::Node::function_call) {
+                auto *id = return_val->find_first(ast_node_t::Node::id);
+                auto *sym = sym_table->find_function(id->value);
+                found_type = sym->type;
+                is_valid_return = sym->type == type->type;
+              } else if (return_val->is_bool_expr() ||
+                         return_val->is_num_expr()) {
+                is_valid_return = validate_expr(
+                    return_val, expression_types.at(return_val->type));
+              } else {
+                found_type = return_val->type;
+                is_valid_return = return_val->type == type->type;
+              }
+
+              if (!is_valid_return) {
+                std::cerr << "Error: mismatched return type. Was expecting `"
+                          << get_str_for_type(type->type) << "`, but got `"
+                          << get_str_for_type(found_type)
+                          << "`. Line: " << return_node->linenum << std::endl;
+              }
+            }
           }
         }
       } else if (type->type == ast_node_t::Node::void_t) {
-        if (return_node != nullptr && !return_node->children.empty()) {
-          std::cerr << "Error: void function cannot return values. Line: "
-                    << return_node->linenum << std::endl;
+        for (auto *return_node : return_nodes) {
+          if (!return_node->children.empty()) {
+            std::cerr << "Error: void function cannot return values. Line: "
+                      << return_node->linenum << std::endl;
+          }
         }
       }
 
       sym_table->current_scope--;
-      break;
-    }
-    case ast_node_t::Node::while_statement: {
-      auto *block = node->find_first(ast_node_t::Node::block);
-
-      if (block == nullptr) {
-        break;
-      }
-
-      // TODO: handle break statement here
-      // if (!node->is_while_block) {
-      //   std::cerr << "Error: `block` statement can only be inside `while` "
-      //             << "loops. Line: " << c->linenum << std::endl;
-      // }
-
       break;
     }
     case ast_node_t::Node::block: {
@@ -317,8 +329,8 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
         auto *l = expr->children[0];
         auto *r = expr->children[1];
 
-        is_bool = validate_bool_expr(l, expected_types) &&
-                  validate_bool_expr(r, expected_types);
+        is_bool = validate_expr(l, expected_types) &&
+                  validate_expr(r, expected_types);
 
       } else {
         // check unary expression
@@ -332,6 +344,8 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
           auto *id = r->find_first(ast_node_t::Node::id);
           auto *fun_symbol = sym_table->find_function(id->value);
           type = fun_symbol->type;
+        } else if (r->is_num_expr()) {
+          type = r->expected_type;
         }
 
         is_bool = type == r1[0];
@@ -341,6 +355,7 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
         std::cerr << "Error: Invalid boolean expression used in `"
                   << get_str_for_type(node->type)
                   << "` expression. Line: " << expr->linenum << std::endl;
+        break;
       }
     } else if (expr->type == ast_node_t::Node::function_call) {
       auto *id = expr->find_first(ast_node_t::Node::id);
@@ -356,6 +371,7 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
             << get_str_for_type(node->type) << "` expression, found `"
             << get_str_for_type(fun_sym->type) << "`. Line: " << expr->linenum
             << std::endl;
+        break;
       }
     } else if (expr->type == ast_node_t::Node::id) {
       // just a var, look it up in symbol table and find its type
@@ -367,13 +383,18 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
                   << "` must have `boolean` type, found `"
                   << get_str_for_type(id_symbol->type)
                   << "`. Line: " << expr->linenum << std::endl;
+        break;
       }
+    } else if (expr->is_num_expr()) {
+      std::cerr << "Error: Invalid boolean expression used in `"
+                << get_str_for_type(node->type)
+                << "` expression. Line: " << expr->linenum << std::endl;
+      break;
     }
 
     break;
   }
   case ast_node_t::Node::eq_op: {
-    std::cout << "type eq check\n";
     auto *id = node->children[0];
     auto *assigned = node->children[1];
     auto *sym = sym_table->lookup(id->value, id->function_name);
@@ -391,8 +412,6 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
       }
     } else {
       // if it's something else (expression or function call)
-      std::cout << "assignmed: " << std::endl;
-      std::cout << *assigned << std::endl;
       if (assigned->type == ast_node_t::Node::function_call) {
         auto *id = assigned->find_first(ast_node_t::Node::id);
         auto *fun_sym = sym_table->find_function(id->value);
@@ -408,6 +427,35 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
                 << "` of type `" << get_str_for_type(sym->type)
                 << "`, found type `" << get_str_for_type(found_type)
                 << "`. Line: " << node->linenum << std::endl;
+      break;
+    }
+
+    break;
+  }
+  case ast_node_t::Node::add_op:
+  case ast_node_t::Node::sub_op:
+  case ast_node_t::Node::mul_op:
+  case ast_node_t::Node::div_op:
+  case ast_node_t::Node::mod_op: {
+    auto expected_types = expression_types.at(node->type);
+    bool is_valid_expr = true;
+    std::cout << *node << std::endl;
+    std::cout << node->children.size() << std::endl;
+    if (node->children.size() == 2) {
+      auto *left = node->children[0];
+      auto *right = node->children[1];
+
+      is_valid_expr = validate_expr(left, expected_types) &&
+                      validate_expr(right, expected_types);
+    } else {
+      // it's a unary minus
+      auto *right = node->children[0];
+      is_valid_expr = validate_expr(right, expected_types);
+    }
+
+    if (!is_valid_expr) {
+      std::cerr << "Error: mismatched types in arithmetic expression. Line: "
+                << node->linenum << std::endl;
       break;
     }
 
@@ -460,8 +508,8 @@ bool SemanticAnalyzer::is_declaration_allowed() {
   return scope == 1 || scope == 2;
 }
 
-bool SemanticAnalyzer::validate_bool_expr(ast_node_t *l,
-                                          expr_list_t expected_types) {
+bool SemanticAnalyzer::validate_expr(ast_node_t *l,
+                                     expr_list_t expected_types) {
   ast_node_t::Node l_type;
 
   std::cout << "validating: \n" << *l << std::endl;
@@ -474,15 +522,14 @@ bool SemanticAnalyzer::validate_bool_expr(ast_node_t *l,
   } else if (l->type == ast_node_t::Node::function_call) {
     auto id = l->find_first(ast_node_t::Node::id);
     auto sym = sym_table->find_function(id->value);
-    std::cout << *sym << std::endl;
     l_type = sym->type;
-  } else if (l->is_bool_expr()) {
+  } else if (l->is_bool_expr() || l->is_num_expr()) {
     auto expected = expression_types.at(l->type);
     if (l->children.size() == 2) {
-      return validate_bool_expr(l->children[0], expected) &&
-             validate_bool_expr(l->children[1], expected);
+      return validate_expr(l->children[0], expected) &&
+             validate_expr(l->children[1], expected);
     } else {
-      return validate_bool_expr(l->children[0], expected);
+      return validate_expr(l->children[0], expected);
     }
   } else {
     l_type = l->type;

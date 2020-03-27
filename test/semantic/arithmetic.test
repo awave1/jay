@@ -1,9 +1,4 @@
 int i;
 main() {
-  i = 1 + 2 * 2;
-}
-
-boolean f() {
-  int i;
-  return true;
+  i = -(true && false);
 }

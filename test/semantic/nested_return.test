@@ -1,5 +1,12 @@
-main() {}
+main() {
+  while (true) {
+    break;
+  }
+
+  break;
+}
 
 int foo() {
+  break;
   return false && true;
 }

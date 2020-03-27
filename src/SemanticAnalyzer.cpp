@@ -183,11 +183,26 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
                         id_node->function_name);
       break;
     }
+    case ast_node_t::Node::main_func_decl: {
+      auto block_nodes = node->find_recursive(ast_node_t::Node::block);
+      for (auto *b : block_nodes) {
+        auto *break_node = b->find_first(ast_node_t::Node::break_statement);
+        if (!b->is_while_block && break_node != nullptr) {
+          std::cerr << "Error: `break` statement can only occur in `while` "
+                       "loops. Line: "
+                    << break_node->linenum << std::endl;
+        }
+      }
+
+      break;
+    }
     case ast_node_t::Node::function_decl: {
       auto *block = node->find_first(ast_node_t::Node::block);
       auto return_nodes =
           block->find_recursive(ast_node_t::Node::return_statement);
       auto *type = node->children[0];
+      auto break_nodes =
+          block->find_recursive(ast_node_t::Node::break_statement);
 
       if (block->is_return_block) {
         if (return_nodes.empty()) {
@@ -239,6 +254,16 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
             std::cerr << "Error: void function cannot return values. Line: "
                       << return_node->linenum << std::endl;
           }
+        }
+      }
+
+      auto block_nodes = node->find_recursive(ast_node_t::Node::block);
+      for (auto *b : block_nodes) {
+        auto *break_node = b->find_first(ast_node_t::Node::break_statement);
+        if (!b->is_while_block && break_node != nullptr) {
+          std::cerr << "Error: `break` statement can only occur in `while` "
+                       "loops. Line: "
+                    << break_node->linenum << std::endl;
         }
       }
 

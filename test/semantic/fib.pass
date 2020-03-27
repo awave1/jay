@@ -1,3 +1,5 @@
+// should pass as this is a valid program
+
 main() {
         int i;
         i = 0;

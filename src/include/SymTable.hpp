@@ -29,7 +29,7 @@ public:
 
   bool insert(Symbol symbol, scope_t scope);
 
-  void push_scope();
+  void push_scope(std::string fun_name);
 
   scope_t get_scope();
 
@@ -37,11 +37,9 @@ public:
 
   void exit_scope();
 
-  void define(Symbol *symbol);
+  void define(Symbol *symbol, std::string fun_name);
 
-  Symbol *lookup(std::string name);
-
-  bool has(std::string name);
+  Symbol *lookup(std::string name, std::string fun);
 
   bool exists(std::string name);
 
@@ -53,10 +51,13 @@ private:
   const int PREDEFINED_SCOPE = 0;
   const int GLOBAL_SCOPE = 1;
 
+  const std::string PREDEFINED_SCOPE_NAME = "predefined";
+  const std::string GLOBAL_SCOPE_NAME = "global";
+
   // represent symbol table as a scope stack
   // map stored: <key: symbol name, val: symbol>
   // position of the map
-  std::vector<symbol_table_t> scope_stack;
+  std::map<std::string, symbol_table_t> scope_stack;
 
   void add_predefined_symbols();
 };

@@ -1,7 +1,7 @@
 main() {
-  boolean j;
+  int j;
   boolean i;
-  if (i && j) {
+  if (f() && j) {
 
   }
 }

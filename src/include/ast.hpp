@@ -78,6 +78,8 @@ struct ast_node_t {
   bool is_while_block = false;
   bool is_return_block = false;
 
+  std::string function_name;
+
   /**
    * Need to do several passes of the AST
    *
@@ -234,6 +236,10 @@ struct ast_node_t {
          << " is_return_block: " << node.is_return_block;
     }
 
+    if (node.type == Node::id) {
+      os << " function_name: " << node.function_name;
+    }
+
     if (node.linenum != 0) {
       os << " line: " << node.linenum;
     }
@@ -262,20 +268,17 @@ private:
    */
   void _find_recursive(ast_node_t *node, ast_node_t::Node node_type,
                        std::vector<ast_node_t *> &res) {
-    if (node->children.empty()) {
-      return;
+    // if (node->children.empty()) {
+    //   return;
+    // }
+
+    for (auto *next : node->children) {
+      _find_recursive(next, node_type, res);
     }
 
-    std::size_t i = 0;
-    do {
-      std::copy_if(
-          node->children.begin(), node->children.end(), std::back_inserter(res),
-          [&node_type](ast_node_t *n) { return n->type == node_type; });
-      auto *next = node->children[i];
-      _find_recursive(next, node_type, res);
-
-      i++;
-    } while (i < node->children.size());
+    std::copy_if(node->children.begin(), node->children.end(),
+                 std::back_inserter(res),
+                 [&node_type](ast_node_t *n) { return n->type == node_type; });
   }
 
   void _traverse(ast_node_t *node, std::function<void(ast_node_t *n)> &pre,

@@ -207,6 +207,14 @@ void SemanticAnalyzer::sym_table_post_pass(ast_node_t *node,
             node->linenum);
         err_stack.push_back(false);
         break;
+      } else if (sym_table->lookup_in_local(
+                     id_node->value, id_node->function_name) != nullptr) {
+        semantic_error(
+            "`" + get_str_for_type(type_node->type) + " " + id_node->value +
+                "`: Duplicated declaration of variables is not allowed.",
+            node->linenum);
+        err_stack.push_back(false);
+        break;
       }
 
       sym_table->define(new Symbol(id_node->value, "variable", type_node->type,
@@ -373,12 +381,20 @@ void SemanticAnalyzer::type_checking_post_order_pass(
   case ast_node_t::Node::function_decl:
     sym_table->current_scope--;
     break;
+  case ast_node_t::Node::variable_decl: {
+    auto *id = node->find_first(ast_node_t::Node::id);
+    // if (sym_table->lookup(id->value, id->function_name) != nullptr) {
+    //   std::cout << *node << std::endl;
+    //   semantic_error("Unknown identifier `" + id->value + "`.",
+    //   node->linenum); err_stack.push_back(false);
+    // }
+    break;
+  }
   case ast_node_t::Node::id: {
-
     if (sym_table->lookup(node->value, node->function_name) == nullptr) {
-      std::cout << *node << std::endl;
-      std::cerr << "Error: unknown identifier `" << node->value
-                << "`. Line: " << node->linenum << std::endl;
+      semantic_error("Unknown identifier `" + node->value + "`.",
+                     node->linenum);
+      err_stack.push_back(false);
     }
     break;
   }

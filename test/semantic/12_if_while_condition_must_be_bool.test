@@ -1,3 +1,5 @@
+// should show errors for non bool statements
+
 main() {
   while("true") {
     while(true) {}

@@ -62,6 +62,18 @@ Symbol *SymTable::lookup(std::string name, std::string fun) {
   return nullptr;
 }
 
+Symbol *SymTable::lookup_in_local(std::string name, std::string fun) {
+  if (scope_stack.find(fun) != scope_stack.end()) {
+    auto local_table = scope_stack.at(fun);
+    auto it = local_table.find(name);
+    if (it != local_table.end()) {
+      return it->second;
+    }
+  }
+
+  return nullptr;
+}
+
 /**
  * @brief pre-populate based on the predefined symbols
  */

@@ -41,6 +41,8 @@ public:
 
   Symbol *lookup(std::string name, std::string fun);
 
+  Symbol *lookup_in_local(std::string name, std::string fun);
+
   bool exists(std::string name);
 
   FunctionSymbol *find_function(std::string name);

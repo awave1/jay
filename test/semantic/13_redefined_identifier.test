@@ -1,0 +1,6 @@
+int glob;
+main() {
+  int glob;
+  int i;
+  int i;
+}

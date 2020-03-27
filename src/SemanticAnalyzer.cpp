@@ -1,7 +1,18 @@
+/**
+ * @file SemanticAnalyzer.cpp
+ * @author Artem Golovin (30018900)
+ * @brief Perform semantic analysis of the parsed AST and build a symbol table
+ */
+
 #include "./include/SemanticAnalyzer.hpp"
 
-std::shared_ptr<ast_node_t> SemanticAnalyzer::get_ast() { return ast; }
-
+/**
+ * @brief perform semantic validation of the ast and build a symtable. the
+ * method traverses ast multiple times to find all semantic errors
+ *
+ * @return true if ast is semantically correct and passed all the checks
+ * @return false otherwise
+ */
 bool SemanticAnalyzer::validate() {
   std::vector<ast_node_t *> main =
       ast->find_all(ast_node_t::Node::main_func_decl);
@@ -15,8 +26,9 @@ bool SemanticAnalyzer::validate() {
     // Pass 1
     std::vector<bool> glob_error_stack;
     this->traverse(ast.get(), nullptr,
-                   std::bind(&SemanticAnalyzer::globals_post_order_pass, this,
-                             std::placeholders::_1, std::placeholders::_2),
+                   std::bind(&SemanticAnalyzer::globals_post_order_pass_cb,
+                             this, std::placeholders::_1,
+                             std::placeholders::_2),
                    glob_error_stack);
     bool global_pass = glob_error_stack.empty();
 
@@ -24,22 +36,22 @@ bool SemanticAnalyzer::validate() {
     // fill out symbol table
     std::vector<bool> sym_table_error_stack;
     this->traverse(ast.get(),
-                   std::bind(&SemanticAnalyzer::build_scope, this,
+                   std::bind(&SemanticAnalyzer::build_scope_cb, this,
                              std::placeholders::_1, std::placeholders::_2),
-                   std::bind(&SemanticAnalyzer::sym_table_post_pass, this,
+                   std::bind(&SemanticAnalyzer::sym_table_post_pass_cb, this,
                              std::placeholders::_1, std::placeholders::_2),
                    sym_table_error_stack);
     bool sym_table_pass = sym_table_error_stack.empty();
 
     // Pass 3
     std::vector<bool> type_checking_err_stack;
-    this->traverse(ast.get(),
-                   std::bind(&SemanticAnalyzer::enter_scope, this,
-                             std::placeholders::_1, std::placeholders::_2),
-                   std::bind(&SemanticAnalyzer::type_checking_post_order_pass,
-                             this, std::placeholders::_1,
-                             std::placeholders::_2),
-                   type_checking_err_stack);
+    this->traverse(
+        ast.get(),
+        std::bind(&SemanticAnalyzer::enter_scope_cb, this,
+                  std::placeholders::_1, std::placeholders::_2),
+        std::bind(&SemanticAnalyzer::type_checking_post_order_pass_cb, this,
+                  std::placeholders::_1, std::placeholders::_2),
+        type_checking_err_stack);
     bool type_checking_pass = type_checking_err_stack.empty();
 
     return global_pass && sym_table_pass && type_checking_pass;
@@ -51,6 +63,16 @@ bool SemanticAnalyzer::validate() {
   return false;
 }
 
+/**
+ * @brief traverse the ast with possible pre and post order callbacks.
+ *
+ * @param node ast node to start traversing from
+ * @param pre pre-order callback function
+ * @param post pos-order callback function
+ * @param err_stack a vector to keep track of errors displayed. Rather
+ * **hacky** way to allow semantic analyzer to print all errors after checks
+ * have been performed
+ */
 void SemanticAnalyzer::traverse(
     ast_node_t *node,
     std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> pre,
@@ -71,12 +93,16 @@ void SemanticAnalyzer::traverse(
 }
 
 /**
- * @brief
+ * @brief post-order callback function, used to collect & populate sym table
+ * with information about global variables and functions. In addition it also
+ * creates scopes for all global functions and specifies allowed function
+ * scope for all identifiers found in the function block.
  *
- * @param node
+ * @param node ast node returned from `#traverse`
+ * @param err_stack error stack returned from `#traverse`
  */
-void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node,
-                                               std::vector<bool> &err_stack) {
+void SemanticAnalyzer::globals_post_order_pass_cb(
+    ast_node_t *node, std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl: {
     if (node->children.empty()) {
@@ -180,12 +206,15 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node,
 }
 
 /**
- * @brief
+ * @brief post-order callback function, used to populate the symtable. In
+ * addition it performs lookups to make sure identifiers haven't been
+ * re-declared multiple times or if they exist.
  *
- * @param node
+ * @param node ast node returned from `#traverse`
+ * @param err_stack error stack returned from `#traverse`
  */
-void SemanticAnalyzer::sym_table_post_pass(ast_node_t *node,
-                                           std::vector<bool> &err_stack) {
+void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
+                                              std::vector<bool> &err_stack) {
   if (node->type != ast_node_t::Node::program) {
     switch (node->type) {
     case ast_node_t::Node::variable_decl: {
@@ -371,8 +400,14 @@ void SemanticAnalyzer::sym_table_post_pass(ast_node_t *node,
   }
 }
 
-// pass 3
-void SemanticAnalyzer::type_checking_post_order_pass(
+/**
+ * @brief post-order callback function, used to perform type checking of
+ * functions, identifiers, expressions, etc.
+ *
+ * @param node ast node returned from `#traverse`
+ * @param err_stack error stack returned from `#traverse`
+ */
+void SemanticAnalyzer::type_checking_post_order_pass_cb(
     ast_node_t *node, std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
@@ -610,8 +645,32 @@ void SemanticAnalyzer::type_checking_post_order_pass(
   }
 }
 
-void SemanticAnalyzer::build_scope(ast_node_t *node,
-                                   std::vector<bool> &err_stack) {
+/**
+ * @brief pre-order callback function, used to determine block nesting level.
+ *
+ * @param node ast node returned from `#traverse`
+ * @param err_stack error stack returned from `#traverse`
+ */
+void SemanticAnalyzer::enter_scope_cb(ast_node_t *node,
+                                      std::vector<bool> &err_stack) {
+  switch (node->type) {
+  case ast_node_t::Node::main_func_decl:
+  case ast_node_t::Node::function_decl:
+    sym_table->current_scope++;
+    break;
+  default:
+    break;
+  }
+}
+
+/**
+ * @brief pre-order callback function, used to enter function scopes
+ *
+ * @param node ast node returned from `#traverse`
+ * @param err_stack error stack returned from `#traverse`
+ */
+void SemanticAnalyzer::build_scope_cb(ast_node_t *node,
+                                      std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
     sym_table->push_scope("main");
@@ -624,24 +683,31 @@ void SemanticAnalyzer::build_scope(ast_node_t *node,
   }
 }
 
-void SemanticAnalyzer::enter_scope(ast_node_t *node,
-                                   std::vector<bool> &err_stack) {
-  switch (node->type) {
-  case ast_node_t::Node::main_func_decl:
-  case ast_node_t::Node::function_decl:
-    sym_table->current_scope++;
-    break;
-  default:
-    break;
-  }
-}
-
+/**
+ * @brief check if declaration is allowed at current block level. the method
+ * gets the current block level from the symbol table and verifies allowed
+ * block leves. Allowed block levels can be global (1) or local (2). If it's
+ * greater than 2, then return false
+ *
+ * @return true, if current block level allows to declare variables
+ * @return false, if block is too deep, and therefore declaration is not
+ * allowed
+ */
 bool SemanticAnalyzer::is_declaration_allowed() {
   auto scope = sym_table->current_scope_level;
   // declaration allowed only at levels 1 and 2
   return scope == 1 || scope == 2;
 }
 
+/**
+ * @brief perform recursive expression validation based on expected types,
+ * predefined in constructor
+ *
+ * @param expr expression to check
+ * @param expected_tyes types expect from the expression
+ * @return true if expression is valid
+ * @return false otherwise
+ */
 bool SemanticAnalyzer::validate_expr(ast_node_t *l,
                                      expr_list_t expected_types) {
   ast_node_t::Node l_type;
@@ -675,6 +741,12 @@ bool SemanticAnalyzer::validate_expr(ast_node_t *l,
   }
 }
 
+/**
+ * @brief print semantic error message to stderr
+ *
+ * @param msg message to display
+ * @param linenum line number where the message ocurred
+ */
 void SemanticAnalyzer::semantic_error(std::string msg, int linenum) {
   auto bold_red_start = "\033[1;31m";
   auto bold_red_end = "\033[0m";
@@ -686,6 +758,12 @@ void SemanticAnalyzer::semantic_error(std::string msg, int linenum) {
   }
 }
 
+/**
+ * @brief print semantic error message to stderr. used when linenumber isn't
+ * needed/can't be found
+ *
+ * @param msg message to display
+ */
 void SemanticAnalyzer::semantic_error(std::string msg) {
   semantic_error(msg, -1);
 }

@@ -1,3 +1,10 @@
+/**
+ * @file SymTable.cpp
+ * @author Artem Golovin (30018900)
+ * @brief Implementation of Symbol table using variation of scope stack. Symbol
+ * table stack is built using hash map with scope name as a key (either function
+ * name or hardcoded globad/predefined) and symbol table hash map as its value.
+ */
 #include "./include/SymTable.hpp"
 
 SymTable::SymTable() {
@@ -6,6 +13,12 @@ SymTable::SymTable() {
   enter_scope();
 }
 
+/**
+ * @brief define a symbol in specified function
+ *
+ * @param symbol symbol to define
+ * @param fun_name name of the function (scope for the symbol)
+ */
 void SymTable::define(Symbol *symbol, std::string fun_name) {
   if (scope_stack.find(fun_name) != scope_stack.end()) {
     auto *symtable = &scope_stack.at(fun_name);
@@ -16,6 +29,12 @@ void SymTable::define(Symbol *symbol, std::string fun_name) {
   }
 }
 
+/**
+ * @brief find a function with a given name
+ *
+ * @param name function name
+ * @return FunctionSymbol*  resulting function symbol
+ */
 FunctionSymbol *SymTable::find_function(std::string name) {
   auto glob_symtable = scope_stack.find(GLOBAL_SCOPE_NAME)->second;
   if (glob_symtable.find(name) != glob_symtable.end()) {
@@ -31,17 +50,13 @@ FunctionSymbol *SymTable::find_function(std::string name) {
 }
 
 /**
- * a symbol can be defined either:
- *   - predefined (0)
- *   - globally (1)
- *   - locally (2...n), where n is scope for a function on the scope stack
- * first, lookup in the local scope
- * then check if it exists in global or predefined scope
- * if not found, return nullptr
+ * @brief lookup a symbol of a given name inside specified function scope. if
+ * a symbol doesn't exist in the specified function scope look in global and
+ * predefined scopes before returning nullptr.
  *
- * @param name
- * @param fun
- * @return Symbol*
+ * @param name symbol name to look for
+ * @param fun scope of the symbol
+ * @return Symbol* resulting symbol
  */
 Symbol *SymTable::lookup(std::string name, std::string fun) {
   if (scope_stack.find(fun) != scope_stack.end()) {
@@ -67,6 +82,14 @@ Symbol *SymTable::lookup(std::string name, std::string fun) {
   return nullptr;
 }
 
+/**
+ * @brief lookup a symbol of a given name only inside specified function
+ * scope.
+ *
+ * @param name symbol name to look for
+ * @param fun scope of the symbol
+ * @return Symbol* resulting symbol
+ */
 Symbol *SymTable::lookup_in_local(std::string name, std::string fun) {
   if (scope_stack.find(fun) != scope_stack.end()) {
     auto local_table = scope_stack.at(fun);
@@ -115,6 +138,11 @@ void SymTable::add_predefined_symbols() {
   define(prints_fun_sym, PREDEFINED_SCOPE_NAME);
 }
 
+/**
+ * @brief insert a new scope for a function of specified name
+ *
+ * @param fun_name name of the function to define a scope
+ */
 void SymTable::push_scope(std::string fun_name) {
   if (!fun_name.empty()) {
     scope_stack.insert(std::pair<std::string, symbol_table_t>(fun_name, {}));
@@ -122,11 +150,15 @@ void SymTable::push_scope(std::string fun_name) {
   current_scope++;
 }
 
-void SymTable::exit_scope() { current_scope_level--; }
-
+/**
+ * @brief increment current block nesting level
+ */
 void SymTable::enter_scope() { current_scope_level++; }
 
-scope_t SymTable::get_scope() { return current_scope_level; }
+/**
+ * @brief decrement current block nesting level
+ */
+void SymTable::exit_scope() { current_scope_level--; }
 
 std::ostream &operator<<(std::ostream &os, const SymTable &sym_table) {
   for (auto const &[fun, symtable] : sym_table.scope_stack) {

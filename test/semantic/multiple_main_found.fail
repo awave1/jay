@@ -1,7 +1,0 @@
-main() {
-  int ok;
-}
-
-main() {
-  boolean another_one;
-}

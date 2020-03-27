@@ -94,26 +94,30 @@ private:
   std::shared_ptr<SymTable> sym_table;
   std::map<ast_node_t::Node, expr_list_t> expression_types;
 
-  bool traverse(ast_node_t *node, std::function<bool(ast_node_t *n)> pre,
-                std::function<void(ast_node_t *n)> post);
+  void traverse(
+      ast_node_t *node,
+      std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> pre,
+      std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> post,
+      std::vector<bool> &err_stack);
 
   // pass 1
-  void globals_post_order_pass(ast_node_t *node);
+  void globals_post_order_pass(ast_node_t *node, std::vector<bool> &err_stack);
 
   // pass 2
-  void sym_table_pre_post_order_pass(ast_node_t *node);
+  void sym_table_post_pass(ast_node_t *node, std::vector<bool> &err_stack);
 
   // pass 3
-  void type_checking_post_order_pass(ast_node_t *node);
+  void type_checking_post_order_pass(ast_node_t *node,
+                                     std::vector<bool> &err_stack);
 
-  // pass 4
-  bool catch_all_pre_post_order_pass(ast_node_t *node);
+  void enter_scope(ast_node_t *node, std::vector<bool> &err_stack);
 
-  bool enter_scope(ast_node_t *node);
-
-  bool build_scope(ast_node_t *node);
+  void build_scope(ast_node_t *node, std::vector<bool> &err_stack);
 
   bool validate_expr(ast_node_t *expr, expr_list_t expected_tyes);
+
+  void semantic_error(std::string msg, int linenum);
+  void semantic_error(std::string msg);
 };
 
 #endif /* SEMANTIC_ANALYZER_H */

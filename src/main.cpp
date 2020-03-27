@@ -19,9 +19,15 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
     std::unique_ptr<SemanticAnalyzer> semantic_analyzer(
         new SemanticAnalyzer(ast, sym_table));
 
-    std::cout << *semantic_analyzer->get_ast() << std::endl << std::endl;
-    semantic_analyzer->validate();
     std::cout << *ast << std::endl;
+
+    bool is_valid = semantic_analyzer->validate();
+    if (is_valid) {
+      std::cout << *ast << std::endl;
+    } else {
+      std::cerr << "Failed semantic checking" << std::endl;
+      exit(1);
+    }
   } else {
     std::cerr << "Failed parsing" << std::endl;
     exit(1);

@@ -8,64 +8,77 @@ bool SemanticAnalyzer::validate() {
 
   if (!main.empty()) {
     if (main.size() > 1) {
-      std::throw_with_nested(
-          std::runtime_error("Multiple `main()` declarations found. Aborting"));
+      semantic_error("Multiple `main()` declarations found. Aborting");
       return false;
     }
+
     // Pass 1
+    std::vector<bool> glob_error_stack;
     this->traverse(ast.get(), nullptr,
                    std::bind(&SemanticAnalyzer::globals_post_order_pass, this,
-                             std::placeholders::_1));
+                             std::placeholders::_1, std::placeholders::_2),
+                   glob_error_stack);
+    bool global_pass = glob_error_stack.empty();
 
     // Pass 2
     // fill out symbol table
-    this->traverse(
-        ast.get(),
-        std::bind(&SemanticAnalyzer::build_scope, this, std::placeholders::_1),
-        std::bind(&SemanticAnalyzer::sym_table_pre_post_order_pass, this,
-                  std::placeholders::_1));
+    std::vector<bool> sym_table_error_stack;
+    this->traverse(ast.get(),
+                   std::bind(&SemanticAnalyzer::build_scope, this,
+                             std::placeholders::_1, std::placeholders::_2),
+                   std::bind(&SemanticAnalyzer::sym_table_post_pass, this,
+                             std::placeholders::_1, std::placeholders::_2),
+                   sym_table_error_stack);
+    bool sym_table_pass = sym_table_error_stack.empty();
 
     // Pass 3
-    this->traverse(
-        ast.get(),
-        std::bind(&SemanticAnalyzer::enter_scope, this, std::placeholders::_1),
-        std::bind(&SemanticAnalyzer::type_checking_post_order_pass, this,
-                  std::placeholders::_1));
+    std::vector<bool> type_checking_err_stack;
+    this->traverse(ast.get(),
+                   std::bind(&SemanticAnalyzer::enter_scope, this,
+                             std::placeholders::_1, std::placeholders::_2),
+                   std::bind(&SemanticAnalyzer::type_checking_post_order_pass,
+                             this, std::placeholders::_1,
+                             std::placeholders::_2),
+                   type_checking_err_stack);
+    bool type_checking_pass = type_checking_err_stack.empty();
 
-    std::cout << *sym_table << std::endl;
+    // std::cout << *sym_table << std::endl;
 
-    // Pass 4
+    return global_pass && sym_table_pass && type_checking_pass;
   } else {
-    std::throw_with_nested(std::runtime_error("No `main()` found. Aborting"));
+    semantic_error("No `main()` found. Aborting");
     return false;
   }
 
-  return true;
+  return false;
 }
 
-bool SemanticAnalyzer::traverse(ast_node_t *node,
-                                std::function<bool(ast_node_t *n)> pre,
-                                std::function<void(ast_node_t *n)> post) {
+void SemanticAnalyzer::traverse(
+    ast_node_t *node,
+    std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> pre,
+    std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> post,
+    std::vector<bool> &err_stack) {
 
-  if (pre != nullptr && !pre(node)) {
-    return false;
+  if (pre != nullptr) {
+    pre(node, err_stack);
   }
 
   for (auto *next : node->children) {
-    if (!traverse(next, pre, post)) {
-      return false;
-    }
+    traverse(next, pre, post, err_stack);
   }
 
   if (post != nullptr) {
-    post(node);
+    post(node, err_stack);
   }
-
-  return true;
 }
 
-// pass 1
-void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
+/**
+ * @brief
+ *
+ * @param node
+ */
+void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node,
+                                               std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl: {
     if (node->children.empty()) {
@@ -79,6 +92,8 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     auto id = node->children[1]->value;
     auto *block = node->find_first(ast_node_t::Node::block);
     auto ids = block->find_recursive(ast_node_t::Node::id);
+
+    // assign function name to all ids inside the function block
     for (auto *_id : ids) {
       _id->function_name = id;
     }
@@ -94,15 +109,26 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     auto *params = node->find_first(ast_node_t::Node::formal_params);
     auto *block = node->find_first(ast_node_t::Node::block);
 
+    sym_table->push_scope(id);
+
     std::vector<Symbol> sym_params;
     if (params != nullptr) {
+      auto ids = params->find_recursive(ast_node_t::Node::id);
+
       for (auto *formal : params->children) {
         auto *formal_id = formal->children[1];
         auto *formal_type = formal->children[0];
+        auto *param_sym = new Symbol(
+            formal_id->value, "parameter", formal_type->type,
+            sym_table->current_scope_level, sym_table->current_scope);
 
-        sym_params.push_back(
-            Symbol(formal_id->value, "parameter", formal_type->type,
-                   sym_table->current_scope_level, sym_table->current_scope));
+        sym_params.push_back(*param_sym);
+
+        sym_table->define(param_sym, id);
+      }
+
+      for (auto *_id : ids) {
+        _id->function_name = id;
       }
     }
 
@@ -110,10 +136,10 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
     if (block != nullptr) {
       block->is_return_block = type != ast_node_t::Node::void_t;
       auto ids = block->find_recursive(ast_node_t::Node::id);
-      std::cout << "ids: " << ids.size() << std::endl;
+
+      // assign function name to all ids inside the function block
       for (auto *_id : ids) {
         _id->function_name = id;
-        std::cout << *_id << std::endl;
       }
     }
 
@@ -123,7 +149,7 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
                       "global");
     break;
   }
-  case ast_node_t::Node::global_var_decl:
+  case ast_node_t::Node::global_var_decl: {
     if (node->children.empty()) {
       break;
     }
@@ -134,6 +160,7 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
                                  sym_table->current_scope),
                       "global");
     break;
+  }
   case ast_node_t::Node::while_statement: {
     auto *block = node->find_first(ast_node_t::Node::block);
     if (block != nullptr) {
@@ -145,16 +172,22 @@ void SemanticAnalyzer::globals_post_order_pass(ast_node_t *node) {
   case ast_node_t::Node::sub_op:
   case ast_node_t::Node::mul_op:
   case ast_node_t::Node::div_op:
-  case ast_node_t::Node::mod_op:
+  case ast_node_t::Node::mod_op: {
     node->expected_type = ast_node_t::Node::int_t;
     break;
+  }
   default:
     break;
   }
 }
 
-// pass 2
-void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
+/**
+ * @brief
+ *
+ * @param node
+ */
+void SemanticAnalyzer::sym_table_post_pass(ast_node_t *node,
+                                           std::vector<bool> &err_stack) {
   if (node->type != ast_node_t::Node::program) {
     switch (node->type) {
     case ast_node_t::Node::variable_decl: {
@@ -168,12 +201,11 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       auto id_node = node->children[1];
 
       if (!is_declaration_allowed()) {
-        std::cout << "scope: " << sym_table->current_scope << std::endl;
-        std::cerr
-            << "Error: `" + get_str_for_type(type_node->type) + " "
-            << id_node->value
-            << "` A local declaration was not in an outermost block. Line: "
-            << node->linenum << std::endl;
+        semantic_error(
+            "`" + get_str_for_type(type_node->type) + " " + id_node->value +
+                "` A local declaration was not in an outermost block.",
+            node->linenum);
+        err_stack.push_back(false);
         break;
       }
 
@@ -183,37 +215,28 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
                         id_node->function_name);
       break;
     }
-    case ast_node_t::Node::main_func_decl: {
-      auto block_nodes = node->find_recursive(ast_node_t::Node::block);
-      for (auto *b : block_nodes) {
-        auto *break_node = b->find_first(ast_node_t::Node::break_statement);
-        if (!b->is_while_block && break_node != nullptr) {
-          std::cerr << "Error: `break` statement can only occur in `while` "
-                       "loops. Line: "
-                    << break_node->linenum << std::endl;
-        }
-      }
-
-      break;
-    }
+    case ast_node_t::Node::main_func_decl:
     case ast_node_t::Node::function_decl: {
       auto *block = node->find_first(ast_node_t::Node::block);
       auto return_nodes =
           block->find_recursive(ast_node_t::Node::return_statement);
+      auto *id = node->find_first(ast_node_t::Node::id);
       auto *type = node->children[0];
       auto break_nodes =
           block->find_recursive(ast_node_t::Node::break_statement);
 
       if (block->is_return_block) {
         if (return_nodes.empty()) {
-          std::cerr << "Error: missing `return` statement. Line: "
-                    << node->linenum << std::endl;
+          semantic_error("Missing `return` statement.", node->linenum);
+          err_stack.push_back(false);
           break;
         } else {
           for (auto *return_node : return_nodes) {
             if (return_node->children.empty()) {
-              std::cerr << "Error: function should return a value. Line: "
-                        << return_node->linenum << std::endl;
+              semantic_error("Function should return a value.",
+                             return_node->linenum);
+              err_stack.push_back(false);
+              break;
             } else {
               // return exists, check if value matches function return type
               auto *return_val = return_node->children[0];
@@ -240,20 +263,39 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
               }
 
               if (!is_valid_return) {
-                std::cerr << "Error: mismatched return type. Was expecting `"
-                          << get_str_for_type(type->type) << "`, but got `"
-                          << get_str_for_type(found_type)
-                          << "`. Line: " << return_node->linenum << std::endl;
+                semantic_error("Mismatched return type. Was expecting `" +
+                                   get_str_for_type(type->type) +
+                                   "`, but got `" +
+                                   get_str_for_type(found_type),
+                               return_node->linenum);
+                err_stack.push_back(false);
+                break;
               }
             }
           }
         }
       } else if (type->type == ast_node_t::Node::void_t) {
+        bool found_return_val_in_void = false;
+        bool found_return_in_main = false;
         for (auto *return_node : return_nodes) {
-          if (!return_node->children.empty()) {
-            std::cerr << "Error: void function cannot return values. Line: "
-                      << return_node->linenum << std::endl;
+          if (id->value == "main") {
+            semantic_error("`main()` cannot have `return` statements.",
+                           return_node->linenum);
+            err_stack.push_back(false);
+            found_return_in_main = true;
           }
+
+          if (!return_node->children.empty()) {
+            semantic_error("void function `" + id->value +
+                               "` cannot return values.",
+                           return_node->linenum);
+            err_stack.push_back(false);
+            found_return_val_in_void = true;
+          }
+        }
+
+        if (found_return_in_main || found_return_val_in_void) {
+          break;
         }
       }
 
@@ -261,9 +303,10 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
       for (auto *b : block_nodes) {
         auto *break_node = b->find_first(ast_node_t::Node::break_statement);
         if (!b->is_while_block && break_node != nullptr) {
-          std::cerr << "Error: `break` statement can only occur in `while` "
-                       "loops. Line: "
-                    << break_node->linenum << std::endl;
+          semantic_error("`break` statement can only occur in `while` "
+                         "loops.",
+                         break_node->linenum);
+          err_stack.push_back(false);
         }
       }
 
@@ -283,24 +326,28 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
             auto *fun_sym = sym_table->find_function(fun_name->value);
 
             if (fun_name->value == "main") {
-              std::cerr
-                  << "Error: Cannot call `main()` function directly. Line: "
-                  << expression->linenum << std::endl;
+              semantic_error("Cannot call `main()` function directly.",
+                             expression->linenum);
+              err_stack.push_back(false);
               break;
             }
 
             if (actual_params->children.size() != fun_sym->params.size()) {
-              std::cerr
-                  << "Error: Mismatched number of actual parameters. Expected: "
-                  << fun_sym->params.size() << ", but got "
-                  << actual_params->children.size()
-                  << ". Line: " << expression->linenum << std::endl;
+              semantic_error(
+                  "Error: Mismatched number of actual parameters, expected: " +
+                      std::to_string(fun_sym->params.size()) + ", but got " +
+                      std::to_string(actual_params->children.size()),
+                  expression->linenum);
+              err_stack.push_back(false);
+              break;
             }
           } else if (expression->type == ast_node_t::Node::eq_op) {
             auto *id = expression->children[0];
             if (sym_table->lookup(id->value, id->function_name) == nullptr) {
-              std::cerr << "Error: undefined identifier `" << id->value
-                        << "`. Line: " << expression->linenum << std::endl;
+              semantic_error("Undefined identifier `" + id->value + "`.",
+                             expression->linenum);
+              err_stack.push_back(false);
+              break;
             }
           }
         }
@@ -319,16 +366,66 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
 }
 
 // pass 3
-void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
+void SemanticAnalyzer::type_checking_post_order_pass(
+    ast_node_t *node, std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
   case ast_node_t::Node::function_decl:
     sym_table->current_scope--;
     break;
   case ast_node_t::Node::id: {
+
     if (sym_table->lookup(node->value, node->function_name) == nullptr) {
+      std::cout << *node << std::endl;
       std::cerr << "Error: unknown identifier `" << node->value
                 << "`. Line: " << node->linenum << std::endl;
+    }
+    break;
+  }
+  case ast_node_t::Node::function_call: {
+    auto *id = node->find_first(ast_node_t::Node::id);
+    auto *actual_params = node->find_first(ast_node_t::Node::actual_params);
+    auto *fun_sym = sym_table->find_function(id->value);
+
+    if (actual_params->children.size() == fun_sym->params.size()) {
+      auto children = actual_params->children;
+      bool found_mismatch = false;
+      for (std::size_t i = 0; i < children.size(); i++) {
+        auto *param_node = children[i];
+        auto expected_sym = fun_sym->params[i];
+        ast_node_t::Node found_type;
+
+        if (param_node->type == ast_node_t::Node::function_call) {
+          // lookup function return type
+          auto *id = param_node->find_first(ast_node_t::Node::id);
+          auto *fun_sym = sym_table->find_function(id->value);
+          found_type = fun_sym->type;
+        } else if (param_node->type == ast_node_t::Node::id) {
+          auto *sym =
+              sym_table->lookup(param_node->value, param_node->function_name);
+          found_type = sym->type;
+        } else if (param_node->is_bool_expr()) {
+          found_type = ast_node_t::Node::boolean_t;
+        } else if (param_node->is_num_expr()) {
+          found_type = ast_node_t::Node::int_t;
+        } else {
+          found_type = param_node->type;
+        }
+
+        if (found_type != expected_sym.type) {
+          semantic_error(
+              "Mismatched arguments for function `" + id->value +
+                  "`, expected `" + get_str_for_type(expected_sym.type) +
+                  "`, but found `" + get_str_for_type(found_type) + "`.",
+              node->linenum);
+          found_mismatch = true;
+        }
+      }
+
+      if (found_mismatch) {
+        err_stack.push_back(false);
+        break;
+      }
     }
     break;
   }
@@ -339,9 +436,12 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
     if (expr->is_bool_expr()) {
       auto it = expression_types.find(expr->type);
       if (it == expression_types.end()) {
-        std::cerr
-            << "Error: `if` expression expects a boolean expression, found: `"
-            << expr->value << "`. Line: " << expr->linenum << std::endl;
+        semantic_error(
+            "`" + get_str_for_type(node->type) +
+                "` expression expects a boolean expression, found: `" +
+                expr->value,
+            node->linenum);
+        err_stack.push_back(false);
         break;
       }
 
@@ -377,9 +477,10 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
       }
 
       if (!is_bool) {
-        std::cerr << "Error: Invalid boolean expression used in `"
-                  << get_str_for_type(node->type)
-                  << "` expression. Line: " << expr->linenum << std::endl;
+        semantic_error("Invalid boolean expression used in `" +
+                           get_str_for_type(node->type) + "` expression.",
+                       expr->linenum);
+        err_stack.push_back(false);
         break;
       }
     } else if (expr->type == ast_node_t::Node::function_call) {
@@ -391,11 +492,13 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
 
       auto *fun_sym = sym_table->find_function(id->value);
       if (fun_sym->type != ast_node_t::Node::boolean_t) {
-        std::cerr
-            << "Error: function must have `boolean` return type to be used in `"
-            << get_str_for_type(node->type) << "` expression, found `"
-            << get_str_for_type(fun_sym->type) << "`. Line: " << expr->linenum
-            << std::endl;
+        semantic_error(
+            "Function must have `boolean` return type to be used in `" +
+                get_str_for_type(node->type) + "` expression, found `" +
+                get_str_for_type(fun_sym->type),
+            expr->linenum);
+
+        err_stack.push_back(false);
         break;
       }
     } else if (expr->type == ast_node_t::Node::id) {
@@ -404,16 +507,18 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
 
       auto id_symbol = sym_table->lookup(expr->value, expr->function_name);
       if (id_symbol->type != ast_node_t::Node::boolean_t) {
-        std::cerr << "Error: identifier `" << expr->value
-                  << "` must have `boolean` type, found `"
-                  << get_str_for_type(id_symbol->type)
-                  << "`. Line: " << expr->linenum << std::endl;
+        semantic_error("Identifier `" + expr->value +
+                           "` must have `boolean` type, found `" +
+                           get_str_for_type(id_symbol->type) + "`",
+                       expr->linenum);
+        err_stack.push_back(false);
         break;
       }
     } else if (expr->is_num_expr()) {
-      std::cerr << "Error: Invalid boolean expression used in `"
-                << get_str_for_type(node->type)
-                << "` expression. Line: " << expr->linenum << std::endl;
+      semantic_error("Invalid boolean expression used in `" +
+                         get_str_for_type(node->type) + "` expression.",
+                     expr->linenum);
+      err_stack.push_back(false);
       break;
     }
 
@@ -448,15 +553,22 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
 
     types_match = sym->type == found_type;
     if (!types_match) {
-      std::cerr << "Error: unexpected assignment to variable `" << id->value
-                << "` of type `" << get_str_for_type(sym->type)
-                << "`, found type `" << get_str_for_type(found_type)
-                << "`. Line: " << node->linenum << std::endl;
+      semantic_error("unexpected assignment to variable `" + id->value +
+                         "` of type `" + get_str_for_type(sym->type) +
+                         "`, found type `" + get_str_for_type(found_type),
+                     node->linenum);
+      err_stack.push_back(false);
       break;
     }
 
     break;
   }
+
+  case ast_node_t::Node::not_op:
+  case ast_node_t::Node::eqeq_op:
+  case ast_node_t::Node::noteq_op:
+  case ast_node_t::Node::bin_or_op:
+  case ast_node_t::Node::bin_and_op:
   case ast_node_t::Node::add_op:
   case ast_node_t::Node::sub_op:
   case ast_node_t::Node::mul_op:
@@ -464,8 +576,6 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
   case ast_node_t::Node::mod_op: {
     auto expected_types = expression_types.at(node->type);
     bool is_valid_expr = true;
-    std::cout << *node << std::endl;
-    std::cout << node->children.size() << std::endl;
     if (node->children.size() == 2) {
       auto *left = node->children[0];
       auto *right = node->children[1];
@@ -473,17 +583,16 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
       is_valid_expr = validate_expr(left, expected_types) &&
                       validate_expr(right, expected_types);
     } else {
-      // it's a unary minus
+      // it's a unary expressio
       auto *right = node->children[0];
       is_valid_expr = validate_expr(right, expected_types);
     }
 
     if (!is_valid_expr) {
-      std::cerr << "Error: mismatched types in arithmetic expression. Line: "
-                << node->linenum << std::endl;
+      semantic_error("Mismatched types in expression.", node->linenum);
+      err_stack.push_back(false);
       break;
     }
-
     break;
   }
   default:
@@ -491,30 +600,22 @@ void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
   }
 }
 
-// pass 4
-bool SemanticAnalyzer::catch_all_pre_post_order_pass(ast_node_t *node) {
-  return false;
-}
-
-bool SemanticAnalyzer::build_scope(ast_node_t *node) {
+void SemanticAnalyzer::build_scope(ast_node_t *node,
+                                   std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
     sym_table->push_scope("main");
-  case ast_node_t::Node::function_decl: {
-    auto *id = node->find_first(ast_node_t::Node::id);
-    sym_table->push_scope(id->value);
     break;
-  }
   case ast_node_t::Node::block:
     sym_table->enter_scope();
     break;
   default:
     break;
   }
-  return true;
 }
 
-bool SemanticAnalyzer::enter_scope(ast_node_t *node) {
+void SemanticAnalyzer::enter_scope(ast_node_t *node,
+                                   std::vector<bool> &err_stack) {
   switch (node->type) {
   case ast_node_t::Node::main_func_decl:
   case ast_node_t::Node::function_decl:
@@ -523,8 +624,6 @@ bool SemanticAnalyzer::enter_scope(ast_node_t *node) {
   default:
     break;
   }
-
-  return true;
 }
 
 bool SemanticAnalyzer::is_declaration_allowed() {
@@ -536,10 +635,6 @@ bool SemanticAnalyzer::is_declaration_allowed() {
 bool SemanticAnalyzer::validate_expr(ast_node_t *l,
                                      expr_list_t expected_types) {
   ast_node_t::Node l_type;
-
-  std::cout << "validating: \n" << *l << std::endl;
-  std::cout << "exprected types bool or int " << expected_types.size()
-            << std::endl;
 
   if (l->type == ast_node_t::Node::id) {
     auto sym = sym_table->lookup(l->value, l->function_name);
@@ -568,4 +663,19 @@ bool SemanticAnalyzer::validate_expr(ast_node_t *l,
     auto r1 = expected_types[0];
     return l_type == r1[0];
   }
+}
+
+void SemanticAnalyzer::semantic_error(std::string msg, int linenum) {
+  auto bold_red_start = "\033[1;31m";
+  auto bold_red_end = "\033[0m";
+  std::cerr << bold_red_start << "Error: " << msg;
+  if (linenum != -1) {
+    std::cerr << " Line: " << linenum << bold_red_end << std::endl;
+  } else {
+    std::cerr << bold_red_end << std::endl;
+  }
+}
+
+void SemanticAnalyzer::semantic_error(std::string msg) {
+  semantic_error(msg, -1);
 }

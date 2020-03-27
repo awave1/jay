@@ -1,4 +1,0 @@
-int i;
-main() {
-  i = -(true && false);
-}

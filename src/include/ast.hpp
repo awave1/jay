@@ -276,12 +276,8 @@ private:
    * @param node_type desired node type
    * @param res resulting vector with all found nodes
    */
-  void _find_recursive(ast_node_t *node, ast_node_t::Node node_type,
+  void _find_recursive(ast_node_t *node, Node node_type,
                        std::vector<ast_node_t *> &res) {
-    // if (node->children.empty()) {
-    //   return;
-    // }
-
     for (auto *next : node->children) {
       _find_recursive(next, node_type, res);
     }

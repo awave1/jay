@@ -10,8 +10,9 @@ using namespace yy;
 class FunctionSymbol : public Symbol {
 public:
   FunctionSymbol(std::string name, std::vector<Symbol> params,
-                 ast_node_t::Node type, std::size_t scope)
-      : Symbol(name, "function", type, scope), params(params){};
+                 ast_node_t::Node type, int scope_level, int block_scope)
+      : Symbol(name, "function", type, scope_level, block_scope),
+        params(params){};
 
   std::vector<Symbol> params;
 
@@ -21,6 +22,8 @@ public:
     for (auto p : params) {
       os << p << " ";
     }
+    os << ", scope: " << scope_level << ">"
+       << ", block_scope (in symtable): " << block_scope << ">";
     os << ">";
   }
 };

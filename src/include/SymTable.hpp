@@ -20,7 +20,10 @@ typedef std::map<std::string, Symbol *> symbol_table_t;
 class SymTable {
 public:
   // scope nesting level
-  scope_t current_scope = PREDEFINED_SCOPE;
+  int current_scope_level = 0;
+
+  // aka position on the scope stack
+  int current_scope = -1;
 
   SymTable();
 
@@ -36,7 +39,7 @@ public:
 
   void define(Symbol *symbol);
 
-  Symbol lookup(std::string name);
+  Symbol *lookup(std::string name);
 
   bool has(std::string name);
 
@@ -47,8 +50,8 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const SymTable &sym_table);
 
 private:
-  const scope_t PREDEFINED_SCOPE = 0;
-  const scope_t GLOBAL_SCOPE = 1;
+  const int PREDEFINED_SCOPE = 0;
+  const int GLOBAL_SCOPE = 1;
 
   // represent symbol table as a scope stack
   // map stored: <key: symbol name, val: symbol>

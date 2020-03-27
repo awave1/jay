@@ -4,7 +4,7 @@ int foo() {
   return true;
 }
 
-boolean bar() { 
+boolean bar() {
   return "lol";
 }
 

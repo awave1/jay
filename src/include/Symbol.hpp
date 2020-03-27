@@ -12,14 +12,20 @@ public:
   std::string name;
   std::string kind;
   ast_node_t::Node type;
-  std::size_t scope;
+  // what level is the symbol located
+  int scope_level;
+  // where on the scope stack it is
+  int block_scope;
 
   Symbol(std::string name, std::string kind, ast_node_t::Node type,
-         std::size_t scope)
-      : name(name), kind(kind), type(type), scope(scope) {}
+         int scope_level, int block_scope)
+      : name(name), kind(kind), type(type), scope_level(scope_level),
+        block_scope(block_scope) {}
 
   virtual void print(std::ostream &os) const {
-    os << "<" << kind << ": " << get_str_for_type(type) << ", " << name << ">";
+    os << "<" << kind << ": " << get_str_for_type(type) << ", " << name
+       << ", scope level: " << scope_level
+       << ", block_scope (in symtable): " << block_scope << ">";
   }
 
   friend std::ostream &operator<<(std::ostream &os, const Symbol &s) {

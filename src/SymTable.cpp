@@ -33,6 +33,17 @@ FunctionSymbol *SymTable::find_function(std::string name) {
   return dynamic_cast<FunctionSymbol *>(symtable.at(name));
 }
 
+Symbol *SymTable::lookup(std::string name) {
+  for (auto i = scope_stack.rbegin(); i != scope_stack.rend(); i++) {
+    auto table = *i;
+    if (table.find(name) != table.end()) {
+      return table.at(name);
+    }
+  }
+
+  return nullptr;
+}
+
 /**
  * @brief pre-populate based on the predefined symbols
  */
@@ -41,17 +52,17 @@ void SymTable::add_predefined_symbols() {
 
   // built-in functions
   auto *getchar_fun_sym = new FunctionSymbol(
-      "getchar", {}, ast_node_t::Node::int_t, PREDEFINED_SCOPE);
+      "getchar", {}, ast_node_t::Node::int_t, PREDEFINED_SCOPE, 0);
   auto *halt_fun_sym = new FunctionSymbol("halt", {}, ast_node_t::Node::void_t,
-                                          PREDEFINED_SCOPE);
+                                          PREDEFINED_SCOPE, 0);
   auto *printb_fun_sym = new FunctionSymbol(
-      "printb", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+      "printb", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
   auto *printc_fun_sym = new FunctionSymbol(
-      "printc", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+      "printc", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
   auto *printi_fun_sym = new FunctionSymbol(
-      "printi", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+      "printi", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
   auto *prints_fun_sym = new FunctionSymbol(
-      "prints", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE);
+      "prints", {}, ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
 
   push_scope();
 
@@ -63,19 +74,24 @@ void SymTable::add_predefined_symbols() {
   define(prints_fun_sym);
 }
 
-void SymTable::push_scope() { scope_stack.push_back({}); }
+void SymTable::push_scope() {
+  scope_stack.push_back({});
+  current_scope++;
+}
 
 void SymTable::exit_scope() {
-  current_scope--;
-  // std::cout << "exit scope: current scope " << current_scope << std::endl;
+  current_scope_level--;
+  // std::cout << "exit scope: current scope " << current_scope_level <<
+  // std::endl;
 }
 
 void SymTable::enter_scope() {
-  current_scope++;
-  // std::cout << "enter scope: current scope " << current_scope << std::endl;
+  current_scope_level++;
+  // std::cout << "enter scope: current scope " << current_scope_level <<
+  // std::endl;
 }
 
-scope_t SymTable::get_scope() { return current_scope; }
+scope_t SymTable::get_scope() { return current_scope_level; }
 
 std::ostream &operator<<(std::ostream &os, const SymTable &sym_table) {
   for (scope_t i = 0; i < sym_table.scope_stack.size(); i++) {

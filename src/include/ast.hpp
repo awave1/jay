@@ -185,6 +185,14 @@ struct ast_node_t {
    */
   bool is_num() const { return type == Node::number; }
 
+  bool is_bool_expr() const {
+    return type == Node::lt_op || type == Node::lteq_op ||
+           type == Node::gt_op || type == Node::gteq_op ||
+           type == Node::eqeq_op || type == Node::noteq_op ||
+           type == Node::not_op || type == Node::bin_and_op ||
+           type == Node::bin_or_op;
+  }
+
   /**
    * @brief check if a node has value set
    *
@@ -198,7 +206,7 @@ struct ast_node_t {
    *
    * @return std::string human readable representation of the type
    */
-  std::string get_type() const { return type_to_str(type); }
+  std::string type_to_str() const { return type_to_str(type); }
 
   /**
    * @brief pretty print given ast_node_t (and its children)
@@ -214,7 +222,7 @@ struct ast_node_t {
          << "  ";
     }
 
-    os << node.get_type();
+    os << node.type_to_str();
     os << " { ";
 
     if (node.has_value()) {
@@ -413,7 +421,7 @@ inline std::string get_str_for_type(yy::ast_node_t::Node type) {
   case yy::ast_node_t::Node::else_statement:
     return "else";
   case yy::ast_node_t::Node::if_else_statement:
-    return "if_else";
+    return "if... else";
   case yy::ast_node_t::Node::while_statement:
     return "while";
   case yy::ast_node_t::Node::id:

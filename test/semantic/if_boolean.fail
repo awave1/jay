@@ -1,0 +1,12 @@
+main() {
+  boolean j;
+  boolean i;
+  if (i && j) {
+
+  }
+}
+
+boolean f() {
+  int i;
+  return true;
+}

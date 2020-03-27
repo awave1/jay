@@ -26,9 +26,11 @@ bool SemanticAnalyzer::validate() {
                   std::placeholders::_1));
 
     // Pass 3
-    this->traverse(ast.get(), nullptr,
-                   std::bind(&SemanticAnalyzer::type_checking_post_order_pass,
-                             this, std::placeholders::_1));
+    this->traverse(
+        ast.get(),
+        std::bind(&SemanticAnalyzer::enter_scope, this, std::placeholders::_1),
+        std::bind(&SemanticAnalyzer::type_checking_post_order_pass, this,
+                  std::placeholders::_1));
 
     std::cout << *sym_table << std::endl;
 
@@ -196,6 +198,7 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
         }
       }
 
+      sym_table->current_scope--;
       break;
     }
     case ast_node_t::Node::while_statement: {
@@ -264,6 +267,10 @@ void SemanticAnalyzer::sym_table_pre_post_order_pass(ast_node_t *node) {
 // pass 3
 void SemanticAnalyzer::type_checking_post_order_pass(ast_node_t *node) {
   switch (node->type) {
+  case ast_node_t::Node::main_func_decl:
+  case ast_node_t::Node::function_decl:
+    sym_table->current_scope--;
+    break;
   case ast_node_t::Node::id: {
     if (!sym_table->exists(node->value)) {
       std::cerr << "Error: unknown identifier `" << node->value
@@ -378,6 +385,19 @@ bool SemanticAnalyzer::build_scope(ast_node_t *node) {
   default:
     break;
   }
+  return true;
+}
+
+bool SemanticAnalyzer::enter_scope(ast_node_t *node) {
+  switch (node->type) {
+  case ast_node_t::Node::main_func_decl:
+  case ast_node_t::Node::function_decl:
+    sym_table->current_scope++;
+    break;
+  default:
+    break;
+  }
+
   return true;
 }
 

@@ -115,6 +115,8 @@ private:
   // pass 4
   bool catch_all_pre_post_order_pass(ast_node_t *node);
 
+  bool enter_scope(ast_node_t *node);
+
   bool build_scope(ast_node_t *node);
 };
 

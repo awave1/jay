@@ -1,0 +1,6 @@
+// should fail, missing main function
+
+int i;
+boolean j;
+
+int foo() { return i; }

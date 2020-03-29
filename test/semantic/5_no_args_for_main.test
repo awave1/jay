@@ -1,0 +1,3 @@
+// should fail during parsing as main not supposed to have agrs
+
+main(int argc) {}

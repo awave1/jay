@@ -1,0 +1,10 @@
+// should fail as you cannot call main function directly
+
+main() {
+  main();
+}
+
+int foo() {
+  main();
+  return 42;
+}

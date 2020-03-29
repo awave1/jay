@@ -1,0 +1,14 @@
+main() {
+  int i;
+  foo(1 + true);
+  foo(bar(1, true));
+  bar(1, "false");
+}
+
+void foo(int a) {
+
+}
+
+int bar(int a, boolean b) {
+  return a;
+}

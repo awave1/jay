@@ -1,5 +1,5 @@
 %skeleton "lalr1.cc"
-%define "parser_class_name" {Parser}
+%define api.parser.class {Parser}
 
 %{
   #include <iostream>
@@ -109,7 +109,7 @@ program: /* empty */
 
 literal: T_NUM {
            auto num_val = std::string(driver.lexer->YYText());
-           auto *num_node = new ast_node_t { ast_node_t::Node::number, num_val, driver.lexer->lineno(), {} };
+           auto *num_node = new ast_node_t { ast_node_t::Node::int_t, num_val, driver.lexer->lineno(), {} };
            $$ = num_node;
          }
        | T_STR {

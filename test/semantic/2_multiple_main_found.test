@@ -1,0 +1,5 @@
+// multiple main declaration, should fail semantic checking
+
+main() {}
+
+main() {}

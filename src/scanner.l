@@ -5,9 +5,7 @@
   #include <cstdio>
   #include <cstdlib>
   #include <cstring>
-  #include "Lexer.h"
-  #include "parser.tab.hh"
-  #include "src/include/string_builder.h"
+  #include "Lexer.hpp"
 
   #define TOKEN_COUNT 40
 

@@ -2,7 +2,6 @@
 jay
 jay.test
 
-build/
 scanner
 .ccls-cache
 *.o

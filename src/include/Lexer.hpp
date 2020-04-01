@@ -1,10 +1,10 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "parser.tab.hpp"
+#include "string_builder.hpp"
 #include <iostream>
 #include <string>
-
-#include "parser.tab.hh"
 
 #ifndef yyFlexLexerOnce
 #include <FlexLexer.h>

@@ -1,5 +1,5 @@
-#include "./include/JayCompiler.hpp"
-#include "./include/SemanticAnalyzer.hpp"
+#include "JayCompiler.hpp"
+#include "SemanticAnalyzer.hpp"
 #include <fstream>
 #include <iostream>
 #include <memory>

@@ -18,7 +18,7 @@ lex.yy.cc: src/scanner.l
 	flex src/scanner.l
 
 parser.tab.hh parser.tab.cc &: src/parser.yy
-	/home/profs/aycock/bison/bin/bison -t -d src/parser.yy
+	bison -t -d src/parser.yy
 
 $(COMPILER): $(SOURCES) $(HEADERS)
 	$(CXX) $(CXXFLAGS) $(DFLAGS) -o $@ ./src/main.cpp $(SOURCES) $(LDFLAGS)

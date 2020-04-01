@@ -1,5 +1,5 @@
 %skeleton "lalr1.cc"
-%define api.parser.class {Parser}
+%define "parser_class_name" {Parser}
 
 %{
   #include <iostream>

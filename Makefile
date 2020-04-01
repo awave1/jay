@@ -15,6 +15,10 @@ SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/SymTable.cpp src/Sema
 CPP_SOURCES = $(shell find $(SRC_PATH) \( -name '*.cpp' \) -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 CPP_HEADERS = $(shell find $(SRC_PATH) -name '*.h*' -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 OBJECTS = $(CPP_SOURCES:$(SRC_PATH)/%.cpp=$(BUILD_PATH)/%.o)
+<<<<<<< HEAD
+=======
+OBJECTS_NO_MAIN := $(shell find $(BUILD_PATH)/ ! -name 'main.o' -name '*.o')
+>>>>>>> refactor/makefile
 
 export V := false
 export CMD_PREFIX := @
@@ -38,9 +42,9 @@ parser: $(SRC_PATH)/parser.yy
 	@ mv $(SRC_PATH)/*.h* $(SRC_PATH)/include/
 
 $(COMPILER): $(OBJECTS)
-	@ echo "compiling executable: \`$@\`"
+	@ echo "compiling executable: \`$@\`..."
 	$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(DFLAGS) $(OBJECTS) -o $@
-	@ echo "compiled. executable is \`$@\`"
+	@ echo "compiled. executable is \`$@\`."
 
 $(BUILD_PATH)/%.o: $(SRC_PATH)/%.c*
 	@ echo "compiling $< -> $@"
@@ -67,23 +71,26 @@ run_debug:
 	./$(COMPILER) $(FILE)
 
 .PHONY: test
-test: clean
+test: clear
 test: all
 test: $(TEST_EXEC)
 
-$(TEST_EXEC): test/semantic.test.cpp $(HEADERS) $(SOURCES)
-	$(CMD_PREFIX)$(CXX) -g $(TESTINCLUDE) $(DFLAGS) -I src/include test/semantic.test.cpp $(SOURCES) -o $@
+$(TEST_EXEC):
+	@ echo "compiling test executable: \`$@\`..."
+	$(CMD_PREFIX)$(CXX) -g $(TESTINCLUDE) $(INCLUDE) $(DFLAGS) -c test/jay.test.cpp -o $(BUILD_PATH)/jay.test.o
+	$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(DFLAGS) $(OBJECTS_NO_MAIN) -o $@
+	@ echo "compiled. executable is \`$@\`."
 	./$(TEST_EXEC)
 
 .PHONY: test_runner
-test_runner: clean
+test_runner: clear
 test_runner: all
 test_runner:
 	@ chmod +x ./test.sh
 	./test.sh $(COMPONENT)
 
 .PHONY: export
-export: clean
+export: clear
 export: ARCHIVE_NAME := artem-golovin-$(MSPART)
 export:
 	git archive -o $(ARCHIVE_NAME).zip HEAD

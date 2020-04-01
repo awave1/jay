@@ -4,9 +4,9 @@
 %{
   #include <iostream>
   #include <string>
-  #include "src/include/ast.hpp"
-  #include "./src/include/JayCompiler.hpp"
-  #include "Lexer.h"
+  #include "ast.hpp"
+  #include "JayCompiler.hpp"
+  #include "Lexer.hpp"
 
   #undef yylex
   #define yylex driver.lexer->lex

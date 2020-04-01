@@ -13,9 +13,6 @@ These are the steps to build the parser
 To build the parser:
 
 ```sh
-make
-
-# or
 make all
 ```
 

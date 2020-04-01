@@ -3,10 +3,10 @@
 
 #include <memory>
 
-#include "../../Lexer.h"
-#include "../../parser.tab.hh"
+#include "Lexer.hpp"
 #include "SemanticAnalyzer.hpp"
 #include "ast.hpp"
+#include "parser.tab.hpp"
 
 namespace yy {
 

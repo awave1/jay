@@ -31,7 +31,7 @@
   ;;
   (func $prints (export "prints") (param $str i32)
     local.get $str
-    call $putchar
+    call $printc
   )
 
   ;;
@@ -43,7 +43,7 @@
   (func $printb (export "printb") (param $bool i32)
     local.get $bool
     ;; TODO: Call prints
-    call $putchar
+    call $printc
   )
 
   ;;
@@ -150,7 +150,6 @@
   ;; @param $num: i32, an integer to print
   ;;
   (func $printi (export "printi") (param $num i32)
-    ;; TODO: Handle negative numbers
     (local $last_int i32)
     (local $exponent i32)
     (local $decimal i32)
@@ -165,7 +164,7 @@
       
       ;; otherwise print minus sign
       i32.const 45  ;; '-' in ASCII
-      call $putchar
+      call $printc
 
       ;; and negate the number before printing digits
       i32.const 0   ;; negate $num by doing 0 - $num
@@ -199,7 +198,7 @@
         i32.const 10
         i32.rem_u
         call $_get_int_char
-        call $putchar
+        call $printc
 
         ;; go to the next exponent
         ;; $exponent -= 1

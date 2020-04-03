@@ -20,3 +20,5 @@ lex.yy.*
 # exported
 *.zip
 *.totallynotzip
+
+*.wasm

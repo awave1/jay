@@ -155,42 +155,71 @@
     (local $exponent i32)
     (local $decimal i32)
     (local $num_part i32)
+    
+    block $_if_neg
+      ;; if $num >= 0, branch out
+      local.get $num
+      i32.const 0
+      i32.ge_s
+      br_if $_if_neg
+      
+      ;; otherwise print minus sign
+      i32.const 45  ;; '-' in ASCII
+      call $putchar
 
+      ;; and negate the number before printing digits
+      i32.const 0   ;; negate $num by doing 0 - $num
+      local.get $num
+      i32.sub
+      local.set $num
+    end $_if_neg
+    
+    ;; find out the exponent of the given number
     local.get $num
     call $_get_exponent
     local.set $exponent
 
+    ;; get the 10^$exponent
     local.get $exponent
     call $_10_to_pow
     local.set $decimal
 
+    ;; iterate to print number by number
     block $_outer
       loop $print_num
+        ;; calculate $num / 10^$exponent
         local.get $num
         local.get $decimal
         i32.div_u
-        local.set $num_part
+        local.set $num_part ;; save it to $num_part
 
+        ;; get the leftmost digit to print
+        ;; $num_part % 10
         local.get $num_part
         i32.const 10
         i32.rem_u
         call $_get_int_char
         call $putchar
 
+        ;; go to the next exponent
+        ;; $exponent -= 1
         local.get $exponent
         i32.const 1
         i32.sub
         local.set $exponent
 
+        ;; if $exponent less than 0, branch out
         local.get $exponent
         i32.const 0
         i32.lt_s
         br_if $_outer
 
+        ;; otherwise update the $decimal
         local.get $exponent
         call $_10_to_pow
         local.set $decimal
 
+        ;; keep iterating if $exponent >= 0
         local.get $exponent
         i32.const 0
         i32.ge_u
@@ -202,8 +231,17 @@
 
   ;; test main function
   (func $main
+    i32.const -123
+    call $printi
+    
+    i32.const 10 
+    call $printc
+
     i32.const 123
     call $printi
+
+    i32.const 10 
+    call $printc
   )
 
   (start $main)

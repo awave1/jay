@@ -5,7 +5,9 @@
 
   (memory 1)
 
-  (data (i32.const 0) "test") ;; len 4
+  ;; Boolean constants
+  (data 0 (i32.const 0) "true") ;; len: 4
+  (data 0 (i32.const 4) "false") ;; len: 5
 
   ;;
   ;; void halt();
@@ -67,9 +69,6 @@
         )
       )
     end $_outer
-
-    ;; local.get $offset
-    ;; i32.load8_u
   )
 
   ;;
@@ -79,10 +78,29 @@
   ;; @param $str: i32 bool value, 0 for false 1 for true
   ;;
   (func $printb (export "printb") (param $bool i32)
-    local.get $bool
-    ;; TODO: Call prints
-    ;; using select op
-    call $printc
+    (local $true_str_offset i32)
+    (local $false_str_offset i32)
+
+    ;; set local values to offsets
+    i32.const 0
+    local.set $true_str_offset
+
+    i32.const 4
+    local.set $false_str_offset
+
+    ;; print "true" for integers > 0
+    (if (i32.gt_s (local.get $bool) (i32.const 0))
+      (then
+        local.get $true_str_offset
+        i32.const 4  ;; length of "true"
+        call $prints ;; print "true"
+      )
+      (else 
+        local.get $false_str_offset
+        i32.const 5  ;; length of "false"
+        call $prints ;; print "false"
+      )
+    )
   )
 
   ;;
@@ -265,28 +283,4 @@
       end $print_num
     end $_outer
   )
-
-
-  ;; test main function
-  (func $main
-    i32.const 0
-    i32.const 4
-    call $prints
-
-    i32.const 10
-    call $printc
-    i32.const 10
-    call $printc
-
-    i32.const 4
-    i32.const 4
-    call $prints
-  )
-
-  (start $main)
-
-  ;; Boolean constants
-  (data 0 (i32.const 0) "true") ;; len: 4
-  (data 0 (i32.const 4) "false") ;; len: 5
-  (memory 1)
 )

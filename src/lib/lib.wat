@@ -3,6 +3,10 @@
   (import "host" "getchar" (func $getchar (result i32)))
   (import "host" "putchar" (func $putchar (param i32)))
 
+  (memory 1)
+
+  (data (i32.const 0) "test") ;; len 4
+
   ;;
   ;; void halt();
   ;; 
@@ -29,9 +33,43 @@
   ;; @brief Function takes in a string and prints it to stdout
   ;; @param $str: i32 position of the string to print
   ;;
-  (func $prints (export "prints") (param $str i32)
-    local.get $str
-    call $printc
+  (func $prints (export "prints") (param $offset i32) (param $length i32)
+    (local $counter i32)
+
+    ;; initialize counter to 0
+    i32.const 0
+    local.set $counter
+
+    block $_outer
+      (if (i32.eqz (local.get $length))
+        (then
+          (br $_outer)
+        )
+        (else
+          loop $_print_str
+            ;; calculate $offset + $counter to get the character to print
+            local.get $counter
+            local.get $offset
+            i32.add
+            i32.load8_u        ;; load a single byte from the given offset value
+            call $printc       ;; print it
+
+            local.get $counter ;; move to the next character
+            i32.const 1
+            i32.add
+            local.set $counter ;; $counter += 1
+
+            local.get $counter
+            local.get $length
+            i32.lt_u
+            br_if $_print_str   ;; keep looping if $counter < $length
+          end $_print_str
+        )
+      )
+    end $_outer
+
+    ;; local.get $offset
+    ;; i32.load8_u
   )
 
   ;;
@@ -43,6 +81,7 @@
   (func $printb (export "printb") (param $bool i32)
     local.get $bool
     ;; TODO: Call prints
+    ;; using select op
     call $printc
   )
 
@@ -230,18 +269,24 @@
 
   ;; test main function
   (func $main
-    i32.const -123
-    call $printi
-    
-    i32.const 10 
+    i32.const 0
+    i32.const 4
+    call $prints
+
+    i32.const 10
+    call $printc
+    i32.const 10
     call $printc
 
-    i32.const 123
-    call $printi
-
-    i32.const 10 
-    call $printc
+    i32.const 4
+    i32.const 4
+    call $prints
   )
 
   (start $main)
+
+  ;; Boolean constants
+  (data 0 (i32.const 0) "true") ;; len: 4
+  (data 0 (i32.const 4) "false") ;; len: 5
+  (memory 1)
 )

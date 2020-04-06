@@ -15,10 +15,7 @@ SOURCES = lex.yy.cc parser.tab.cc src/string_builder.c src/SymTable.cpp src/Sema
 CPP_SOURCES = $(shell find $(SRC_PATH) \( -name '*.cpp' \) -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 CPP_HEADERS = $(shell find $(SRC_PATH) -name '*.h*' -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 OBJECTS = $(CPP_SOURCES:$(SRC_PATH)/%.cpp=$(BUILD_PATH)/%.o)
-<<<<<<< HEAD
-=======
 OBJECTS_NO_MAIN := $(shell find $(BUILD_PATH)/ ! -name 'main.o' -name '*.o')
->>>>>>> refactor/makefile
 
 export V := false
 export CMD_PREFIX := @

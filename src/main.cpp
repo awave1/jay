@@ -12,7 +12,7 @@
  * @param file filename, if input stream is a fstream
  */
 void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
-  std::shared_ptr<ast_node_t> ast(driver.parse(is, file));
+  std::shared_ptr<ASTNode> ast(driver.parse(is, file));
 
   if (ast) {
     std::shared_ptr<SymTable> sym_table(new SymTable());

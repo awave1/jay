@@ -109,24 +109,24 @@ void SymTable::add_predefined_symbols() {
   using namespace std;
 
   // built-in functions
-  auto *getchar_fun_sym = new FunctionSymbol(
-      "getchar", {}, ast_node_t::Node::int_t, PREDEFINED_SCOPE, 0);
-  auto *halt_fun_sym = new FunctionSymbol("halt", {}, ast_node_t::Node::void_t,
-                                          PREDEFINED_SCOPE, 0);
+  auto *getchar_fun_sym =
+      new FunctionSymbol("getchar", {}, Node::int_t, PREDEFINED_SCOPE, 0);
+  auto *halt_fun_sym =
+      new FunctionSymbol("halt", {}, Node::void_t, PREDEFINED_SCOPE, 0);
 
   auto *printb_fun_sym = new FunctionSymbol(
-      "printb", {Symbol("b", "parameter", ast_node_t::Node::boolean_t, 0, 0)},
-      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "printb", {Symbol("b", "parameter", Node::boolean_t, 0, 0)}, Node::void_t,
+      PREDEFINED_SCOPE, 0);
 
   auto *printc_fun_sym = new FunctionSymbol(
-      "printc", {Symbol("c", "parameter", ast_node_t::Node::int_t, 0, 0)},
-      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "printc", {Symbol("c", "parameter", Node::int_t, 0, 0)}, Node::void_t,
+      PREDEFINED_SCOPE, 0);
   auto *printi_fun_sym = new FunctionSymbol(
-      "printi", {Symbol("i", "parameter", ast_node_t::Node::int_t, 0, 0)},
-      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "printi", {Symbol("i", "parameter", Node::int_t, 0, 0)}, Node::void_t,
+      PREDEFINED_SCOPE, 0);
   auto *prints_fun_sym = new FunctionSymbol(
-      "prints", {Symbol("s", "parameter", ast_node_t::Node::string, 0, 0)},
-      ast_node_t::Node::void_t, PREDEFINED_SCOPE, 0);
+      "prints", {Symbol("s", "parameter", Node::string, 0, 0)}, Node::void_t,
+      PREDEFINED_SCOPE, 0);
 
   push_scope(PREDEFINED_SCOPE_NAME);
 

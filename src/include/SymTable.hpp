@@ -9,9 +9,9 @@
 #ifndef SYM_TABLE_HPP
 #define SYM_TABLE_HPP
 
+#include "ASTNode.hpp"
 #include "FunctionSymbol.hpp"
 #include "Symbol.hpp"
-#include "ast.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>

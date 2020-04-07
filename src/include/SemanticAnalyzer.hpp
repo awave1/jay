@@ -7,10 +7,10 @@
 #ifndef SEMANTIC_ANALYZER_H
 #define SEMANTIC_ANALYZER_H
 
+#include "ASTNode.hpp"
 #include "FunctionSymbol.hpp"
 #include "SymTable.hpp"
 #include "Symbol.hpp"
-#include "ast.hpp"
 #include <iostream>
 #include <map>
 #include <memory>
@@ -19,77 +19,50 @@
 
 using namespace yy;
 
-typedef std::vector<std::vector<ast_node_t::Node>> expr_list_t;
+typedef std::vector<std::vector<Node>> expr_list_t;
 
 /**
  * @brief perform semantic analysis of the ast and build a symbol table
  */
 class SemanticAnalyzer {
 public:
-  SemanticAnalyzer(std::shared_ptr<ast_node_t> ast,
+  SemanticAnalyzer(std::shared_ptr<ASTNode> ast,
                    std::shared_ptr<SymTable> sym_table)
       : ast(ast), sym_table(sym_table) {
     // build the list of expected types for bool and math expressions
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::add_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::sub_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t},
-         {ast_node_t::Node::int_t, ast_node_t::Node::int_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::div_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::mod_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::mul_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::lt_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::gt_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::lteq_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::gteq_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::eqeq_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::int_t},
-         {ast_node_t::Node::boolean_t, ast_node_t::Node::boolean_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::noteq_op,
-        {{ast_node_t::Node::int_t, ast_node_t::Node::int_t,
-          ast_node_t::Node::boolean_t},
-         {ast_node_t::Node::boolean_t, ast_node_t::Node::boolean_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::not_op,
-        {{ast_node_t::Node::boolean_t, ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::bin_and_op,
-        {{ast_node_t::Node::boolean_t, ast_node_t::Node::boolean_t,
-          ast_node_t::Node::boolean_t}}));
-    expression_types.insert(std::pair<ast_node_t::Node, expr_list_t>(
-        ast_node_t::Node::bin_or_op,
-        {{ast_node_t::Node::boolean_t, ast_node_t::Node::boolean_t,
-          ast_node_t::Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::add_op, {{Node::int_t, Node::int_t, Node::int_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::sub_op,
+        {{Node::int_t, Node::int_t, Node::int_t}, {Node::int_t, Node::int_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::div_op, {{Node::int_t, Node::int_t, Node::int_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::mod_op, {{Node::int_t, Node::int_t, Node::int_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::mul_op, {{Node::int_t, Node::int_t, Node::int_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::lt_op, {{Node::int_t, Node::int_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::gt_op, {{Node::int_t, Node::int_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::lteq_op, {{Node::int_t, Node::int_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::gteq_op, {{Node::int_t, Node::int_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::eqeq_op, {{Node::int_t, Node::int_t, Node::int_t},
+                        {Node::boolean_t, Node::boolean_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::noteq_op, {{Node::int_t, Node::int_t, Node::boolean_t},
+                         {Node::boolean_t, Node::boolean_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::not_op, {{Node::boolean_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::bin_and_op,
+        {{Node::boolean_t, Node::boolean_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::bin_or_op,
+        {{Node::boolean_t, Node::boolean_t, Node::boolean_t}}));
   }
 
   /**
@@ -102,9 +75,9 @@ public:
   bool validate();
 
 private:
-  std::shared_ptr<ast_node_t> ast;
+  std::shared_ptr<ASTNode> ast;
   std::shared_ptr<SymTable> sym_table;
-  std::map<ast_node_t::Node, expr_list_t> expression_types;
+  std::map<Node, expr_list_t> expression_types;
 
   /**
    * @brief check if declaration is allowed at current block level. the method
@@ -128,11 +101,11 @@ private:
    * **hacky** way to allow semantic analyzer to print all errors after checks
    * have been performed
    */
-  void traverse(
-      ast_node_t *node,
-      std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> pre,
-      std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> post,
-      std::vector<bool> &err_stack);
+  void
+  traverse(ASTNode *node,
+           std::function<void(ASTNode *n, std::vector<bool> &err_stack)> pre,
+           std::function<void(ASTNode *n, std::vector<bool> &err_stack)> post,
+           std::vector<bool> &err_stack);
 
   /**
    * @brief post-order callback function, used to collect & populate sym table
@@ -143,8 +116,7 @@ private:
    * @param node ast node returned from `#traverse`
    * @param err_stack error stack returned from `#traverse`
    */
-  void globals_post_order_pass_cb(ast_node_t *node,
-                                  std::vector<bool> &err_stack);
+  void globals_post_order_pass_cb(ASTNode *node, std::vector<bool> &err_stack);
 
   /**
    * @brief post-order callback function, used to populate the symtable. In
@@ -154,7 +126,7 @@ private:
    * @param node ast node returned from `#traverse`
    * @param err_stack error stack returned from `#traverse`
    */
-  void sym_table_post_pass_cb(ast_node_t *node, std::vector<bool> &err_stack);
+  void sym_table_post_pass_cb(ASTNode *node, std::vector<bool> &err_stack);
 
   /**
    * @brief post-order callback function, used to perform type checking of
@@ -163,7 +135,7 @@ private:
    * @param node ast node returned from `#traverse`
    * @param err_stack error stack returned from `#traverse`
    */
-  void type_checking_post_order_pass_cb(ast_node_t *node,
+  void type_checking_post_order_pass_cb(ASTNode *node,
                                         std::vector<bool> &err_stack);
 
   /**
@@ -172,7 +144,7 @@ private:
    * @param node ast node returned from `#traverse`
    * @param err_stack error stack returned from `#traverse`
    */
-  void enter_scope_cb(ast_node_t *node, std::vector<bool> &err_stack);
+  void enter_scope_cb(ASTNode *node, std::vector<bool> &err_stack);
 
   /**
    * @brief pre-order callback function, used to enter function scopes
@@ -180,7 +152,7 @@ private:
    * @param node ast node returned from `#traverse`
    * @param err_stack error stack returned from `#traverse`
    */
-  void build_scope_cb(ast_node_t *node, std::vector<bool> &err_stack);
+  void build_scope_cb(ASTNode *node, std::vector<bool> &err_stack);
 
   /**
    * @brief perform recursive expression validation based on expected types,
@@ -191,7 +163,7 @@ private:
    * @return true if expression is valid
    * @return false otherwise
    */
-  bool validate_expr(ast_node_t *expr, expr_list_t expected_tyes);
+  bool validate_expr(ASTNode *expr, expr_list_t expected_tyes);
 
   /**
    * @brief print semantic error message to stderr

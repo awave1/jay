@@ -1,6 +1,7 @@
 #ifndef STRING_TABLE_HPP
 #define STRING_TABLE_HPP
 
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -31,6 +32,7 @@ public:
                                   const StringTable &str_table);
 
 private:
+  unsigned int offset_counter = 0;
   std::map<std::string, entry_t> table;
 };
 

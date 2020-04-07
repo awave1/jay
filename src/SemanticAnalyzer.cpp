@@ -4,7 +4,7 @@
  * @brief Perform semantic analysis of the parsed AST and build a symbol table
  */
 
-#include "./include/SemanticAnalyzer.hpp"
+#include "SemanticAnalyzer.hpp"
 
 /**
  * @brief perform semantic validation of the ast and build a symtable. the

@@ -82,10 +82,9 @@ public:
   std::string function_name;
   Node expected_type;
 
-  bool traverse(std::function<void(ASTNode *n)> &pre,
+  void traverse(std::function<void(ASTNode *n)> &pre,
                 std::function<void(ASTNode *n)> &post) {
     _traverse(this, pre, post);
-    return true;
   }
 
   /**
@@ -241,26 +240,15 @@ private:
 
   void _traverse(ASTNode *node, std::function<void(ASTNode *n)> &pre,
                  std::function<void(ASTNode *n)> &post) {
-    if (node->children.empty()) {
-      return;
-    }
-
     if (pre != nullptr) {
-      // TODO: Pre-order traversal
       pre(node);
     }
 
-    std::size_t i = 0;
-    do {
-      auto *next = node->children[i];
-
+    for (auto *next : node->children) {
       _traverse(next, pre, post);
-
-      i++;
-    } while (i < node->children.size());
+    }
 
     if (post != nullptr) {
-      // TODO: Post-order traversal
       post(node);
     }
   }

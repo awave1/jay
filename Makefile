@@ -44,7 +44,7 @@ $(COMPILER): $(OBJECTS)
 	@ echo "compiled. executable is \`$@\`."
 
 $(BUILD_PATH)/%.o: $(SRC_PATH)/%.c*
-	@ echo "compiling $< -> $@"
+	@ echo " > compiling $< -> $@"
 	$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(DFLAGS) $(INCLUDE) -c $< -o $@
 
 .PHONY: build
@@ -73,10 +73,10 @@ test: all
 test: $(TEST_EXEC)
 
 $(TEST_EXEC):
-	@ echo "compiling test executable: \`$@\`..."
+	@ echo "> compiling test executable: \`$@\`..."
 	$(CMD_PREFIX)$(CXX) -g $(TESTINCLUDE) $(INCLUDE) $(DFLAGS) -c test/jay.test.cpp -o $(BUILD_PATH)/jay.test.o
 	$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(DFLAGS) $(OBJECTS_NO_MAIN) -o $@
-	@ echo "compiled. executable is \`$@\`."
+	@ echo "> compiled. executable is \`$@\`."
 	./$(TEST_EXEC)
 
 .PHONY: test_runner

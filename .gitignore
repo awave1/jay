@@ -22,3 +22,5 @@ lex.yy.*
 *.totallynotzip
 
 *.wasm
+# for wasm runtime testing
+node_modules

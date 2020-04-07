@@ -1,4 +1,4 @@
-#include "string_builder.hpp"
+#include "StringBuilder.hpp"
 
 /**
  * @brief Initialize the string_builder_t structure

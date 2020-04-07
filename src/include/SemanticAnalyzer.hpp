@@ -26,9 +26,10 @@ typedef std::vector<std::vector<Node>> expr_list_t;
  */
 class SemanticAnalyzer {
 public:
-  SemanticAnalyzer(std::shared_ptr<ASTNode> ast,
-                   std::shared_ptr<SymTable> sym_table)
-      : ast(ast), sym_table(sym_table) {
+  std::shared_ptr<SymTable> sym_table;
+
+  SemanticAnalyzer(std::shared_ptr<ASTNode> ast) : ast(ast) {
+    sym_table = std::shared_ptr<SymTable>(new SymTable());
     // build the list of expected types for bool and math expressions
     expression_types.insert(std::pair<Node, expr_list_t>(
         Node::add_op, {{Node::int_t, Node::int_t, Node::int_t}}));
@@ -76,7 +77,6 @@ public:
 
 private:
   std::shared_ptr<ASTNode> ast;
-  std::shared_ptr<SymTable> sym_table;
   std::map<Node, expr_list_t> expression_types;
 
   /**

@@ -31,7 +31,7 @@ public:
                                   const StringTable &str_table);
 
 private:
-  int std::map<std::string, entry_t> table;
+  std::map<std::string, entry_t> table;
 };
 
 #endif /* STRING_TABLE_HPP */

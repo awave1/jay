@@ -91,6 +91,8 @@ public:
    */
   FunctionSymbol *find_function(std::string name);
 
+  symbol_table_t get_scope(std::string scope_name);
+
   friend std::ostream &operator<<(std::ostream &os, const SymTable &sym_table);
 
 private:

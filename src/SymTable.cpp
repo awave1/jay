@@ -150,6 +150,10 @@ void SymTable::push_scope(std::string fun_name) {
   current_scope++;
 }
 
+symbol_table_t SymTable::get_scope(std::string scope_name) {
+  return scope_stack.at(scope_name);
+}
+
 /**
  * @brief increment current block nesting level
  */

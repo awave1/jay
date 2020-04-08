@@ -1,6 +1,3 @@
 main() { 
   prints("hello world\n");
-  prints("hello world\n");
-  prints("hello\n");
-  prints("world\n");
 }

@@ -23,7 +23,8 @@ public:
       os << p << " ";
     }
     os << ", scope: " << scope_level << ">"
-       << ", block_scope (in symtable): " << block_scope << ">";
+       << ", block_scope (in symtable): " << block_scope << ">"
+       << ", wasm_name: " << wasm_name;
     os << ">";
   }
 };

@@ -1,8 +1,10 @@
 #ifndef STRING_TABLE_HPP
 #define STRING_TABLE_HPP
 
+#include <functional>
 #include <iostream>
 #include <map>
+#include <set>
 #include <string>
 
 struct entry_t {
@@ -10,8 +12,17 @@ struct entry_t {
   std::size_t length;
 };
 
+typedef std::function<bool(std::pair<std::string, entry_t>,
+                           std::pair<std::string, entry_t>)>
+    comporator_t;
+
 class StringTable {
 public:
+  StringTable() {
+    define("true");
+    define("false");
+  }
+
   /**
    * @brief Insert a string into a table. Additionally, the method will
    * calculate the required offset for generated WASM code and string length,
@@ -24,9 +35,11 @@ public:
   /**
    * @brief Generate WASM code with all the strings in the source code
    *
+   * @param indentation
    * @return std::string generated WASM code
    */
-  std::string build_wasm_code();
+
+  std::string build_wasm_code(std::string indentation);
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const StringTable &str_table);

@@ -6,6 +6,8 @@ void StringTable::define(std::string str) {
   offset_counter += str.length();
 }
 
+entry_t StringTable::lookup(std::string str) { return table.at(str); }
+
 /**
  * @brief Generate WASM code with all the strings in the source code
  *

@@ -18,8 +18,8 @@ using namespace yy;
 class CodeGenerator {
 public:
   CodeGenerator(std::shared_ptr<ASTNode> ast,
-                std::shared_ptr<SymTable> sym_table)
-      : ast(ast), sym_table(sym_table) {
+                std::shared_ptr<SymTable> sym_table, std::ostream &out)
+      : ast(ast), sym_table(sym_table), out(out) {
     str_table = std::unique_ptr<StringTable>(new StringTable());
   };
 
@@ -28,41 +28,24 @@ public:
    *
    * @return std::string
    */
-  void generate_wasm(std::ostream &out);
+  void generate_wasm();
 
 private:
   std::shared_ptr<ASTNode> ast;
   std::shared_ptr<SymTable> sym_table;
   std::unique_ptr<StringTable> str_table;
+  std::ostream &out;
 
   void traverse(ASTNode *node,
                 std::function<void(ASTNode *n, std::ostream &out)> pre,
                 std::function<void(ASTNode *n, std::ostream &out)> post,
                 std::ostream &out);
 
-  std::string generate_vars(std::string scope_name) {
-    std::string out = "";
-    bool is_global = scope_name == "global";
+  void generate_vars(std::string scope_name);
 
-    auto scope = sym_table->get_scope(scope_name);
-    for (auto const &[name, sym] : scope) {
-      if (sym->kind == "variable") {
-        if (is_global) {
-          out += "  (global ";
-          out += sym->wasm_name;
-          out += " (mut i32) (i32.const 0)";
-          out += ")\n";
-        } else {
-          out += "    (local ";
-          out += sym->wasm_name;
-          out += " (i32.const 0)";
-          out += ")\n";
-        }
-      }
-    }
+  void build_function_call();
 
-    return out;
-  }
+  void inject_runtime();
 
   void codegen_pre_traversal_cb(ASTNode *node, std::ostream &out);
   void codegen_post_traversal_cb(ASTNode *node, std::ostream &out);

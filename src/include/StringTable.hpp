@@ -33,6 +33,14 @@ public:
   void define(std::string str);
 
   /**
+   * @brief
+   *
+   * @param str
+   * @return entry_t
+   */
+  entry_t lookup(std::string str);
+
+  /**
    * @brief Generate WASM code with all the strings in the source code
    *
    * @param indentation

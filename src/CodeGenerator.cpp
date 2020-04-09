@@ -116,6 +116,19 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
   case Node::function_decl:
     out << "  )\n";
     break;
+  case Node::id: {
+    if (!node->function_name.empty() && !node->is_formal_param) {
+      auto name = node->value;
+      auto sym = sym_table->lookup(name, node->function_name);
+      if (sym->is_global()) {
+        out << "    global.get " << sym->wasm_name << "\n";
+      } else {
+        out << "    local.get " << sym->wasm_name << "\n";
+      }
+    }
+
+    break;
+  }
   case Node::function_call: {
     auto id = node->find_first(Node::id);
     auto fun_sym = sym_table->find_function(id->value);
@@ -158,6 +171,58 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     }
 
     break;
+  }
+  case Node::add_op: {
+    out << "    i32.add\n";
+    break;
+  }
+  case Node::mul_op: {
+    out << "    i32.mul\n";
+    break;
+  }
+  case Node::div_op: {
+    out << "    i32.div_s\n";
+    break;
+  }
+  case Node::mod_op: {
+    out << "    i32.rem_s\n";
+    break;
+  }
+  case Node::lt_op: {
+    out << "    i32.lt_s\n";
+    break;
+  }
+  case Node::lteq_op: {
+    out << "    i32.le_s\n";
+    break;
+  }
+  case Node::gt_op: {
+    out << "    i32.gt_s\n";
+    break;
+  }
+  case Node::gteq_op: {
+    out << "    i32.ge_s\n";
+    break;
+  }
+  case Node::eqeq_op: {
+    out << "    i32.eq\n";
+    break;
+  }
+  case Node::noteq_op: {
+    out << "    i32.ne\n";
+    break;
+  }
+  case Node::int_t:
+  case Node::boolean_t: {
+    if (node->is_const()) {
+      auto type = node->type;
+      auto value = node->value;
+      if (type == Node::boolean_t) {
+        out << "    i32.const " << (value == "true" ? 1 : 0) << "\n";
+      } else {
+        out << "    i32.const " << value << "\n";
+      }
+    }
   }
   default:
     break;

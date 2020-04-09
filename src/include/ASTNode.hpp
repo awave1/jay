@@ -78,6 +78,7 @@ public:
 
   bool is_while_block = false;
   bool is_return_block = false;
+  bool is_formal_param = false;
 
   std::string function_name;
   Node expected_type;
@@ -161,6 +162,10 @@ public:
    * @return false otherwise
    */
   bool has_value() const { return !value.empty(); }
+
+  bool is_const() const {
+    return (type == Node::int_t || type == Node::boolean_t) && has_value();
+  }
 
   /**
    * @brief Get the type of the object

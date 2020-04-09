@@ -143,7 +143,7 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
         auto *formal_type = formal->children[0];
         auto *param_sym = new Symbol(
             formal_id->value, "parameter", formal_type->type,
-            sym_table->current_scope_level, sym_table->current_scope);
+            sym_table->current_scope_level + 1, sym_table->current_scope);
 
         sym_params.push_back(*param_sym);
 
@@ -152,6 +152,7 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
 
       for (auto *_id : ids) {
         _id->function_name = id;
+        _id->is_formal_param = true;
       }
     }
 

@@ -58,11 +58,10 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
     out << "  (start $main)\n";
     out << "  (memory 1)\n";
 
-    // inject runtime functions
+    // TODO: inject runtime functions
     // inject_runtime();
 
     generate_vars("global");
-
     break;
   }
   case Node::main_func_decl:
@@ -89,67 +88,11 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
 
     // print all the local variables at the very beginning of the function
     generate_vars(id->value);
-
     break;
   }
-  case Node::statement_expr: {
-    auto statement = node->children[0];
-
-    if (statement->type == Node::eq_op) {
-      auto id = statement->children[0];
-      auto right_op = statement->children[1];
-
-      if (right_op->type == Node::function_call) {
-        auto fun_sym =
-            sym_table->find_function(right_op->find_first(Node::id)->value);
-        auto id_sym = sym_table->lookup(id->value, fun_sym->name);
-        auto var_scope = id_sym->scope_level > 1 ? "local" : "global";
-
-        /**
-         * call $foo
-         * local.set $i
-         */
-
-        // TODO: but that doesnt account for nested func calls
-
-        // build a stack of nested function calls
-        //
-
-        out << "    "
-            << "call " << fun_sym->wasm_name << "\n";
-        out << "    " << var_scope << ".set " << id_sym->wasm_name << "\n";
-      }
-    }
-
-    break;
-  }
-  case Node::function_call: {
-    // auto id = node->find_first(Node::id);
-    // auto actual_params = node->find_first(Node::actual_params);
-    // auto fun_sym = sym_table->find_function(id->value);
-
-    // for (auto actual : actual_params->children) {
-    //   if (actual->type == Node::string) {
-    //     // strings are a special case because we need to pass two params to
-    //     it
-    //     // in wasm - an offset and a length of the string
-    //     auto entry = str_table->lookup(actual->value);
-    //     out << "    "
-    //         << "i32.const " << entry.offset << "\n"
-    //         << "    "
-    //         << "i32.const " << entry.length << "\n";
-    //   } else if (actual->type == Node::boolean_t) {
-    //     // pass 1 if true or 0 if false
-    //     out << "    "
-    //         << "i32.const " << (actual->value == "true" ? "1" : "0") << "\n";
-    //   } else if (actual->type == Node::int_t) {
-    //     out << "    "
-    //         << "i32.const " << actual->value << "\n";
-    //   }
-    // }
-
-    // out << "    "
-    //     << "call " << fun_sym->wasm_name << "\n";
+  case Node::if_statement:
+  case Node::if_else_statement: {
+    out << "(if";
     break;
   }
   default:
@@ -173,6 +116,49 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
   case Node::function_decl:
     out << "  )\n";
     break;
+  case Node::function_call: {
+    auto id = node->find_first(Node::id);
+    auto fun_sym = sym_table->find_function(id->value);
+    // auto actual_params = node->find_first(Node::actual_params);
+
+    // for (auto actual : actual_params->children) {
+    //   if (actual->type == Node::string) {
+    //     // strings are a special case because we need to pass two params to
+    //     it
+    //     // in wasm - an offset and a length of the string
+    //     auto entry = str_table->lookup(actual->value);
+    //     out << "    "
+    //         << "i32.const " << entry.offset << "\n"
+    //         << "    "
+    //         << "i32.const " << entry.length << "\n";
+    //   } else if (actual->type == Node::boolean_t) {
+    //     // pass 1 if true or 0 if false
+    //     out << "    "
+    //         << "i32.const " << (actual->value == "true" ? "1" : "0") << "\n";
+    //   } else if (actual->type == Node::int_t) {
+    //     out << "    "
+    //         << "i32.const " << actual->value << "\n";
+    //   }
+    // }
+
+    out << "    "
+        << "call " << fun_sym->wasm_name << "\n";
+    break;
+  }
+  case Node::eq_op: {
+    auto id = node->children[0];
+    auto sym = sym_table->lookup(id->value, id->function_name);
+
+    if (sym != nullptr) {
+      if (sym->is_global()) {
+        out << "    global.set " << sym->wasm_name << "\n";
+      } else {
+        out << "    local.set " << sym->wasm_name << "\n";
+      }
+    }
+
+    break;
+  }
   default:
     break;
   }

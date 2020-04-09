@@ -25,6 +25,8 @@ public:
     wasm_name = "$" + name;
   }
 
+  bool is_global() const { return scope_level == 1; }
+
   virtual void print(std::ostream &os) const {
     os << "<" << kind << ": " << get_str_for_type(type) << ", " << name
        << ", scope level: " << scope_level

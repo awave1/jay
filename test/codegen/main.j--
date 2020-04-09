@@ -1,6 +1,8 @@
 int i;
 main() { 
+  int j;
   i = bar(foo());
+  j = bar(foo());
 }
 
 int foo() {

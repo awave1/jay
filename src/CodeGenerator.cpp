@@ -117,7 +117,9 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     out << "  )\n";
     break;
   case Node::id: {
-    if (!node->function_name.empty() && !node->is_formal_param) {
+    // TODO: figure out when an i is being called in a statement only
+    if (!node->function_name.empty() && !node->is_formal_param &&
+        node->can_generate_wasm_getter) {
       auto name = node->value;
       auto sym = sym_table->lookup(name, node->function_name);
       if (sym->is_global()) {
@@ -132,6 +134,8 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
   case Node::function_call: {
     auto id = node->find_first(Node::id);
     auto fun_sym = sym_table->find_function(id->value);
+
+    // TODO: Verify params still work
     // auto actual_params = node->find_first(Node::actual_params);
 
     // for (auto actual : actual_params->children) {
@@ -158,9 +162,13 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
         << "call " << fun_sym->wasm_name << "\n";
     break;
   }
+  case Node::statement_expr: {
+    break;
+  }
   case Node::eq_op: {
-    auto id = node->children[0];
-    auto sym = sym_table->lookup(id->value, id->function_name);
+    auto id = node->next_child();
+    auto name = id->value;
+    auto sym = sym_table->lookup(name, id->function_name);
 
     if (sym != nullptr) {
       if (sym->is_global()) {

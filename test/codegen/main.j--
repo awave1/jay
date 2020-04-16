@@ -1,8 +1,8 @@
 int i;
 main() { 
   int j;
-  i = bar(foo());
-  j = bar(foo());
+  i = foo();
+  j = bar(i);
 }
 
 int foo() {
@@ -10,5 +10,5 @@ int foo() {
 }
 
 int bar(int a) {
-  return a + 1;
+  return a + foo();
 }

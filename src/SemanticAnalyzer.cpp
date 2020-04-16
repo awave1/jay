@@ -424,6 +424,8 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     auto *actual_params = node->find_first(Node::actual_params);
     auto *fun_sym = sym_table->find_function(id->value);
 
+    id->is_function_id = true;
+
     if (actual_params->children.size() == fun_sym->params.size()) {
       auto children = actual_params->children;
       bool found_mismatch = false;
@@ -441,6 +443,8 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
           auto *sym =
               sym_table->lookup(param_node->value, param_node->function_name);
           found_type = sym->type;
+
+          param_node->can_generate_wasm_getter = true;
         } else if (param_node->is_bool_expr()) {
           found_type = Node::boolean_t;
         } else if (param_node->is_num_expr()) {
@@ -574,6 +578,7 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
       if (assigned->type == Node::id) {
         found_type =
             sym_table->lookup(assigned->value, assigned->function_name)->type;
+        assigned->can_generate_wasm_getter = true;
       } else {
         found_type = assigned->type;
       }
@@ -710,6 +715,7 @@ bool SemanticAnalyzer::validate_expr(ASTNode *l, expr_list_t expected_types) {
   if (l->type == Node::id) {
     auto sym = sym_table->lookup(l->value, l->function_name);
     l_type = sym->type;
+    l->can_generate_wasm_getter = true;
   } else if (l->type == Node::function_call) {
     auto id = l->find_first(Node::id);
     auto sym = sym_table->find_function(id->value);

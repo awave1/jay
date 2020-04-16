@@ -79,6 +79,9 @@ public:
   bool is_while_block = false;
   bool is_return_block = false;
   bool is_formal_param = false;
+  bool is_function_id = false;
+
+  bool can_generate_wasm_getter = false;
 
   std::string function_name;
   Node expected_type;
@@ -166,6 +169,12 @@ public:
   bool is_const() const {
     return (type == Node::int_t || type == Node::boolean_t) && has_value();
   }
+
+  bool is_assignment_expr() const {
+    return this->next_child()->type == Node::eq_op;
+  }
+
+  ASTNode *next_child() const { return this->children.front(); }
 
   /**
    * @brief Get the type of the object

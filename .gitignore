@@ -1,6 +1,7 @@
 # executables
 jay
 jay.test
+out.wat
 
 scanner
 .ccls-cache

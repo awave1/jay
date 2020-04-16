@@ -170,11 +170,9 @@ public:
     return (type == Node::int_t || type == Node::boolean_t) && has_value();
   }
 
-  bool is_assignment_expr() const {
-    return this->next_child()->type == Node::eq_op;
-  }
+  bool is_assignment_expr() { return this->next_child()->type == Node::eq_op; }
 
-  ASTNode *next_child() const { return this->children.front(); }
+  ASTNode *next_child() { return this->children.front(); }
 
   /**
    * @brief Get the type of the object

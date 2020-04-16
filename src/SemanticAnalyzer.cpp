@@ -198,6 +198,12 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
   case Node::div_op:
   case Node::mod_op: {
     node->expected_type = Node::int_t;
+
+    // @HACK: indicate that a number is negative (it *should* be done in parser)
+    if (node->type == Node::sub_op && node->children.size() == 1 &&
+        node->next_child()->type == Node::int_t) {
+      node->next_child()->value = "-" + node->next_child()->value;
+    }
     break;
   }
   default:

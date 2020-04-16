@@ -1,14 +1,12 @@
-int i;
 main() { 
-  int j;
-  i = foo();
-  j = bar(i);
-}
-
-int foo() {
-  return 42;
-}
-
-int bar(int a) {
-  return a + foo();
+  prints("hello\n");
+  printi(123);
+  prints("\n");
+  printi(-123);
+  prints("\n");
+  printb(true);
+  prints("\n");
+  printb(false);
+  prints("\n");
+  printc(60);
 }

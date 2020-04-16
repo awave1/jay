@@ -117,7 +117,6 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     out << "  )\n";
     break;
   case Node::id: {
-    // TODO: figure out when an i is being called in a statement only
     if (!node->function_name.empty() && !node->is_formal_param &&
         node->can_generate_wasm_getter) {
       auto name = node->value;
@@ -135,28 +134,21 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     auto id = node->find_first(Node::id);
     auto fun_sym = sym_table->find_function(id->value);
 
-    // TODO: Verify params still work
-    // auto actual_params = node->find_first(Node::actual_params);
-
-    // for (auto actual : actual_params->children) {
-    //   if (actual->type == Node::string) {
-    //     // strings are a special case because we need to pass two params to
-    //     it
-    //     // in wasm - an offset and a length of the string
-    //     auto entry = str_table->lookup(actual->value);
-    //     out << "    "
-    //         << "i32.const " << entry.offset << "\n"
-    //         << "    "
-    //         << "i32.const " << entry.length << "\n";
-    //   } else if (actual->type == Node::boolean_t) {
-    //     // pass 1 if true or 0 if false
-    //     out << "    "
-    //         << "i32.const " << (actual->value == "true" ? "1" : "0") << "\n";
-    //   } else if (actual->type == Node::int_t) {
-    //     out << "    "
-    //         << "i32.const " << actual->value << "\n";
-    //   }
-    // }
+    if (fun_sym->name == "prints") {
+      auto actual_params = node->find_first(Node::actual_params);
+      for (auto actual : actual_params->children) {
+        if (actual->type == Node::string) {
+          // strings are a special case because we need to pass two params to
+          // it
+          // in wasm - an offset and a length of the string
+          auto entry = str_table->lookup(actual->value);
+          out << "    "
+              << "i32.const " << entry.offset << "\n"
+              << "    "
+              << "i32.const " << entry.length << "\n";
+        }
+      }
+    }
 
     out << "    "
         << "call " << fun_sym->wasm_name << "\n";
@@ -251,8 +243,7 @@ void CodeGenerator::generate_vars(std::string scope_name) {
       } else {
         out << "    (local ";
         out << sym->wasm_name;
-        out << " (i32.const 0)";
-        out << ")\n";
+        out << " i32)\n";
       }
     }
   }

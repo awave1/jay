@@ -1,12 +1,8 @@
-main() { 
-  prints("hello\n");
-  printi(123);
-  prints("\n");
-  printi(-123);
-  prints("\n");
-  printb(true);
-  prints("\n");
-  printb(false);
-  prints("\n");
-  printc(60);
+main() {
+  boolean a;
+  a = true;
+
+  if (a) {
+    prints("hello\n");
+  }
 }

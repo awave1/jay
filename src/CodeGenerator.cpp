@@ -92,9 +92,23 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
   }
   case Node::if_statement:
   case Node::if_else_statement: {
-    out << "(if";
+    auto condition = node->next_child();
+
+    out << "(if\n";
+    out << "  (block (result i32)\n";
+
+    // TODO: generate blocks for if condition
+    if (condition->type == Node::id) {
+      auto sym = sym_table->lookup(condition->value, condition->function_name);
+      out << "    local.get " << sym->wasm_name << "\n";
+      out << "  )\n";
+    }
+
+    out << "(then\n";
+
     break;
   }
+
   default:
     break;
   }
@@ -154,7 +168,9 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
         << "call " << fun_sym->wasm_name << "\n";
     break;
   }
-  case Node::statement_expr: {
+  case Node::if_statement:
+  case Node::if_else_statement: {
+    out << ")\n";
     break;
   }
   case Node::eq_op: {

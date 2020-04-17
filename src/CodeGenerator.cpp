@@ -67,7 +67,7 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
     out << printer->line("(memory 1)");
 
     // TODO: inject runtime functions
-    inject_runtime();
+    // inject_runtime();
 
     generate_vars("global");
     break;
@@ -103,20 +103,6 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
   }
   case Node::if_statement:
   case Node::if_else_statement: {
-    // auto condition = node->next_child();
-
-    // out << "(if\n";
-    // out << "  (block (result i32)\n";
-
-    // // TODO: generate blocks for if condition
-    // if (condition->type == Node::id) {
-    //   auto sym = sym_table->lookup(condition->value,
-    //   condition->function_name); out << "    local.get " << sym->wasm_name <<
-    //   "\n"; out << "  )\n";
-    // }
-
-    // out << "(then\n";
-
     out << printer->line("(if") << printer->indent();
     printer->decorations[node->next_child()] = {
         [this](ASTNode *) {
@@ -134,6 +120,17 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
         [this](ASTNode *) {
           this->out << this->printer->dedent() << this->printer->line(")");
         }};
+
+    if (node->type == Node::if_else_statement) {
+      printer->decorations[node->children[2]] = {
+          [this](ASTNode *) {
+            this->out << this->printer->line("(else ")
+                      << this->printer->indent();
+          },
+          [this](ASTNode *) {
+            this->out << this->printer->dedent() << this->printer->line(")");
+          }};
+    }
 
     break;
   }

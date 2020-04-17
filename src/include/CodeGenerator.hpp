@@ -116,6 +116,7 @@ public:
       : ast(ast), sym_table(sym_table), out(out) {
     str_table = std::unique_ptr<StringTable>(new StringTable());
     printer = std::shared_ptr<PrettyPrinter>(new PrettyPrinter);
+    while_block_state = 0;
   };
 
   /**
@@ -131,6 +132,7 @@ private:
   std::unique_ptr<StringTable> str_table;
   std::ostream &out;
   std::shared_ptr<PrettyPrinter> printer;
+  int while_block_state;
 
   void traverse(ASTNode *node,
                 std::function<void(ASTNode *n, std::ostream &out)> pre,
@@ -142,6 +144,11 @@ private:
   void build_function_call();
 
   void inject_runtime();
+
+  std::string get_block_state() { return std::to_string(while_block_state); }
+
+  void next_block_state() { while_block_state++; }
+  void prev_block_state() { while_block_state--; }
 
   void codegen_pre_traversal_cb(ASTNode *node, std::ostream &out);
   void codegen_post_traversal_cb(ASTNode *node, std::ostream &out);

@@ -2,12 +2,7 @@ int b;
 
 main() {
   boolean a;
-
-  a = true;
-
-  if (a == a) {
-    prints("yo\n");
-  } else {
-    prints("not yo\n");
-  }
+ 
+  a = true && false;
+  if (a) {}
 }

@@ -1,5 +1,7 @@
 #include "CodeGenerator.hpp"
 
+int WHILE_BLOCK_STATE = 0;
+
 void CodeGenerator::generate_wasm() {
   this->traverse(ast.get(), nullptr,
                  std::bind(&CodeGenerator::build_string_table_post_traversal_cb,
@@ -52,7 +54,9 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
 
   auto iter = printer->decorations.find(node);
   if (iter != printer->decorations.end()) {
-    iter->second.pre(node);
+    if (iter->second.pre != nullptr) {
+      iter->second.pre(node);
+    }
   }
 
   switch (node->type) {
@@ -134,6 +138,24 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
 
     break;
   }
+  case Node::while_statement: {
+    out << printer->line("(block $_block" + get_block_state())
+        << printer->indent();
+    out << printer->line("(loop $_loop" + get_block_state())
+        << printer->indent();
+
+    printer->decorations[node->next_child()] = {
+        nullptr, [this](ASTNode *) {
+          // this->out << this->printer->dedent() << this->printer->line(")");
+          this->out << this->printer->line("i32.eqz");
+          this->out << this->printer->line("br_if $_block" +
+                                           this->get_block_state());
+
+          next_block_state();
+        }};
+
+    break;
+  }
 
   default:
     break;
@@ -209,6 +231,18 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     out << printer->dedent() << printer->line(")");
     break;
   }
+  case Node::while_statement: {
+    // @HACK: pretty ugly, but whatever
+    prev_block_state();
+    out << printer->line("br $_loop" + get_block_state());
+    out << printer->dedent() << printer->line(")");
+    out << printer->dedent() << printer->line(")");
+    break;
+  }
+  case Node::break_statement: {
+    out << printer->line("br $_block" + get_block_state());
+    break;
+  }
   case Node::eq_op: {
     auto id = node->next_child();
     auto name = id->value;
@@ -265,6 +299,10 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     out << printer->line("") << "i32.ne";
     break;
   }
+  case Node::not_op: {
+    out << printer->line("") << "i32.xor";
+    break;
+  }
   case Node::int_t:
   case Node::boolean_t: {
     if (node->is_const()) {
@@ -287,7 +325,9 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
 
   auto iter = printer->decorations.find(node);
   if (iter != printer->decorations.end()) {
-    iter->second.post(node);
+    if (iter->second.post != nullptr) {
+      iter->second.post(node);
+    }
   }
 }
 

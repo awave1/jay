@@ -186,10 +186,11 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
     break;
   }
   case Node::while_statement: {
-    auto *block = node->find_first(Node::block);
-    if (block != nullptr) {
+    auto blocks = node->find_recursive(Node::block);
+    for (auto *block : blocks) {
       block->is_while_block = true;
     }
+
     break;
   }
   case Node::add_op:

@@ -1,11 +1,8 @@
-int b;
+int i1;
+boolean b1;
 
-main() {
-  printi(ret());
+void foo() {
 }
 
-int ret() {
-  while(true) {
-    return 1;
-  }
+main() {
 }

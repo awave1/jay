@@ -78,10 +78,10 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
   }
   case Node::main_func_decl:
   case Node::function_decl: {
-    auto id = node->find_first(Node::id);
-    auto type = node->children[0];
-    auto formal_params = node->find_first(Node::formal_params);
-    auto fun_sym = sym_table->find_function(id->value);
+    auto *id = node->find_first(Node::id);
+    auto *type = node->children[0];
+    auto *formal_params = node->find_first(Node::formal_params);
+    auto *fun_sym = sym_table->find_function(id->value);
 
     out << printer->line("") << printer->line("(func " + fun_sym->wasm_name);
 

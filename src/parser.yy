@@ -178,10 +178,10 @@ function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN bloc
                         auto *func_nodes = new std::vector<ASTNode *>();
                         auto *empty_formals = new ASTNode { Node::formal_params, "", 0, {} };
 
-                        func_nodes->push_back($1);
-                        func_nodes->push_back($2);
-                        func_nodes->push_back(empty_formals);
-                        func_nodes->push_back($5);
+                        func_nodes->push_back($1); // type
+                        func_nodes->push_back($2); // id
+                        func_nodes->push_back(empty_formals); // params
+                        func_nodes->push_back($5); // block
                         $$ = func_nodes;
                       }
                     | type identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN block {
@@ -196,9 +196,11 @@ function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN bloc
                     | T_TYPE_VOID identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
                         auto *void_t_node = new ASTNode { Node::void_t, "", driver.lexer->lineno(), {} };
                         auto *func_nodes = new std::vector<ASTNode *>();
+                        auto *empty_formals = new ASTNode { Node::formal_params, "", 0, {} };
 
                         func_nodes->push_back(void_t_node);
                         func_nodes->push_back($2);
+                        func_nodes->push_back(empty_formals); // params
                         func_nodes->push_back($5);
                         $$ = func_nodes;
                       }
@@ -219,7 +221,12 @@ main_function_declaration: identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN bloc
                              auto *void_t_node = new ASTNode { Node::void_t, "", driver.lexer->lineno(), {} };
                              auto *empty_formals = new ASTNode { Node::formal_params, "", 0, {} };
 
-                             $$ = new ASTNode { Node::main_func_decl, "", driver.lexer->lineno(), { void_t_node, main_id, empty_formals, $4 } };
+                             $$ = new ASTNode { 
+                               Node::main_func_decl,
+                               "",
+                               driver.lexer->lineno(),
+                               { void_t_node, main_id, empty_formals, $4 }
+                              };
                            }
                          ;
 param_list: param {

@@ -38,12 +38,24 @@ void SymTable::define(Symbol *symbol, std::string fun_name) {
 FunctionSymbol *SymTable::find_function(std::string name) {
   auto glob_symtable = scope_stack.find(GLOBAL_SCOPE_NAME)->second;
   if (glob_symtable.find(name) != glob_symtable.end()) {
-    return dynamic_cast<FunctionSymbol *>(glob_symtable.at(name));
+    try {
+      return dynamic_cast<FunctionSymbol *>(glob_symtable.at(name));
+    } catch (const std::exception &err) {
+      std::cerr << "failed to lookup function `" << name << "`: " << err.what()
+                << std::endl;
+      return nullptr;
+    }
   }
 
   auto predefined_symtable = scope_stack.find(PREDEFINED_SCOPE_NAME)->second;
   if (predefined_symtable.find(name) != predefined_symtable.end()) {
-    return dynamic_cast<FunctionSymbol *>(predefined_symtable.at(name));
+    try {
+      return dynamic_cast<FunctionSymbol *>(predefined_symtable.at(name));
+    } catch (const std::exception &err) {
+      std::cerr << "failed to lookup function `" << name << "`: " << err.what()
+                << std::endl;
+      return nullptr;
+    }
   }
 
   return nullptr;
@@ -67,16 +79,23 @@ Symbol *SymTable::lookup(std::string name, std::string fun) {
     }
   }
 
-  auto global_table = scope_stack.at(GLOBAL_SCOPE_NAME);
-  auto g_find = global_table.find(name);
-  if (g_find != global_table.end()) {
-    return g_find->second;
-  }
+  try {
+    auto global_table = scope_stack.at(GLOBAL_SCOPE_NAME);
 
-  auto predefined_table = scope_stack.at(PREDEFINED_SCOPE_NAME);
-  auto p_find = predefined_table.find(name);
-  if (p_find != predefined_table.end()) {
-    return p_find->second;
+    auto g_find = global_table.find(name);
+    if (g_find != global_table.end()) {
+      return g_find->second;
+    }
+
+    auto predefined_table = scope_stack.at(PREDEFINED_SCOPE_NAME);
+    auto p_find = predefined_table.find(name);
+    if (p_find != predefined_table.end()) {
+      return p_find->second;
+    }
+  } catch (const std::exception &err) {
+    std::cerr << "failed to lookup`" << name << "` at `" << fun
+              << "`: " << err.what() << std::endl;
+    return nullptr;
   }
 
   return nullptr;

@@ -13,6 +13,7 @@
 #include "FunctionSymbol.hpp"
 #include "Symbol.hpp"
 #include <algorithm>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <map>

@@ -257,13 +257,16 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     break;
   }
   case Node::return_statement: {
-    if (node->next_child()->type == Node::eq_op) {
-      auto return_id = node->next_child()->next_child();
-      auto sym = sym_table->lookup(return_id->value, return_id->function_name);
-      if (sym->is_global()) {
-        out << printer->line("global.get") << printer->add_name(sym->name);
-      } else {
-        out << printer->line("local.get") << printer->add_name(sym->name);
+    if (!node->children.empty()) {
+      if (node->next_child()->type == Node::eq_op) {
+        auto return_id = node->next_child()->next_child();
+        auto sym =
+            sym_table->lookup(return_id->value, return_id->function_name);
+        if (sym->is_global()) {
+          out << printer->line("global.get") << printer->add_name(sym->name);
+        } else {
+          out << printer->line("local.get") << printer->add_name(sym->name);
+        }
       }
     }
     out << printer->line("return");

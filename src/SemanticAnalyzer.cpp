@@ -487,16 +487,18 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     break;
   }
   case Node::return_statement: {
-    bool is_eq = node->next_child()->type == Node::eq_op;
-    if (is_eq) {
-      auto ids = node->find_recursive(Node::id);
-      for (auto *id : ids) {
-        auto *sym = sym_table->lookup(id->value, id->function_name);
-        id->can_generate_wasm_getter =
-            sym != nullptr && sym->kind != "function";
+    if (!node->children.empty()) {
+      bool is_eq = node->next_child()->type == Node::eq_op;
+      if (is_eq) {
+        auto ids = node->find_recursive(Node::id);
+        for (auto *id : ids) {
+          auto *sym = sym_table->lookup(id->value, id->function_name);
+          id->can_generate_wasm_getter =
+              sym != nullptr && sym->kind != "function";
+        }
+      } else {
+        node->next_child()->can_generate_wasm_getter = true;
       }
-    } else {
-      node->next_child()->can_generate_wasm_getter = true;
     }
     break;
   }

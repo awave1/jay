@@ -33,7 +33,6 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
   std::unique_ptr<CodeGenerator> code_gen(
       new CodeGenerator(ast, semantic_analyzer->sym_table, std::cout));
 
-  // std::cout << *ast << std::endl;
   code_gen->generate_wasm();
 }
 

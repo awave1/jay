@@ -599,7 +599,11 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
       }
     } else {
       // if it's something else (expression or function call)
-      if (assigned->type == Node::function_call) {
+      if (assigned->type == Node::eq_op) {
+        auto *id = assigned->next_child();
+        auto *sym = sym_table->lookup(id->value, id->function_name);
+        found_type = sym->type;
+      } else if (assigned->type == Node::function_call) {
         auto *id = assigned->find_first(Node::id);
         auto *fun_sym = sym_table->find_function(id->value);
         found_type = fun_sym->type;

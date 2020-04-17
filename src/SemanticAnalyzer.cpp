@@ -103,26 +103,9 @@ void SemanticAnalyzer::traverse(
 void SemanticAnalyzer::globals_post_order_pass_cb(
     ASTNode *node, std::vector<bool> &err_stack) {
   switch (node->type) {
-  case Node::main_func_decl: {
-    if (node->children.empty()) {
-      break;
-    }
-    sym_table->define(new FunctionSymbol("main", {}, Node::void_t,
-                                         sym_table->current_scope_level,
-                                         sym_table->current_scope),
-                      "global");
-
-    auto id = node->children[1]->value;
-    auto *block = node->find_first(Node::block);
-    auto ids = block->find_recursive(Node::id);
-
-    // assign function name to all ids inside the function block
-    for (auto *_id : ids) {
-      _id->function_name = id;
-    }
-    break;
-  }
+  case Node::main_func_decl:
   case Node::function_decl: {
+    // TODO: ensure `main` doesn't have args
     if (node->children.empty()) {
       break;
     }

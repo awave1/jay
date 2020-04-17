@@ -1,7 +1,11 @@
 int b;
 
 main() {
-  int a;
-  a = 2;
-  b = 1 + a;
+  printi(ret());
+}
+
+int ret() {
+  while(true) {
+    return 1;
+  }
 }

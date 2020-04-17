@@ -251,7 +251,7 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     break;
   }
   case Node::add_op: {
-    out << "i32.add";
+    out << printer->line("") << "i32.add";
     break;
   }
   case Node::mul_op: {
@@ -291,7 +291,7 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     break;
   }
   case Node::not_op: {
-    out << printer->line("i32.const 1");
+    out << printer->line("") << "i32.const 1";
     out << printer->line("") << "i32.xor";
     break;
   }

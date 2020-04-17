@@ -1,19 +1,7 @@
 int b;
 
 main() {
-  boolean a;
-  boolean b;
-
-  a = true;
-  b = true;
-
-  if (f() && !f()) {
-    prints("true!");
-  } else {
-    prints("nottrue!");
-  }
-}
-
-boolean f() {
-  return true;
+  int a;
+  a = 2;
+  b = 1 + a;
 }

@@ -4,6 +4,7 @@
 #include "ASTNode.hpp"
 #include "StringTable.hpp"
 #include "SymTable.hpp"
+#include "Symbol.hpp"
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -117,6 +118,7 @@ public:
     str_table = std::unique_ptr<StringTable>(new StringTable());
     printer = std::shared_ptr<PrettyPrinter>(new PrettyPrinter);
     while_block_state = 0;
+    stack_dummy_var = "__stack_dummy_var";
   };
 
   /**
@@ -134,6 +136,7 @@ private:
   std::shared_ptr<PrettyPrinter> printer;
   int while_block_state;
   std::string start_func_name;
+  std::string stack_dummy_var;
 
   void traverse(ASTNode *node,
                 std::function<void(ASTNode *n, std::ostream &out)> pre,

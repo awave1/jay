@@ -183,10 +183,30 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
 
     break;
   }
-  case Node::main_func_decl:
-    out << printer->line("drop");
+  case Node::main_func_decl: {
+    auto *block = node->find_first(Node::block);
+    if (!block->children.empty()) {
+      auto *last_expr = block->children.back();
+
+      if (last_expr->type == Node::statement_expr &&
+          !last_expr->children.empty()) {
+        auto *fun_call = last_expr->find_first(Node::function_call);
+        auto *fun_id = fun_call->next_child();
+        auto *fun_sym = sym_table->find_function(fun_id->value);
+
+        if (fun_sym->type != Node::void_t) {
+          out << printer->line("drop");
+          out << printer->line("call $halt");
+        }
+      }
+
+    } else {
+      out << printer->line("call $halt");
+    }
+
     out << printer->dedent() << printer->line(")");
     break;
+  }
   case Node::function_decl: {
     auto *id = node->find_first(Node::id);
     auto *fun_sym = sym_table->find_function(id->value);
@@ -242,7 +262,7 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
       }
     }
 
-    out << printer->line("") << "call" << printer->add_name(fun_sym->name);
+    out << printer->line("call") << printer->add_name(fun_sym->name);
     if (fun_sym->name == "halt") {
       out << printer->line("unreachable");
     }
@@ -405,9 +425,15 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
 void CodeGenerator::generate_vars(std::string scope_name) {
   bool is_global = scope_name == "global";
 
+  // if (scope_name == "main") {
+  //   sym_table->define(
+  //       new Symbol(this->stack_dummy_var, "variable", Node::int_t, 2, 0),
+  //       "main");
+  // }
+
   auto scope = sym_table->get_scope(scope_name);
 
-  for (auto const &[name, sym] : scope) {
+  for (auto const &[_, sym] : scope) {
     if (sym->kind == "variable") {
       if (is_global) {
         out << printer->line("(global") << printer->add_name(sym->name)

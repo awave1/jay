@@ -263,6 +263,11 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     out << printer->line("") << "i32.add";
     break;
   }
+  case Node::sub_op: {
+    if (node->children.size() > 1) {
+      out << printer->line("i32.sub");
+    }
+  }
   case Node::mul_op: {
     out << printer->line("") << "i32.mul";
     break;

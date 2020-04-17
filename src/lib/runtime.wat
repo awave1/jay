@@ -272,3 +272,51 @@
     end $print_num
   end $_outer
 )
+
+;;
+;; boolean __and_op(boolean lhs, boolean rhs);
+;; 
+;; @brief Helper for a boolean and operation (&&)
+;;
+;; @param $lhs: i32, a "boolean"
+;; @param $rhs: i32, a "boolean"
+;;
+(func $__and_op (export "__and_op") (param $lhs i32) (param $rhs i32) (result i32)
+  (if (result i32)
+    (i32.eqz
+      (local.get $lhs)
+      (local.get $rhs)
+      (i32.and)
+    )
+    (then
+      (i32.const 1)
+    )
+    (else
+      (i32.const 0)
+    )
+  )
+)
+
+;;
+;; boolean __or_op(boolean lhs, boolean rhs);
+;; 
+;; @brief Helper for a boolean or operation (||)
+;;
+;; @param $lhs: i32, a "boolean"
+;; @param $rhs: i32, a "boolean"
+;;
+(func $__or_op (export "__or_op") (param $lhs i32) (param $rhs i32) (result i32)
+  (if (result i32)
+    (i32.eqz
+      (local.get $lhs)
+      (local.get $rhs)
+      (i32.or)
+    )
+    (then
+      (i32.const 1)
+    )
+    (else
+      (i32.const 0)
+    )
+  )
+)

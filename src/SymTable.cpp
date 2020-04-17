@@ -113,11 +113,9 @@ void SymTable::add_predefined_symbols() {
       new FunctionSymbol("getchar", {}, Node::int_t, PREDEFINED_SCOPE, 0);
   auto *halt_fun_sym =
       new FunctionSymbol("halt", {}, Node::void_t, PREDEFINED_SCOPE, 0);
-
   auto *printb_fun_sym = new FunctionSymbol(
       "printb", {Symbol("b", "parameter", Node::boolean_t, 0, 0)}, Node::void_t,
       PREDEFINED_SCOPE, 0);
-
   auto *printc_fun_sym = new FunctionSymbol(
       "printc", {Symbol("c", "parameter", Node::int_t, 0, 0)}, Node::void_t,
       PREDEFINED_SCOPE, 0);
@@ -128,6 +126,18 @@ void SymTable::add_predefined_symbols() {
       "prints", {Symbol("s", "parameter", Node::string, 0, 0)}, Node::void_t,
       PREDEFINED_SCOPE, 0);
 
+  // boolean operation functions
+  auto *and_op_fun_sym =
+      new FunctionSymbol("__and_op",
+                         {Symbol("lhs", "parameter", Node::boolean_t, 0, 0),
+                          Symbol("rhs", "parameter", Node::boolean_t, 0, 0)},
+                         Node::boolean_t, PREDEFINED_SCOPE, 0);
+  auto *or_op_fun_sym =
+      new FunctionSymbol("__or_op",
+                         {Symbol("lhs", "parameter", Node::boolean_t, 0, 0),
+                          Symbol("rhs", "parameter", Node::boolean_t, 0, 0)},
+                         Node::boolean_t, PREDEFINED_SCOPE, 0);
+
   push_scope(PREDEFINED_SCOPE_NAME);
 
   define(getchar_fun_sym, PREDEFINED_SCOPE_NAME);
@@ -136,6 +146,8 @@ void SymTable::add_predefined_symbols() {
   define(printc_fun_sym, PREDEFINED_SCOPE_NAME);
   define(printi_fun_sym, PREDEFINED_SCOPE_NAME);
   define(prints_fun_sym, PREDEFINED_SCOPE_NAME);
+  define(and_op_fun_sym, PREDEFINED_SCOPE_NAME);
+  define(or_op_fun_sym, PREDEFINED_SCOPE_NAME);
 }
 
 /**

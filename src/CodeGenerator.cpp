@@ -156,7 +156,6 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
 
     break;
   }
-
   default:
     break;
   }
@@ -206,24 +205,16 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
       auto actual_params = node->find_first(Node::actual_params);
       for (auto actual : actual_params->children) {
         if (actual->type == Node::string) {
-          // strings are a special case because we need to pass two params to
-          // it
+          // strings are a special case because we need to pass two params to it
           // in wasm - an offset and a length of the string
           auto entry = str_table->lookup(actual->value);
           out << printer->line("") << "i32.const " << entry.offset;
           out << printer->line("") << "i32.const " << entry.length;
-          // out << "    "
-          //     << "i32.const " << entry.offset << "\n"
-          //     << "    "
-          //     << "i32.const " << entry.length << "\n";
         }
       }
     }
 
-    // out << "    "
-    //     << "call " << fun_sym->wasm_name << "\n";
     out << printer->line("") << "call" << printer->add_name(fun_sym->name);
-
     break;
   }
   case Node::if_statement:
@@ -300,8 +291,18 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     break;
   }
   case Node::not_op: {
+    out << printer->line("i32.const 1");
     out << printer->line("") << "i32.xor";
     break;
+  }
+  case Node::bin_and_op: {
+    auto *fun_sym = sym_table->find_function("__and_op");
+    out << printer->line("") << "call" << printer->add_name(fun_sym->name);
+    break;
+  }
+  case Node::bin_or_op: {
+    auto *fun_sym = sym_table->find_function("__or_op");
+    out << printer->line("") << "call" << printer->add_name(fun_sym->name);
   }
   case Node::int_t:
   case Node::boolean_t: {

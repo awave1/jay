@@ -2,7 +2,18 @@ int b;
 
 main() {
   boolean a;
- 
-  a = true && false;
-  if (a) {}
+  boolean b;
+
+  a = true;
+  b = true;
+
+  if (f() && !f()) {
+    prints("true!");
+  } else {
+    prints("nottrue!");
+  }
+}
+
+boolean f() {
+  return true;
 }

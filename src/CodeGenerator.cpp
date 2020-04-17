@@ -237,6 +237,7 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
   }
   case Node::return_statement: {
     out << printer->line("return");
+    break;
   }
   case Node::eq_op: {
     auto id = node->next_child();

@@ -477,6 +477,13 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     }
     break;
   }
+  case Node::return_statement: {
+    auto ids = node->find_recursive(Node::id);
+    for (auto *id : ids) {
+      id->can_generate_wasm_getter = true;
+    }
+    break;
+  }
   case Node::if_statement:
   case Node::while_statement:
   case Node::if_else_statement: {

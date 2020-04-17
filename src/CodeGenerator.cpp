@@ -207,9 +207,9 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
   case Node::function_call: {
     auto id = node->find_first(Node::id);
     auto fun_sym = sym_table->find_function(id->value);
+    auto actual_params = node->find_first(Node::actual_params);
 
     if (fun_sym->name == "prints") {
-      auto actual_params = node->find_first(Node::actual_params);
       for (auto actual : actual_params->children) {
         if (actual->type == Node::string) {
           // strings are a special case because we need to pass two params to it
@@ -221,7 +221,22 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
       }
     }
 
+    if (actual_params != nullptr && !actual_params->children.empty()) {
+      if (actual_params->next_child()->type == Node::eq_op) {
+        auto *id = actual_params->next_child()->find_first(Node::id);
+        auto *sym = sym_table->lookup(id->value, id->function_name);
+        if (sym->is_global()) {
+          out << printer->line("global.get") << printer->add_name(sym->name);
+        } else {
+          out << printer->line("local.get") << printer->add_name(sym->name);
+        }
+      }
+    }
+
     out << printer->line("") << "call" << printer->add_name(fun_sym->name);
+    if (fun_sym->name == "halt") {
+      out << printer->line("unreachable");
+    }
     break;
   }
   case Node::if_statement:

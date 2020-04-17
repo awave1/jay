@@ -26,7 +26,6 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
       new SemanticAnalyzer(ast));
 
   bool is_valid = semantic_analyzer->validate();
-  // std::cout << *ast << std::endl;
   // std::cout << *semantic_analyzer->sym_table << std::endl;
   if (!is_valid) {
     exit(EXIT_FAILURE);

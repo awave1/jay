@@ -68,16 +68,7 @@ run_debug:
 	./$(COMPILER) $(FILE)
 
 .PHONY: test
-test: clear
-test: all
-test: $(TEST_EXEC)
-
-$(TEST_EXEC):
-	@ echo "> compiling test executable: \`$@\`..."
-	$(CMD_PREFIX)$(CXX) -g $(TESTINCLUDE) $(INCLUDE) $(DFLAGS) -c test/jay.test.cpp -o $(BUILD_PATH)/jay.test.o
-	$(CMD_PREFIX)$(CXX) $(CXXFLAGS) $(DFLAGS) $(OBJECTS_NO_MAIN) -o $@
-	@ echo "> compiled. executable is \`$@\`."
-	./$(TEST_EXEC)
+test: test_runner
 
 .PHONY: test_runner
 test_runner: build

@@ -87,4 +87,5 @@ clear:
 	@ echo "> cleaning build & misc files..."
 	@ -rm -rf src/include/stack.hh src/*.tab.cpp src/include/*.tab.hpp src/*.yy.cpp $(COMPILER) $(TEST_EXEC) *.totallynotzip 2> /dev/null
 	@ -rm -rf build/*.o 2> /dev/null
+	@ -rm *.wat *.wasm
 	@ echo "> done"

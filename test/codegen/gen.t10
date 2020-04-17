@@ -4,7 +4,8 @@ main() {
 	i = 0;
 	// exceeds a 32-bit signed int for fib(47)
 	//while (i <= 47) {
-	while (i <= 46) {
+	// originally, it was `while (i <= 46)`, modified to allow auto testing
+	while (i <= 20) {
 		prints("fib(");
 		printi(i);
 		prints(") = ");

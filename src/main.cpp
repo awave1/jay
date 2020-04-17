@@ -27,7 +27,6 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
 
   bool is_valid = semantic_analyzer->validate();
   if (!is_valid) {
-    std::cerr << "Failed semantic checking" << std::endl;
     exit(EXIT_FAILURE);
   }
 

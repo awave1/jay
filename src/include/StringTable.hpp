@@ -46,8 +46,7 @@ public:
    * @param indentation
    * @return std::string generated WASM code
    */
-
-  std::string build_wasm_code(std::string indentation);
+  std::string build_wasm_code();
 
   friend std::ostream &operator<<(std::ostream &os,
                                   const StringTable &str_table);

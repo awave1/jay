@@ -551,8 +551,9 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     } else if (expr->type == Node::id) {
       // just a var, look it up in symbol table and find its type
       // at this point it should exist
-
       auto id_symbol = sym_table->lookup(expr->value, expr->function_name);
+      expr->can_generate_wasm_getter = true;
+
       if (id_symbol->type != Node::boolean_t) {
         semantic_error("Identifier `" + expr->value +
                            "` must have `boolean` type, found `" +

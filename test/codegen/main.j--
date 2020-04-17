@@ -1,8 +1,11 @@
+int b;
+
 main() {
   boolean a;
+
   a = true;
 
-  if (a) {
-    prints("hello\n");
+  if (a == a) {
+    prints("yo\n");
   }
 }

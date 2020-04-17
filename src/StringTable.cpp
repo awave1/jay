@@ -13,7 +13,7 @@ entry_t StringTable::lookup(std::string str) { return table.at(str); }
  *
  * @return std::string generated WASM code
  */
-std::string StringTable::build_wasm_code(std::string indentation) {
+std::string StringTable::build_wasm_code() {
   std::string code = "";
 
   // sort the strings by their offset value
@@ -26,7 +26,7 @@ std::string StringTable::build_wasm_code(std::string indentation) {
       table.begin(), table.end(), comporator);
 
   for (auto const &[str, str_entry] : sorted_map) {
-    code += indentation;
+    code += "  ";
     code += "(data 0 (i32.const " + std::to_string(str_entry.offset) + ") \"" +
             str + "\")";
     code += "\n";

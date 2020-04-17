@@ -49,17 +49,25 @@ void CodeGenerator::build_string_table_post_traversal_cb(ASTNode *node,
 }
 
 void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
+
+  auto iter = printer->decorations.find(node);
+  if (iter != printer->decorations.end()) {
+    iter->second.pre(node);
+  }
+
   switch (node->type) {
   case Node::program: {
-    out << "(module\n";
-    out << "  (import \"host\" \"exit\" (func $exit))\n";
-    out << "  (import \"host\" \"getchar\" (func $getchar (result i32)))\n";
-    out << "  (import \"host\" \"putchar\" (func $putchar (param i32)))\n";
-    out << "  (start $main)\n";
-    out << "  (memory 1)\n";
+    out << printer->add("(module", false) << printer->indent();
+    out << printer->line(
+        R"((import "host" "exit" (func $exit)))");
+    out << printer->line(
+        R"((import "host" "putchar" (func $putchar (param i32))))");
+    out << printer->line(
+        R"((import "host" "getchar" (func $getchar (result i32))))");
+    out << printer->line("(memory 1)");
 
     // TODO: inject runtime functions
-    // inject_runtime();
+    inject_runtime();
 
     generate_vars("global");
     break;
@@ -71,40 +79,61 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
     auto formal_params = node->find_first(Node::formal_params);
     auto fun_sym = sym_table->find_function(id->value);
 
-    out << "  (func " << fun_sym->wasm_name;
+    out << printer->line("") << printer->line("(func " + fun_sym->wasm_name);
 
     // print formal args
     for (auto formal : formal_params->children) {
       auto id = formal->find_first(Node::id);
-      out << " (param "
-          << "$" << id->value << " i32)";
+      out << printer->add_param(id->value);
     }
 
     // print the return type (result i32)
     if (type->type == Node::int_t || type->type == Node::boolean_t) {
-      out << " (result i32)";
+      out << printer->add("(result i32)");
     }
-    out << "\n";
+
+    out << printer->line("");
 
     // print all the local variables at the very beginning of the function
     generate_vars(id->value);
+
+    out << printer->indent();
+    out << printer->line("");
     break;
   }
   case Node::if_statement:
   case Node::if_else_statement: {
-    auto condition = node->next_child();
+    // auto condition = node->next_child();
 
-    out << "(if\n";
-    out << "  (block (result i32)\n";
+    // out << "(if\n";
+    // out << "  (block (result i32)\n";
 
-    // TODO: generate blocks for if condition
-    if (condition->type == Node::id) {
-      auto sym = sym_table->lookup(condition->value, condition->function_name);
-      out << "    local.get " << sym->wasm_name << "\n";
-      out << "  )\n";
-    }
+    // // TODO: generate blocks for if condition
+    // if (condition->type == Node::id) {
+    //   auto sym = sym_table->lookup(condition->value,
+    //   condition->function_name); out << "    local.get " << sym->wasm_name <<
+    //   "\n"; out << "  )\n";
+    // }
 
-    out << "(then\n";
+    // out << "(then\n";
+
+    out << printer->line("(if") << printer->indent();
+    printer->decorations[node->next_child()] = {
+        [this](ASTNode *) {
+          this->out << this->printer->line("(block (result i32)")
+                    << this->printer->indent();
+        },
+        [this](ASTNode *) {
+          this->out << this->printer->dedent() << this->printer->line(")");
+        }};
+
+    printer->decorations[node->children[1]] = {
+        [this](ASTNode *) {
+          this->out << this->printer->line("(then ") << this->printer->indent();
+        },
+        [this](ASTNode *) {
+          this->out << this->printer->dedent() << this->printer->line(")");
+        }};
 
     break;
   }
@@ -118,17 +147,22 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
                                               std::ostream &out) {
   switch (node->type) {
   case Node::program: {
-    out << "\n";
-    out << "  ;;\n";
-    out << "  ;; STRINGS\n";
-    out << "  ;;\n";
-    out << str_table->build_wasm_code("  ") << "\n";
-    out << ")\n";
+    out << printer->line("");
+    out << printer->line(";;");
+    out << printer->line(";; STRINGS");
+    out << printer->line(";;");
+    out << "\n" << str_table->build_wasm_code();
+
+    out << printer->line("(start $main)") << printer->dedent()
+        << printer->line(")\n");
+
     break;
   }
   case Node::main_func_decl:
+    out << printer->dedent() << printer->line(")");
+    break;
   case Node::function_decl:
-    out << "  )\n";
+    out << printer->dedent() << printer->line(")");
     break;
   case Node::id: {
     if (!node->function_name.empty() && !node->is_formal_param &&
@@ -136,9 +170,10 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
       auto name = node->value;
       auto sym = sym_table->lookup(name, node->function_name);
       if (sym->is_global()) {
-        out << "    global.get " << sym->wasm_name << "\n";
+        out << printer->line("") << "global.get"
+            << printer->add_name(sym->name);
       } else {
-        out << "    local.get " << sym->wasm_name << "\n";
+        out << printer->line("") << "local.get" << printer->add_name(sym->name);
       }
     }
 
@@ -156,21 +191,25 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
           // it
           // in wasm - an offset and a length of the string
           auto entry = str_table->lookup(actual->value);
-          out << "    "
-              << "i32.const " << entry.offset << "\n"
-              << "    "
-              << "i32.const " << entry.length << "\n";
+          out << printer->line("") << "i32.const " << entry.offset;
+          out << printer->line("") << "i32.const " << entry.length;
+          // out << "    "
+          //     << "i32.const " << entry.offset << "\n"
+          //     << "    "
+          //     << "i32.const " << entry.length << "\n";
         }
       }
     }
 
-    out << "    "
-        << "call " << fun_sym->wasm_name << "\n";
+    // out << "    "
+    //     << "call " << fun_sym->wasm_name << "\n";
+    out << printer->line("") << "call" << printer->add_name(fun_sym->name);
+
     break;
   }
   case Node::if_statement:
   case Node::if_else_statement: {
-    out << ")\n";
+    out << printer->dedent() << printer->line(")");
     break;
   }
   case Node::eq_op: {
@@ -180,52 +219,53 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
 
     if (sym != nullptr) {
       if (sym->is_global()) {
-        out << "    global.set " << sym->wasm_name << "\n";
+        out << printer->line("") << "global.set"
+            << printer->add_name(sym->name);
       } else {
-        out << "    local.set " << sym->wasm_name << "\n";
+        out << printer->line("") << "local.set" << printer->add_name(sym->name);
       }
     }
 
     break;
   }
   case Node::add_op: {
-    out << "    i32.add\n";
+    out << "i32.add";
     break;
   }
   case Node::mul_op: {
-    out << "    i32.mul\n";
+    out << printer->line("") << "i32.mul";
     break;
   }
   case Node::div_op: {
-    out << "    i32.div_s\n";
+    out << printer->line("") << "i32.div_s";
     break;
   }
   case Node::mod_op: {
-    out << "    i32.rem_s\n";
+    out << printer->line("") << "i32.rem_s";
     break;
   }
   case Node::lt_op: {
-    out << "    i32.lt_s\n";
+    out << printer->line("") << "i32.lt_s";
     break;
   }
   case Node::lteq_op: {
-    out << "    i32.le_s\n";
+    out << printer->line("") << "i32.le_s";
     break;
   }
   case Node::gt_op: {
-    out << "    i32.gt_s\n";
+    out << printer->line("") << "i32.gt_s";
     break;
   }
   case Node::gteq_op: {
-    out << "    i32.ge_s\n";
+    out << printer->line("") << "i32.ge_s";
     break;
   }
   case Node::eqeq_op: {
-    out << "    i32.eq\n";
+    out << printer->line("") << "i32.eq";
     break;
   }
   case Node::noteq_op: {
-    out << "    i32.ne\n";
+    out << printer->line("") << "i32.ne";
     break;
   }
   case Node::int_t:
@@ -234,14 +274,23 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
       auto type = node->type;
       auto value = node->value;
       if (type == Node::boolean_t) {
-        out << "    i32.const " << (value == "true" ? 1 : 0) << "\n";
+        out << printer->line("") << "i32.const"
+            << printer->add_bool_const(value == "true");
       } else {
-        out << "    i32.const " << value << "\n";
+        out << printer->line("") << "i32.const"
+            << printer->add_int_const(std::stoi(value));
       }
     }
+
+    break;
   }
   default:
     break;
+  }
+
+  auto iter = printer->decorations.find(node);
+  if (iter != printer->decorations.end()) {
+    iter->second.post(node);
   }
 }
 
@@ -249,17 +298,19 @@ void CodeGenerator::generate_vars(std::string scope_name) {
   bool is_global = scope_name == "global";
 
   auto scope = sym_table->get_scope(scope_name);
+
   for (auto const &[name, sym] : scope) {
     if (sym->kind == "variable") {
       if (is_global) {
-        out << "  (global ";
-        out << sym->wasm_name;
-        out << " (mut i32) (i32.const 0)";
-        out << ")\n";
+        out << printer->line("(global") << printer->add_name(sym->name)
+            << printer->add("(mut i32)") << printer->add("(i32.const 0)")
+            << printer->add(")");
       } else {
-        out << "    (local ";
-        out << sym->wasm_name;
-        out << " i32)\n";
+        // out << printer->indent() << printer->add_local(sym->name)
+        //     << printer->dedent();
+        out << printer->indent() << printer->line("(local")
+            << printer->add_name(sym->name) << printer->add("i32")
+            << printer->add(")") << printer->dedent();
       }
     }
   }
@@ -297,7 +348,10 @@ void CodeGenerator::build_function_call() {
 void CodeGenerator::inject_runtime() {
   std::ifstream runtime("src/lib/runtime.wat");
   if (runtime.is_open()) {
-    out << runtime.rdbuf();
+    std::string line;
+    while (std::getline(runtime, line)) {
+      out << printer->line("") << line;
+    }
     out << "\n";
   }
 }

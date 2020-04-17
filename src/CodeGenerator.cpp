@@ -244,6 +244,23 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     auto name = id->value;
     auto sym = sym_table->lookup(name, id->function_name);
 
+    // @HACK: a very hacky way to generate nested assignments (i = j = k = 1;)
+    // should be handled recursively
+    auto *assigned = node->children[1];
+    if (assigned != nullptr && assigned->type == Node::eq_op) {
+      auto *nested_assigned_id = assigned->next_child();
+      auto *nested_assigned_sym = sym_table->lookup(
+          nested_assigned_id->value, nested_assigned_id->function_name);
+
+      if (nested_assigned_sym != nullptr) {
+        if (nested_assigned_sym->is_global()) {
+          out << printer->line("global.get " + nested_assigned_sym->wasm_name);
+        } else {
+          out << printer->line("local.get " + nested_assigned_sym->wasm_name);
+        }
+      }
+    }
+
     if (sym != nullptr) {
       if (sym->is_global()) {
         out << printer->line("") << "global.set"

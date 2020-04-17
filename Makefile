@@ -80,11 +80,10 @@ $(TEST_EXEC):
 	./$(TEST_EXEC)
 
 .PHONY: test_runner
-test_runner: clear
-test_runner: all
+test_runner: build
 test_runner:
 	@ chmod +x ./test.sh
-	./test.sh $(COMPONENT)
+	./test.sh
 
 .PHONY: export
 export: clear

@@ -13,7 +13,7 @@ These are the steps to build the parser
 To build the parser:
 
 ```sh
-make all
+make build
 ```
 
 To remove the compiled and generated files:
@@ -30,54 +30,21 @@ Executable will be generated in the project root. To run it:
 ./jay <path to a file>
 ```
 
-If no file is specified, the parser will fallback to reading from `stdin`.
-
 ### Running tests
 
 The project contains a regular, simple test runner and some unit tests. All test files are located in `test` directory.
 
 #### Test runner
 
-The `test.sh <dirname>` runs all of the test files in the `test/<dirname>` directory. To run a single file, refer to **'Running the parser'** section above.
+The `test.sh` runs all of the test files in the `test/codegen` directory. To run a single file, refer to **'Running the parser'** section above.
 
 To run the test runner, run the following command (it will perform a clean build):
 
 ```sh
-make test_runner COMPONENT=[lexer|parser|semantic]
+make test_runner
 ```
 
-> Note: instead of using `make test_runner` you can also call `./test.sh [lexer|parser|semantic]` instead (ensure to make it executable using `chmod +x ./test.sh`).
-
-#### Unit Tests
-
-> Note: unit tests implemented for parser only.
-
-The project contains a test suite, built using [Catch2](https://github.com/catchorg/Catch2) test framework. To run the tests:
-
-```sh
-make test
-```
-
-`make test` will perform a clean build of both test and regular executables. The test executable that it produces, will be located in the project root. To run it:
-
-```sh
-./jay.test
-```
-
-To display more verbose output:
-
-```sh
-./jay.test -s
-```
-
-To display all possible options,
-
-```sh
-./jay.test -?
-
-# if using fish shell:
-./jay.test "-?"
-```
+> Note: instead of using `make test_runner` you can also call `./test.sh` instead (ensure to make it executable using `chmod +x ./test.sh`).
 
 ## Author
 

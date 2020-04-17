@@ -107,12 +107,7 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
   }
   case Node::if_statement:
   case Node::if_else_statement: {
-    auto return_statements = node->find_recursive(Node::return_statement);
-    if (return_statements.empty()) {
-      out << printer->line("(if") << printer->indent();
-    } else {
-      out << printer->line("(if (result i32)") << printer->indent();
-    }
+    out << printer->line("(if") << printer->indent();
 
     printer->decorations[node->next_child()] = {
         [this](ASTNode *) {
@@ -267,6 +262,7 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     if (node->children.size() > 1) {
       out << printer->line("i32.sub");
     }
+    break;
   }
   case Node::mul_op: {
     out << printer->line("") << "i32.mul";

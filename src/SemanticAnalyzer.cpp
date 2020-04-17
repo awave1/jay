@@ -487,14 +487,16 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     break;
   }
   case Node::return_statement: {
-    auto ids = node->find_recursive(Node::id);
     bool is_eq = node->next_child()->type == Node::eq_op;
     if (is_eq) {
+      auto ids = node->find_recursive(Node::id);
       for (auto *id : ids) {
         auto *sym = sym_table->lookup(id->value, id->function_name);
         id->can_generate_wasm_getter =
             sym != nullptr && sym->kind != "function";
       }
+    } else {
+      node->next_child()->can_generate_wasm_getter = true;
     }
     break;
   }
@@ -512,6 +514,15 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
             node->linenum);
         err_stack.push_back(false);
         break;
+      }
+
+      auto ids = expr->find_recursive(Node::id);
+      for (auto *id : ids) {
+        auto sym = sym_table->lookup(id->value, id->function_name);
+        if (sym->kind != "function") {
+
+          id->can_generate_wasm_getter = true;
+        }
       }
 
       auto expected_types = expression_types.at(expr->type);
@@ -654,6 +665,15 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
   case Node::mod_op: {
     auto expected_types = expression_types.at(node->type);
     bool is_valid_expr = true;
+    auto ids = node->find_recursive(Node::id);
+    for (auto *id : ids) {
+      auto sym = sym_table->lookup(id->value, id->function_name);
+      if (sym->kind != "function") {
+
+        id->can_generate_wasm_getter = true;
+      }
+    }
+
     if (node->children.size() == 2) {
       auto *left = node->children[0];
       auto *right = node->children[1];

@@ -133,6 +133,7 @@ private:
   std::ostream &out;
   std::shared_ptr<PrettyPrinter> printer;
   int while_block_state;
+  std::string start_func_name;
 
   void traverse(ASTNode *node,
                 std::function<void(ASTNode *n, std::ostream &out)> pre,

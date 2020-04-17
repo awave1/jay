@@ -83,6 +83,12 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
     auto *formal_params = node->find_first(Node::formal_params);
     auto *fun_sym = sym_table->find_function(id->value);
 
+    if (node->type == Node::main_func_decl) {
+      // @NOTE: explicitly state start function name because it DOESN'T have to
+      // be main
+      this->start_func_name = fun_sym->wasm_name;
+    }
+
     out << printer->line("") << printer->line("(func " + fun_sym->wasm_name);
 
     // print formal args
@@ -172,8 +178,8 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     out << printer->line(";;");
     out << "\n" << str_table->build_wasm_code();
 
-    out << printer->line("(start $main)") << printer->dedent()
-        << printer->line(")\n");
+    out << printer->line("(start " + this->start_func_name + ")")
+        << printer->dedent() << printer->line(")\n");
 
     break;
   }

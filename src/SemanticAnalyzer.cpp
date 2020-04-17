@@ -452,6 +452,19 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
           found_type = Node::boolean_t;
         } else if (param_node->is_num_expr()) {
           found_type = Node::int_t;
+        } else if (param_node->type == Node::eq_op) {
+          auto ids = param_node->find_recursive(Node::id);
+          for (auto *id : ids) {
+            id->can_generate_wasm_getter = false;
+          }
+
+          if (validate_expr(param_node,
+                            expression_types.at(param_node->type))) {
+            // lhs operand
+            auto *res_id = param_node->next_child();
+            auto *sym = sym_table->lookup(res_id->value, res_id->function_name);
+            found_type = sym->type;
+          }
         } else {
           found_type = param_node->type;
         }
@@ -475,8 +488,13 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
   }
   case Node::return_statement: {
     auto ids = node->find_recursive(Node::id);
-    for (auto *id : ids) {
-      id->can_generate_wasm_getter = true;
+    bool is_eq = node->next_child()->type == Node::eq_op;
+    if (is_eq) {
+      for (auto *id : ids) {
+        auto *sym = sym_table->lookup(id->value, id->function_name);
+        id->can_generate_wasm_getter =
+            sym != nullptr && sym->kind != "function";
+      }
     }
     break;
   }
@@ -624,7 +642,6 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
 
     break;
   }
-
   case Node::not_op:
   case Node::eqeq_op:
   case Node::noteq_op:
@@ -730,7 +747,8 @@ bool SemanticAnalyzer::validate_expr(ASTNode *l, expr_list_t expected_types) {
   if (l->type == Node::id) {
     auto sym = sym_table->lookup(l->value, l->function_name);
     l_type = sym->type;
-    l->can_generate_wasm_getter = true;
+    // @HACK: why was this here??!
+    // l->can_generate_wasm_getter = true;
   } else if (l->type == Node::function_call) {
     auto id = l->find_first(Node::id);
     auto sym = sym_table->find_function(id->value);

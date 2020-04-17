@@ -1,3 +1,9 @@
+/**
+ * @file CodeGenerator.hpp
+ * @author Artem Golovin (30018900)
+ * @brief Generate WebAssembly text format for J-- code
+ */
+
 #ifndef CODE_GENERATOR_HPP
 #define CODE_GENERATOR_HPP
 
@@ -18,18 +24,34 @@
 
 using namespace yy;
 
-// void insert_tabs(int depth, std::ostream &os, int tabsize);
+/**
+ * @brief Insert specified amount of tabs for depth
+ *
+ * @param depth nesting level
+ * @param os output stream
+ * @param tabsize size of the tabs (2 by default)
+ */
 inline void insert_tabs(int depth, std::ostream &os, int tabsize = 2) {
   for (int i = 0; i < depth; ++i) {
     os << std::string(tabsize, ' ');
   }
 }
 
+/**
+ * @brief decorator that allows to specify pre/post hooks for pretty printing
+ *
+ * Note: taken from Niran Pon's codegen example
+ */
 struct PrintDecorator {
   std::function<void(ASTNode *)> pre;
   std::function<void(ASTNode *)> post;
 };
 
+/**
+ * @brief pretty printer helper
+ *
+ * Note: taken from Niran Pon's codegen example (with slight modifications)
+ */
 struct PrettyPrinter {
   struct tc_impl {
     friend std::ostream &operator<<(std::ostream &os,
@@ -110,6 +132,9 @@ struct PrettyPrinter {
   line_impl line(std::string const &content) { return {tab_depth, content}; }
 };
 
+/**
+ * @brief Generate WAT code for J--
+ */
 class CodeGenerator {
 public:
   CodeGenerator(std::shared_ptr<ASTNode> ast,
@@ -118,13 +143,11 @@ public:
     str_table = std::unique_ptr<StringTable>(new StringTable());
     printer = std::shared_ptr<PrettyPrinter>(new PrettyPrinter);
     while_block_state = 0;
-    stack_dummy_var = "__stack_dummy_var";
   };
 
   /**
-   * @brief
-   *
-   * @return std::string
+   * @brief Generate wasm code and output it to out stream (by default it goes
+   * to stdout)
    */
   void generate_wasm();
 
@@ -138,15 +161,31 @@ private:
   std::string start_func_name;
   std::string stack_dummy_var;
 
+  /**
+   * @brief YATM (Yet Another Traversal Method). Method to traverse AST
+   * TODO: make this *actually* generic
+   *
+   * @param node AST node
+   * @param pre pre traversal hook/callback
+   * @param post  post traversal hook/callback
+   * @param out output stream
+   */
   void traverse(ASTNode *node,
                 std::function<void(ASTNode *n, std::ostream &out)> pre,
                 std::function<void(ASTNode *n, std::ostream &out)> post,
                 std::ostream &out);
 
+  /**
+   * @brief Generate variables for given scope (function or global)
+   *
+   * @param scope_name name of the scope
+   */
   void generate_vars(std::string scope_name);
 
-  void build_function_call();
-
+  /**
+   * @brief Read runtime functions specified in PROJECT_ROOT/src/lib/runtime.wat
+   * and inject them to generated WAT code
+   */
   void inject_runtime();
 
   std::string get_block_state() { return std::to_string(while_block_state); }

@@ -1,3 +1,9 @@
+/**
+ * @file StringTable.hpp
+ * @author Artem Golovin (30018900)
+ * @brief Generate table of strings to append to WAT code
+ */
+
 #ifndef STRING_TABLE_HPP
 #define STRING_TABLE_HPP
 
@@ -33,10 +39,10 @@ public:
   void define(std::string str);
 
   /**
-   * @brief
+   * @brief lookup a string in a table
    *
-   * @param str
-   * @return entry_t
+   * @param str string to look for
+   * @return entry_t entry for a string
    */
   entry_t lookup(std::string str);
 

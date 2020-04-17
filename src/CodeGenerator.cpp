@@ -1,7 +1,15 @@
+/**
+ * @file CodeGenerator.cpp
+ * @author Artem Golovin (30018900)
+ * @brief Generate WebAssembly text format for J-- code
+ */
+
 #include "CodeGenerator.hpp"
 
-int WHILE_BLOCK_STATE = 0;
-
+/**
+ * @brief Generate wasm code and output it to out stream (by default it goes
+ * to stdout)
+ */
 void CodeGenerator::generate_wasm() {
   this->traverse(ast.get(), nullptr,
                  std::bind(&CodeGenerator::build_string_table_post_traversal_cb,
@@ -16,6 +24,15 @@ void CodeGenerator::generate_wasm() {
                  this->out);
 }
 
+/**
+ * @brief YATM (Yet Another Traversal Method). Method to traverse AST
+ * TODO: make this *actually* generic
+ *
+ * @param node AST node
+ * @param pre pre traversal hook/callback
+ * @param post  post traversal hook/callback
+ * @param out output stream
+ */
 void CodeGenerator::traverse(
     ASTNode *node, std::function<void(ASTNode *n, std::ostream &out)> pre,
     std::function<void(ASTNode *n, std::ostream &out)> post,
@@ -422,14 +439,13 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
   }
 }
 
+/**
+ * @brief Generate variables for given scope (function or global)
+ *
+ * @param scope_name name of the scope
+ */
 void CodeGenerator::generate_vars(std::string scope_name) {
   bool is_global = scope_name == "global";
-
-  // if (scope_name == "main") {
-  //   sym_table->define(
-  //       new Symbol(this->stack_dummy_var, "variable", Node::int_t, 2, 0),
-  //       "main");
-  // }
 
   auto scope = sym_table->get_scope(scope_name);
 
@@ -450,6 +466,10 @@ void CodeGenerator::generate_vars(std::string scope_name) {
   }
 }
 
+/**
+ * @brief Read runtime functions specified in PROJECT_ROOT/src/lib/runtime.wat
+ * and inject them to generated WAT code
+ */
 void CodeGenerator::inject_runtime() {
   std::ifstream runtime("src/lib/runtime.wat");
   if (runtime.is_open()) {

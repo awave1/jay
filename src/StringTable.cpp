@@ -1,11 +1,30 @@
+/**
+ * @file StringTable.cpp
+ * @author Artem Golovin (30018900)
+ * @brief Generate table of strings to append to WAT code
+ */
+
 #include "StringTable.hpp"
 
+/**
+ * @brief Insert a string into a table. Additionally, the method will
+ * calculate the required offset for generated WASM code and string length,
+ * which is required when calling prints routine.
+ *
+ * @param str string to be inserted into the table
+ */
 void StringTable::define(std::string str) {
   table.insert(table.begin(), std::pair<std::string, entry_t>(
                                   str, {offset_counter, str.length()}));
   offset_counter += str.length();
 }
 
+/**
+ * @brief lookup a string in a table
+ *
+ * @param str string to look for
+ * @return entry_t entry for a string
+ */
 entry_t StringTable::lookup(std::string str) { return table.at(str); }
 
 /**

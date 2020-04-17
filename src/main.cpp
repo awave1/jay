@@ -1,5 +1,7 @@
+#include "CodeGenerator.hpp"
 #include "JayCompiler.hpp"
 #include "SemanticAnalyzer.hpp"
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -11,25 +13,29 @@
  * @param is input stream from where parser will be reading input
  * @param file filename, if input stream is a fstream
  */
-void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
-  std::shared_ptr<ast_node_t> ast(driver.parse(is, file));
+void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file,
+               std::ostream &out) {
+  std::shared_ptr<ASTNode> ast(driver.parse(is, file));
 
-  if (ast) {
-    std::shared_ptr<SymTable> sym_table(new SymTable());
-    std::unique_ptr<SemanticAnalyzer> semantic_analyzer(
-        new SemanticAnalyzer(ast, sym_table));
-
-    bool is_valid = semantic_analyzer->validate();
-    if (is_valid) {
-      std::cout << *ast << std::endl;
-    } else {
-      std::cerr << "Failed semantic checking" << std::endl;
-      exit(1);
-    }
-  } else {
+  if (ast == nullptr) {
     std::cerr << "Failed parsing" << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
   }
+
+  std::shared_ptr<SymTable> sym_table(new SymTable());
+  std::unique_ptr<SemanticAnalyzer> semantic_analyzer(
+      new SemanticAnalyzer(ast));
+
+  bool is_valid = semantic_analyzer->validate();
+  // std::cout << *semantic_analyzer->sym_table << std::endl;
+  if (!is_valid) {
+    exit(EXIT_FAILURE);
+  }
+
+  std::unique_ptr<CodeGenerator> code_gen(
+      new CodeGenerator(ast, semantic_analyzer->sym_table, out));
+
+  code_gen->generate_wasm();
 }
 
 int main(int argc, char **argv) {
@@ -39,13 +45,23 @@ int main(int argc, char **argv) {
     std::string filename = argv[1];
     std::ifstream file{filename};
     if (!file.is_open()) {
-      return 1;
-    } else {
-      build_ast(driver, &file, filename);
+      std::cerr << "File \"" << filename << "\" not found" << std::endl;
+      return EXIT_SUCCESS;
     }
+
+    if (argc == 4 &&
+        (std::string(argv[2]) == "-o" || std::string(argv[2]) == "--out") &&
+        argv[3] != nullptr) {
+      std::ofstream out(argv[3]);
+      build_ast(driver, &file, filename, out);
+    } else {
+      build_ast(driver, &file, filename, std::cout);
+    }
+
   } else {
-    std::cerr << "please specify the filename" << std::endl;
+    std::cerr << "Please specify the filename" << std::endl;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

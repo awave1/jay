@@ -1,6 +1,8 @@
 # executables
 jay
 jay.test
+out*.wat
+out*.wasm
 
 scanner
 .ccls-cache
@@ -20,3 +22,7 @@ lex.yy.*
 # exported
 *.zip
 *.totallynotzip
+
+*.wasm
+# for wasm runtime testing
+node_modules

@@ -3,9 +3,9 @@
 
 #include <memory>
 
+#include "ASTNode.hpp"
 #include "Lexer.hpp"
 #include "SemanticAnalyzer.hpp"
-#include "ast.hpp"
 #include "parser.tab.hpp"
 
 namespace yy {
@@ -20,7 +20,7 @@ struct JayCompiler {
   std::unique_ptr<Lexer> lexer;
   std::unique_ptr<Parser> parser;
   std::unique_ptr<SemanticAnalyzer> semanticAnalyzer;
-  ast_node_t *ast;
+  ASTNode *ast;
   std::string filename;
 
   /**
@@ -30,9 +30,9 @@ struct JayCompiler {
    * @param is input stream, can be file input or stdin
    * @param file filename that will be opened and parsed; used for better error
    * handling
-   * @return ast_node_t* an Abstract Syntax Tree of the specified  input
+   * @return ASTNode* an Abstract Syntax Tree of the specified  input
    */
-  ast_node_t *parse(std::istream *is, std::string file);
+  ASTNode *parse(std::istream *is, std::string file);
 };
 
 } // namespace yy

@@ -4,7 +4,7 @@
  * @brief Perform semantic analysis of the parsed AST and build a symbol table
  */
 
-#include "./include/SemanticAnalyzer.hpp"
+#include "SemanticAnalyzer.hpp"
 
 /**
  * @brief perform semantic validation of the ast and build a symtable. the
@@ -14,8 +14,7 @@
  * @return false otherwise
  */
 bool SemanticAnalyzer::validate() {
-  std::vector<ast_node_t *> main =
-      ast->find_all(ast_node_t::Node::main_func_decl);
+  std::vector<ASTNode *> main = ast->find_all(Node::main_func_decl);
 
   if (!main.empty()) {
     if (main.size() > 1) {
@@ -74,9 +73,9 @@ bool SemanticAnalyzer::validate() {
  * have been performed
  */
 void SemanticAnalyzer::traverse(
-    ast_node_t *node,
-    std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> pre,
-    std::function<void(ast_node_t *n, std::vector<bool> &err_stack)> post,
+    ASTNode *node,
+    std::function<void(ASTNode *n, std::vector<bool> &err_stack)> pre,
+    std::function<void(ASTNode *n, std::vector<bool> &err_stack)> post,
     std::vector<bool> &err_stack) {
 
   if (pre != nullptr) {
@@ -102,49 +101,32 @@ void SemanticAnalyzer::traverse(
  * @param err_stack error stack returned from `#traverse`
  */
 void SemanticAnalyzer::globals_post_order_pass_cb(
-    ast_node_t *node, std::vector<bool> &err_stack) {
+    ASTNode *node, std::vector<bool> &err_stack) {
   switch (node->type) {
-  case ast_node_t::Node::main_func_decl: {
-    if (node->children.empty()) {
-      break;
-    }
-    sym_table->define(new FunctionSymbol("main", {}, ast_node_t::Node::void_t,
-                                         sym_table->current_scope_level,
-                                         sym_table->current_scope),
-                      "global");
-
-    auto id = node->children[1]->value;
-    auto *block = node->find_first(ast_node_t::Node::block);
-    auto ids = block->find_recursive(ast_node_t::Node::id);
-
-    // assign function name to all ids inside the function block
-    for (auto *_id : ids) {
-      _id->function_name = id;
-    }
-    break;
-  }
-  case ast_node_t::Node::function_decl: {
+  case Node::main_func_decl:
+  case Node::function_decl: {
+    // TODO: ensure `main` doesn't have args
     if (node->children.empty()) {
       break;
     }
 
     auto id = node->children[1]->value;
     auto type = node->children[0]->type;
-    auto *params = node->find_first(ast_node_t::Node::formal_params);
-    auto *block = node->find_first(ast_node_t::Node::block);
+    auto *params = node->find_first(Node::formal_params);
+    auto *block = node->find_first(Node::block);
 
     sym_table->push_scope(id);
 
     std::vector<Symbol> sym_params;
     if (params != nullptr) {
-      auto ids = params->find_recursive(ast_node_t::Node::id);
+      auto ids = params->find_recursive(Node::id);
 
       for (auto *formal : params->children) {
         auto *formal_id = formal->children[1];
         auto *formal_type = formal->children[0];
         auto *param_sym = new Symbol(
             formal_id->value, "parameter", formal_type->type,
-            sym_table->current_scope_level, sym_table->current_scope);
+            sym_table->current_scope_level + 1, sym_table->current_scope);
 
         sym_params.push_back(*param_sym);
 
@@ -153,13 +135,14 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
 
       for (auto *_id : ids) {
         _id->function_name = id;
+        _id->is_formal_param = true;
       }
     }
 
     // mark if the block supposed to have return statement
     if (block != nullptr) {
-      block->is_return_block = type != ast_node_t::Node::void_t;
-      auto ids = block->find_recursive(ast_node_t::Node::id);
+      block->is_return_block = type != Node::void_t;
+      auto ids = block->find_recursive(Node::id);
 
       // assign function name to all ids inside the function block
       for (auto *_id : ids) {
@@ -173,7 +156,7 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
                       "global");
     break;
   }
-  case ast_node_t::Node::global_var_decl: {
+  case Node::global_var_decl: {
     if (node->children.empty()) {
       break;
     }
@@ -185,19 +168,26 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
                       "global");
     break;
   }
-  case ast_node_t::Node::while_statement: {
-    auto *block = node->find_first(ast_node_t::Node::block);
-    if (block != nullptr) {
+  case Node::while_statement: {
+    auto blocks = node->find_recursive(Node::block);
+    for (auto *block : blocks) {
       block->is_while_block = true;
     }
+
     break;
   }
-  case ast_node_t::Node::add_op:
-  case ast_node_t::Node::sub_op:
-  case ast_node_t::Node::mul_op:
-  case ast_node_t::Node::div_op:
-  case ast_node_t::Node::mod_op: {
-    node->expected_type = ast_node_t::Node::int_t;
+  case Node::add_op:
+  case Node::sub_op:
+  case Node::mul_op:
+  case Node::div_op:
+  case Node::mod_op: {
+    node->expected_type = Node::int_t;
+
+    // @HACK: indicate that a number is negative (it *should* be done in parser)
+    if (node->type == Node::sub_op && node->children.size() == 1 &&
+        node->next_child()->type == Node::int_t) {
+      node->next_child()->value = "-" + node->next_child()->value;
+    }
     break;
   }
   default:
@@ -213,11 +203,11 @@ void SemanticAnalyzer::globals_post_order_pass_cb(
  * @param node ast node returned from `#traverse`
  * @param err_stack error stack returned from `#traverse`
  */
-void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
+void SemanticAnalyzer::sym_table_post_pass_cb(ASTNode *node,
                                               std::vector<bool> &err_stack) {
-  if (node->type != ast_node_t::Node::program) {
+  if (node->type != Node::program) {
     switch (node->type) {
-    case ast_node_t::Node::variable_decl: {
+    case Node::variable_decl: {
       if (node->children.empty()) {
         std::throw_with_nested(
             std::runtime_error("Wrong variable declaration"));
@@ -250,15 +240,13 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
                         id_node->function_name);
       break;
     }
-    case ast_node_t::Node::main_func_decl:
-    case ast_node_t::Node::function_decl: {
-      auto *block = node->find_first(ast_node_t::Node::block);
-      auto return_nodes =
-          block->find_recursive(ast_node_t::Node::return_statement);
-      auto *id = node->find_first(ast_node_t::Node::id);
+    case Node::main_func_decl:
+    case Node::function_decl: {
+      auto *block = node->find_first(Node::block);
+      auto return_nodes = block->find_recursive(Node::return_statement);
+      auto *id = node->find_first(Node::id);
       auto *type = node->children[0];
-      auto break_nodes =
-          block->find_recursive(ast_node_t::Node::break_statement);
+      auto break_nodes = block->find_recursive(Node::break_statement);
 
       if (block->is_return_block) {
         if (return_nodes.empty()) {
@@ -276,20 +264,33 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
               // return exists, check if value matches function return type
               auto *return_val = return_node->children[0];
               bool is_valid_return = true;
-              ast_node_t::Node found_type;
+              Node found_type;
 
-              if (return_val->type == ast_node_t::Node::id) {
+              if (return_val->type == Node::id) {
                 auto *sym = sym_table->lookup(return_val->value,
                                               return_val->function_name);
                 found_type = sym->type;
                 is_valid_return = sym->type == type->type;
-              } else if (return_val->type == ast_node_t::Node::function_call) {
-                auto *id = return_val->find_first(ast_node_t::Node::id);
+              } else if (return_val->type == Node::function_call) {
+                auto *id = return_val->find_first(Node::id);
                 auto *sym = sym_table->find_function(id->value);
                 found_type = sym->type;
                 is_valid_return = sym->type == type->type;
+              } else if (return_val->type == Node::eq_op) {
+                auto *lhs = return_val->next_child();
+                auto *lhs_sym =
+                    sym_table->lookup(lhs->value, lhs->function_name);
+                found_type = lhs_sym->type;
+                is_valid_return = validate_expr(
+                    return_val, expression_types.at(return_val->type));
               } else if (return_val->is_bool_expr() ||
                          return_val->is_num_expr()) {
+                if (return_val->is_bool_expr()) {
+                  found_type = Node::boolean_t;
+                } else if (return_val->is_num_expr()) {
+                  found_type = Node::int_t;
+                }
+
                 is_valid_return = validate_expr(
                     return_val, expression_types.at(return_val->type));
               } else {
@@ -301,7 +302,7 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
                 semantic_error("Mismatched return type. Was expecting `" +
                                    get_str_for_type(type->type) +
                                    "`, but got `" +
-                                   get_str_for_type(found_type),
+                                   get_str_for_type(found_type) + "`",
                                return_node->linenum);
                 err_stack.push_back(false);
                 break;
@@ -309,7 +310,7 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
             }
           }
         }
-      } else if (type->type == ast_node_t::Node::void_t) {
+      } else if (type->type == Node::void_t) {
         bool found_return_val_in_void = false;
         bool found_return_in_main = false;
         for (auto *return_node : return_nodes) {
@@ -334,9 +335,9 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
         }
       }
 
-      auto block_nodes = node->find_recursive(ast_node_t::Node::block);
+      auto block_nodes = node->find_recursive(Node::block);
       for (auto *b : block_nodes) {
-        auto *break_node = b->find_first(ast_node_t::Node::break_statement);
+        auto *break_node = b->find_first(Node::break_statement);
         if (!b->is_while_block && break_node != nullptr) {
           semantic_error("`break` statement can only occur in `while` "
                          "loops.",
@@ -348,16 +349,15 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
       sym_table->current_scope--;
       break;
     }
-    case ast_node_t::Node::block: {
+    case Node::block: {
       for (auto *c : node->children) {
         switch (c->type) {
-        case ast_node_t::Node::statement_expr: {
+        case Node::statement_expr: {
           auto *expression = c->children[0];
-          if (expression->type == ast_node_t::Node::function_call) {
-            auto *actual_params =
-                expression->find_first(ast_node_t::Node::actual_params);
+          if (expression->type == Node::function_call) {
+            auto *actual_params = expression->find_first(Node::actual_params);
 
-            auto *fun_name = expression->find_first(ast_node_t::Node::id);
+            auto *fun_name = expression->find_first(Node::id);
             auto *fun_sym = sym_table->find_function(fun_name->value);
 
             if (fun_name->value == "main") {
@@ -376,7 +376,7 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
               err_stack.push_back(false);
               break;
             }
-          } else if (expression->type == ast_node_t::Node::eq_op) {
+          } else if (expression->type == Node::eq_op) {
             auto *id = expression->children[0];
             if (sym_table->lookup(id->value, id->function_name) == nullptr) {
               semantic_error("Undefined identifier `" + id->value + "`.",
@@ -408,13 +408,13 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ast_node_t *node,
  * @param err_stack error stack returned from `#traverse`
  */
 void SemanticAnalyzer::type_checking_post_order_pass_cb(
-    ast_node_t *node, std::vector<bool> &err_stack) {
+    ASTNode *node, std::vector<bool> &err_stack) {
   switch (node->type) {
-  case ast_node_t::Node::main_func_decl:
-  case ast_node_t::Node::function_decl:
+  case Node::main_func_decl:
+  case Node::function_decl:
     sym_table->current_scope--;
     break;
-  case ast_node_t::Node::id: {
+  case Node::id: {
     if (sym_table->lookup(node->value, node->function_name) == nullptr) {
       semantic_error("Unknown identifier `" + node->value + "`.",
                      node->linenum);
@@ -422,10 +422,12 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     }
     break;
   }
-  case ast_node_t::Node::function_call: {
-    auto *id = node->find_first(ast_node_t::Node::id);
-    auto *actual_params = node->find_first(ast_node_t::Node::actual_params);
+  case Node::function_call: {
+    auto *id = node->find_first(Node::id);
+    auto *actual_params = node->find_first(Node::actual_params);
     auto *fun_sym = sym_table->find_function(id->value);
+
+    id->is_function_id = true;
 
     if (actual_params->children.size() == fun_sym->params.size()) {
       auto children = actual_params->children;
@@ -433,21 +435,36 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
       for (std::size_t i = 0; i < children.size(); i++) {
         auto *param_node = children[i];
         auto expected_sym = fun_sym->params[i];
-        ast_node_t::Node found_type;
+        Node found_type;
 
-        if (param_node->type == ast_node_t::Node::function_call) {
+        if (param_node->type == Node::function_call) {
           // lookup function return type
-          auto *id = param_node->find_first(ast_node_t::Node::id);
+          auto *id = param_node->find_first(Node::id);
           auto *fun_sym = sym_table->find_function(id->value);
           found_type = fun_sym->type;
-        } else if (param_node->type == ast_node_t::Node::id) {
+        } else if (param_node->type == Node::id) {
           auto *sym =
               sym_table->lookup(param_node->value, param_node->function_name);
           found_type = sym->type;
+
+          param_node->can_generate_wasm_getter = true;
         } else if (param_node->is_bool_expr()) {
-          found_type = ast_node_t::Node::boolean_t;
+          found_type = Node::boolean_t;
         } else if (param_node->is_num_expr()) {
-          found_type = ast_node_t::Node::int_t;
+          found_type = Node::int_t;
+        } else if (param_node->type == Node::eq_op) {
+          auto ids = param_node->find_recursive(Node::id);
+          for (auto *id : ids) {
+            id->can_generate_wasm_getter = false;
+          }
+
+          if (validate_expr(param_node,
+                            expression_types.at(param_node->type))) {
+            // lhs operand
+            auto *res_id = param_node->next_child();
+            auto *sym = sym_table->lookup(res_id->value, res_id->function_name);
+            found_type = sym->type;
+          }
         } else {
           found_type = param_node->type;
         }
@@ -469,9 +486,25 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
     }
     break;
   }
-  case ast_node_t::Node::if_statement:
-  case ast_node_t::Node::while_statement:
-  case ast_node_t::Node::if_else_statement: {
+  case Node::return_statement: {
+    if (!node->children.empty()) {
+      bool is_eq = node->next_child()->type == Node::eq_op;
+      if (is_eq) {
+        auto ids = node->find_recursive(Node::id);
+        for (auto *id : ids) {
+          auto *sym = sym_table->lookup(id->value, id->function_name);
+          id->can_generate_wasm_getter =
+              sym != nullptr && sym->kind != "function";
+        }
+      } else {
+        node->next_child()->can_generate_wasm_getter = true;
+      }
+    }
+    break;
+  }
+  case Node::if_statement:
+  case Node::while_statement:
+  case Node::if_else_statement: {
     auto *expr = node->children[0];
     if (expr->is_bool_expr()) {
       auto it = expression_types.find(expr->type);
@@ -483,6 +516,15 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
             node->linenum);
         err_stack.push_back(false);
         break;
+      }
+
+      auto ids = expr->find_recursive(Node::id);
+      for (auto *id : ids) {
+        auto sym = sym_table->lookup(id->value, id->function_name);
+        if (sym->kind != "function") {
+
+          id->can_generate_wasm_getter = true;
+        }
       }
 
       auto expected_types = expression_types.at(expr->type);
@@ -501,12 +543,12 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
         // check unary expression
         auto *r = expr->children[0];
         auto r1 = expected_types[0];
-        ast_node_t::Node type;
+        Node type;
 
-        if (r->type == ast_node_t::Node::id) {
+        if (r->type == Node::id) {
           type = sym_table->lookup(r->value, r->function_name)->type;
-        } else if (r->type == ast_node_t::Node::function_call) {
-          auto *id = r->find_first(ast_node_t::Node::id);
+        } else if (r->type == Node::function_call) {
+          auto *id = r->find_first(Node::id);
           auto *fun_symbol = sym_table->find_function(id->value);
           type = fun_symbol->type;
         } else if (r->is_num_expr()) {
@@ -523,15 +565,15 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
         err_stack.push_back(false);
         break;
       }
-    } else if (expr->type == ast_node_t::Node::function_call) {
-      auto *id = expr->find_first(ast_node_t::Node::id);
+    } else if (expr->type == Node::function_call) {
+      auto *id = expr->find_first(Node::id);
 
       if (id == nullptr) {
         break;
       }
 
       auto *fun_sym = sym_table->find_function(id->value);
-      if (fun_sym->type != ast_node_t::Node::boolean_t) {
+      if (fun_sym->type != Node::boolean_t) {
         semantic_error(
             "Function must have `boolean` return type to be used in `" +
                 get_str_for_type(node->type) + "` expression, found `" +
@@ -541,12 +583,13 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
         err_stack.push_back(false);
         break;
       }
-    } else if (expr->type == ast_node_t::Node::id) {
+    } else if (expr->type == Node::id) {
       // just a var, look it up in symbol table and find its type
       // at this point it should exist
-
       auto id_symbol = sym_table->lookup(expr->value, expr->function_name);
-      if (id_symbol->type != ast_node_t::Node::boolean_t) {
+      expr->can_generate_wasm_getter = true;
+
+      if (id_symbol->type != Node::boolean_t) {
         semantic_error("Identifier `" + expr->value +
                            "` must have `boolean` type, found `" +
                            get_str_for_type(id_symbol->type) + "`",
@@ -554,8 +597,7 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
         err_stack.push_back(false);
         break;
       }
-    } else if (expr->is_num_expr() ||
-               expr->type != ast_node_t::Node::boolean_t) {
+    } else if (expr->is_num_expr() || expr->type != Node::boolean_t) {
       semantic_error("Invalid boolean expression used in `" +
                          get_str_for_type(node->type) + "` expression.",
                      expr->linenum);
@@ -565,32 +607,37 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
 
     break;
   }
-  case ast_node_t::Node::eq_op: {
+  case Node::eq_op: {
     auto *id = node->children[0];
     auto *assigned = node->children[1];
     auto *sym = sym_table->lookup(id->value, id->function_name);
-    ast_node_t::Node found_type;
+    Node found_type;
 
     bool types_match = true;
 
     if (assigned->children.empty()) {
       // if it's just a single value OR an id
-      if (assigned->type == ast_node_t::Node::id) {
+      if (assigned->type == Node::id) {
         found_type =
             sym_table->lookup(assigned->value, assigned->function_name)->type;
+        assigned->can_generate_wasm_getter = true;
       } else {
         found_type = assigned->type;
       }
     } else {
       // if it's something else (expression or function call)
-      if (assigned->type == ast_node_t::Node::function_call) {
-        auto *id = assigned->find_first(ast_node_t::Node::id);
+      if (assigned->type == Node::eq_op) {
+        auto *id = assigned->next_child();
+        auto *sym = sym_table->lookup(id->value, id->function_name);
+        found_type = sym->type;
+      } else if (assigned->type == Node::function_call) {
+        auto *id = assigned->find_first(Node::id);
         auto *fun_sym = sym_table->find_function(id->value);
         found_type = fun_sym->type;
       } else if (assigned->is_num_expr()) {
-        found_type = ast_node_t::Node::int_t;
+        found_type = Node::int_t;
       } else if (assigned->is_bool_expr()) {
-        found_type = ast_node_t::Node::boolean_t;
+        found_type = Node::boolean_t;
       }
     }
 
@@ -608,19 +655,27 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
 
     break;
   }
-
-  case ast_node_t::Node::not_op:
-  case ast_node_t::Node::eqeq_op:
-  case ast_node_t::Node::noteq_op:
-  case ast_node_t::Node::bin_or_op:
-  case ast_node_t::Node::bin_and_op:
-  case ast_node_t::Node::add_op:
-  case ast_node_t::Node::sub_op:
-  case ast_node_t::Node::mul_op:
-  case ast_node_t::Node::div_op:
-  case ast_node_t::Node::mod_op: {
+  case Node::not_op:
+  case Node::eqeq_op:
+  case Node::noteq_op:
+  case Node::bin_or_op:
+  case Node::bin_and_op:
+  case Node::add_op:
+  case Node::sub_op:
+  case Node::mul_op:
+  case Node::div_op:
+  case Node::mod_op: {
     auto expected_types = expression_types.at(node->type);
     bool is_valid_expr = true;
+    auto ids = node->find_recursive(Node::id);
+    for (auto *id : ids) {
+      auto sym = sym_table->lookup(id->value, id->function_name);
+      if (sym->kind != "function") {
+
+        id->can_generate_wasm_getter = true;
+      }
+    }
+
     if (node->children.size() == 2) {
       auto *left = node->children[0];
       auto *right = node->children[1];
@@ -651,11 +706,11 @@ void SemanticAnalyzer::type_checking_post_order_pass_cb(
  * @param node ast node returned from `#traverse`
  * @param err_stack error stack returned from `#traverse`
  */
-void SemanticAnalyzer::enter_scope_cb(ast_node_t *node,
+void SemanticAnalyzer::enter_scope_cb(ASTNode *node,
                                       std::vector<bool> &err_stack) {
   switch (node->type) {
-  case ast_node_t::Node::main_func_decl:
-  case ast_node_t::Node::function_decl:
+  case Node::main_func_decl:
+  case Node::function_decl:
     sym_table->current_scope++;
     break;
   default:
@@ -669,13 +724,13 @@ void SemanticAnalyzer::enter_scope_cb(ast_node_t *node,
  * @param node ast node returned from `#traverse`
  * @param err_stack error stack returned from `#traverse`
  */
-void SemanticAnalyzer::build_scope_cb(ast_node_t *node,
+void SemanticAnalyzer::build_scope_cb(ASTNode *node,
                                       std::vector<bool> &err_stack) {
   switch (node->type) {
-  case ast_node_t::Node::main_func_decl:
+  case Node::main_func_decl:
     sym_table->push_scope("main");
     break;
-  case ast_node_t::Node::block:
+  case Node::block:
     sym_table->enter_scope();
     break;
   default:
@@ -708,17 +763,22 @@ bool SemanticAnalyzer::is_declaration_allowed() {
  * @return true if expression is valid
  * @return false otherwise
  */
-bool SemanticAnalyzer::validate_expr(ast_node_t *l,
-                                     expr_list_t expected_types) {
-  ast_node_t::Node l_type;
+bool SemanticAnalyzer::validate_expr(ASTNode *l, expr_list_t expected_types) {
+  Node l_type;
 
-  if (l->type == ast_node_t::Node::id) {
+  if (l->type == Node::id) {
     auto sym = sym_table->lookup(l->value, l->function_name);
     l_type = sym->type;
-  } else if (l->type == ast_node_t::Node::function_call) {
-    auto id = l->find_first(ast_node_t::Node::id);
+    // @HACK: why was this here??!
+    // l->can_generate_wasm_getter = true;
+  } else if (l->type == Node::function_call) {
+    auto id = l->find_first(Node::id);
     auto sym = sym_table->find_function(id->value);
     l_type = sym->type;
+  } else if (l->type == Node::eq_op) {
+    auto expected = expression_types.at(l->type);
+    return validate_expr(l->children[0], expected) &&
+           validate_expr(l->children[1], expected);
   } else if (l->is_bool_expr() || l->is_num_expr()) {
     auto expected = expression_types.at(l->type);
     if (l->children.size() == 2) {

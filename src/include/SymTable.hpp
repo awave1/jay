@@ -9,10 +9,11 @@
 #ifndef SYM_TABLE_HPP
 #define SYM_TABLE_HPP
 
+#include "ASTNode.hpp"
 #include "FunctionSymbol.hpp"
 #include "Symbol.hpp"
-#include "ast.hpp"
 #include <algorithm>
+#include <exception>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -90,6 +91,8 @@ public:
    * @return FunctionSymbol*  resulting function symbol
    */
   FunctionSymbol *find_function(std::string name);
+
+  symbol_table_t get_scope(std::string scope_name);
 
   friend std::ostream &operator<<(std::ostream &os, const SymTable &sym_table);
 

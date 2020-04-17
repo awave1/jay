@@ -42,8 +42,8 @@ TEST_CASE("single_node.pass: single global variable node", "[ast]") {
     auto children = global_var_node->children;
     REQUIRE(children.size() == 2);
 
-    REQUIRE(children[0]->type == ast_node_t::Node::int_t);
-    REQUIRE(children[1]->type == ast_node_t::Node::id);
+    REQUIRE(children[0]->type == Node::int_t);
+    REQUIRE(children[1]->type == Node::id);
   }
 }
 
@@ -82,15 +82,14 @@ TEST_CASE("return_func_invocation.pass: return a function call that calls "
   }
 
   SECTION("should contain a function foo") {
-    auto *function_decl = ast->find_first(ast_node_t::Node::function_decl);
+    auto *function_decl = ast->find_first(Node::function_decl);
     REQUIRE_FALSE(function_decl == nullptr);
 
-    auto *id_node = function_decl->find_first(ast_node_t::Node::id);
+    auto *id_node = function_decl->find_first(Node::id);
     REQUIRE_FALSE(id_node == nullptr);
     REQUIRE_THAT(id_node->value, Catch::Matchers::Equals("foo"));
 
-    auto func_calls =
-        function_decl->find_recursive(ast_node_t::Node::function_call);
+    auto func_calls = function_decl->find_recursive(Node::function_call);
     REQUIRE(func_calls.size() == 2);
   }
 }
@@ -110,7 +109,7 @@ TEST_CASE("null_str.pass: string with null character in the middle", "[ast]") {
   }
 
   SECTION("should contain a string 'abcd'") {
-    auto string_node = ast->find_recursive(ast_node_t::Node::string)[0];
+    auto string_node = ast->find_recursive(Node::string)[0];
     REQUIRE_FALSE(string_node == nullptr);
 
     auto value = string_node->value;
@@ -142,11 +141,10 @@ TEST_CASE("c_style_while.pass: c style while loop", "[ast]") {
   }
 
   SECTION("should contain expression in while") {
-    auto *while_node =
-        ast->find_recursive(ast_node_t::Node::while_statement)[0];
+    auto *while_node = ast->find_recursive(Node::while_statement)[0];
     REQUIRE_FALSE(while_node == nullptr);
 
-    auto *not_eq_expr = while_node->find_first(ast_node_t::Node::noteq_op);
+    auto *not_eq_expr = while_node->find_first(Node::noteq_op);
     REQUIRE_FALSE(not_eq_expr == nullptr);
     REQUIRE(not_eq_expr->children.size() == 2);
   }
@@ -181,14 +179,13 @@ TEST_CASE("parse.t19.pass: main function with nested if-else statement and "
     REQUIRE_FALSE(children.empty());
 
     auto *main_func_node = children[0];
-    REQUIRE(main_func_node->type == ast_node_t::Node::main_func_decl);
+    REQUIRE(main_func_node->type == Node::main_func_decl);
   }
 
   SECTION("should contain 2 null block statements") {
     auto main_node = ast->children[0];
 
-    auto null_statements =
-        ast->find_recursive(ast_node_t::Node::null_statement);
+    auto null_statements = ast->find_recursive(Node::null_statement);
     REQUIRE_FALSE(null_statements.empty());
     REQUIRE(null_statements.size() == 2);
   }
@@ -209,32 +206,29 @@ TEST_CASE("parse.t21.pass: main function with math expressions", "[ast]") {
   }
 
   SECTION("should contain 2 statement expressions") {
-    auto statement_exprs =
-        ast->find_recursive(ast_node_t::Node::statement_expr);
+    auto statement_exprs = ast->find_recursive(Node::statement_expr);
 
     REQUIRE(statement_exprs.size() == 2);
 
     SECTION("first expression should be multiply then add") {
       auto *first_expr = statement_exprs[0];
-      auto *add_op = first_expr->find_recursive(ast_node_t::Node::add_op)[0];
+      auto *add_op = first_expr->find_recursive(Node::add_op)[0];
       REQUIRE_FALSE(add_op == nullptr);
-      REQUIRE(add_op->type == ast_node_t::Node::add_op);
-      auto *add_mul_child =
-          first_expr->find_recursive(ast_node_t::Node::mul_op)[0];
+      REQUIRE(add_op->type == Node::add_op);
+      auto *add_mul_child = first_expr->find_recursive(Node::mul_op)[0];
       REQUIRE_FALSE(add_mul_child == nullptr);
-      REQUIRE(add_mul_child->type == ast_node_t::Node::mul_op);
+      REQUIRE(add_mul_child->type == Node::mul_op);
       REQUIRE(add_mul_child->children.size() == 2);
     }
 
     SECTION("second expression should be add then multiply") {
       auto *second_expr = statement_exprs[1];
-      auto *mul_op = second_expr->find_recursive(ast_node_t::Node::mul_op)[0];
+      auto *mul_op = second_expr->find_recursive(Node::mul_op)[0];
       REQUIRE_FALSE(mul_op == nullptr);
-      REQUIRE(mul_op->type == ast_node_t::Node::mul_op);
-      auto *mul_add_child =
-          second_expr->find_recursive(ast_node_t::Node::add_op)[0];
+      REQUIRE(mul_op->type == Node::mul_op);
+      auto *mul_add_child = second_expr->find_recursive(Node::add_op)[0];
       REQUIRE_FALSE(mul_add_child == nullptr);
-      REQUIRE(mul_add_child->type == ast_node_t::Node::add_op);
+      REQUIRE(mul_add_child->type == Node::add_op);
       REQUIRE(mul_add_child->children.size() == 2);
     }
   }
@@ -256,8 +250,7 @@ TEST_CASE("parse.t22.pass: main function with unary minus sign expressions",
   }
 
   SECTION("should contain 3 statement expressions") {
-    auto statement_exprs =
-        ast->find_recursive(ast_node_t::Node::statement_expr);
+    auto statement_exprs = ast->find_recursive(Node::statement_expr);
     REQUIRE(statement_exprs.size() == 3);
   }
 }
@@ -278,11 +271,11 @@ TEST_CASE("gen.t18.pass: recursive descend parser implemented in j--",
   }
 
   SECTION("should contain 13 (12 functions + 1 main) function declarations") {
-    auto *main_func = ast->find_first(ast_node_t::Node::main_func_decl);
+    auto *main_func = ast->find_first(Node::main_func_decl);
     REQUIRE_FALSE(main_func == nullptr);
-    REQUIRE(main_func->type == ast_node_t::Node::main_func_decl);
+    REQUIRE(main_func->type == Node::main_func_decl);
 
-    auto func_exprs = ast->find_all(ast_node_t::Node::function_decl);
+    auto func_exprs = ast->find_all(Node::function_decl);
     REQUIRE(func_exprs.size() == 12);
   }
 }

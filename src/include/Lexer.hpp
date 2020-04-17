@@ -1,8 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include "StringBuilder.hpp"
 #include "parser.tab.hpp"
-#include "string_builder.hpp"
 #include <iostream>
 #include <string>
 

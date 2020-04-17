@@ -13,7 +13,8 @@
  * @param is input stream from where parser will be reading input
  * @param file filename, if input stream is a fstream
  */
-void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
+void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file,
+               std::ostream &out) {
   std::shared_ptr<ASTNode> ast(driver.parse(is, file));
 
   if (ast == nullptr) {
@@ -32,7 +33,7 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file) {
   }
 
   std::unique_ptr<CodeGenerator> code_gen(
-      new CodeGenerator(ast, semantic_analyzer->sym_table, std::cout));
+      new CodeGenerator(ast, semantic_analyzer->sym_table, out));
 
   code_gen->generate_wasm();
 }
@@ -48,7 +49,15 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
 
-    build_ast(driver, &file, filename);
+    if (argc == 4 &&
+        (std::string(argv[2]) == "-o" || std::string(argv[2]) == "--out") &&
+        argv[3] != nullptr) {
+      std::ofstream out(argv[3]);
+      build_ast(driver, &file, filename, out);
+    } else {
+      build_ast(driver, &file, filename, std::cout);
+    }
+
   } else {
     std::cerr << "Please specify the filename" << std::endl;
     return EXIT_FAILURE;

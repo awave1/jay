@@ -24,7 +24,7 @@ echo "  > using $WASMINTERP"
 for f in $TEST_FILES; do
   echo "testing: $f"
   out_name="out_$(basename $f)"
-  $COMPILER $f > "$PWD/$out_name.wat"
+  $COMPILER $f -o "$PWD/$out_name.wat"
   $WATWASM "$PWD/$out_name.wat" && $WASMINTERP --411 "$PWD/$out_name.wasm"
 
   echo -e "------------------------------------\n"

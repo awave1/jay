@@ -1,7 +1,8 @@
 # executables
 jay
 jay.test
-out.wat
+out*.wat
+out*.wasm
 
 scanner
 .ccls-cache

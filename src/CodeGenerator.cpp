@@ -71,7 +71,7 @@ void CodeGenerator::codegen_pre_traversal_cb(ASTNode *node, std::ostream &out) {
     out << printer->line("(memory 1)");
 
     // TODO: inject runtime functions
-    // inject_runtime();
+    inject_runtime();
 
     generate_vars("global");
     break;

@@ -184,11 +184,20 @@ void CodeGenerator::codegen_post_traversal_cb(ASTNode *node,
     break;
   }
   case Node::main_func_decl:
+    out << printer->line("drop");
     out << printer->dedent() << printer->line(")");
     break;
-  case Node::function_decl:
+  case Node::function_decl: {
+    auto *id = node->find_first(Node::id);
+    auto *fun_sym = sym_table->find_function(id->value);
+
+    if (fun_sym->type != Node::void_t) {
+      out << printer->line("unreachable");
+    }
+
     out << printer->dedent() << printer->line(")");
     break;
+  }
   case Node::id: {
     if (!node->function_name.empty() && !node->is_formal_param &&
         node->can_generate_wasm_getter) {
@@ -415,41 +424,12 @@ void CodeGenerator::generate_vars(std::string scope_name) {
   }
 }
 
-void CodeGenerator::build_function_call() {
-  // auto id = node->find_first(Node::id);
-  // auto actual_params = node->find_first(Node::actual_params);
-  // auto fun_sym = sym_table->find_function(id->value);
-
-  // for (auto actual : actual_params->children) {
-  //   if (actual->type == Node::string) {
-  //     // strings are a special case because we need to pass two params to
-  //     it
-  //         // in wasm - an offset and a length of the string
-  //         auto entry = str_table->lookup(actual->value);
-  //     out << "    "
-  //         << "i32.const " << entry.offset << "\n"
-  //         << "    "
-  //         << "i32.const " << entry.length << "\n";
-  //   } else if (actual->type == Node::boolean_t) {
-  //     // pass 1 if true or 0 if false
-  //     out << "    "
-  //         << "i32.const " << (actual->value == "true" ? "1" : "0") << "\n";
-  //   } else if (actual->type == Node::int_t) {
-  //     out << "    "
-  //         << "i32.const " << actual->value << "\n";
-  //   }
-  // }
-
-  // out << "    "
-  //     << "call " << fun_sym->wasm_name << "\n";
-}
-
 void CodeGenerator::inject_runtime() {
   std::ifstream runtime("src/lib/runtime.wat");
   if (runtime.is_open()) {
     std::string line;
     while (std::getline(runtime, line)) {
-      out << printer->line("") << line;
+      out << printer->line(line);
     }
     out << "\n";
   }

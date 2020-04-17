@@ -281,22 +281,32 @@
 ;; @param $lhs: i32, a "boolean"
 ;; @param $rhs: i32, a "boolean"
 ;;
-(func $__and_op (export "__and_op") (param $lhs i32) (param $rhs i32) (result i32)
-  (if (result i32)
-    (i32.eqz
-      (local.get $lhs)
-      (local.get $rhs)
-      (i32.and)
+(func $__and_op (param $l i32) (param $r i32) (result i32)
+  (if
+    (block (result i32)
+      local.get $l
+      i32.const 0
+      i32.eq
     )
-    (then
-      (i32.const 1)
-    )
-    (else
-      (i32.const 0)
+    (then 
+      i32.const 0
+      return
     )
   )
+  (if
+    (block (result i32)
+      local.get $r
+      i32.const 0
+      i32.eq
+    )
+    (then 
+      i32.const 0
+      return
+    )
+  )
+  i32.const 1
+  return
 )
-
 ;;
 ;; boolean __or_op(boolean lhs, boolean rhs);
 ;; 
@@ -305,18 +315,29 @@
 ;; @param $lhs: i32, a "boolean"
 ;; @param $rhs: i32, a "boolean"
 ;;
-(func $__or_op (export "__or_op") (param $lhs i32) (param $rhs i32) (result i32)
-  (if (result i32)
-    (i32.eqz
-      (local.get $lhs)
-      (local.get $rhs)
-      (i32.or)
+(func $__or_op (param $l i32) (param $r i32) (result i32)
+  (if
+    (block (result i32)
+      local.get $l
+      i32.const 1
+      i32.eq
     )
-    (then
-      (i32.const 1)
-    )
-    (else
-      (i32.const 0)
+    (then 
+      i32.const 1
+      return
     )
   )
+  (if
+    (block (result i32)
+      local.get $r
+      i32.const 1
+      i32.eq
+    )
+    (then 
+      i32.const 1
+      return
+    )
+  )
+  i32.const 0
+  return
 )

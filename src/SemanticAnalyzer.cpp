@@ -276,8 +276,21 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ASTNode *node,
                 auto *sym = sym_table->find_function(id->value);
                 found_type = sym->type;
                 is_valid_return = sym->type == type->type;
+              } else if (return_val->type == Node::eq_op) {
+                auto *lhs = return_val->next_child();
+                auto *lhs_sym =
+                    sym_table->lookup(lhs->value, lhs->function_name);
+                found_type = lhs_sym->type;
+                is_valid_return = validate_expr(
+                    return_val, expression_types.at(return_val->type));
               } else if (return_val->is_bool_expr() ||
                          return_val->is_num_expr()) {
+                if (return_val->is_bool_expr()) {
+                  found_type = Node::boolean_t;
+                } else if (return_val->is_num_expr()) {
+                  found_type = Node::int_t;
+                }
+
                 is_valid_return = validate_expr(
                     return_val, expression_types.at(return_val->type));
               } else {
@@ -289,7 +302,7 @@ void SemanticAnalyzer::sym_table_post_pass_cb(ASTNode *node,
                 semantic_error("Mismatched return type. Was expecting `" +
                                    get_str_for_type(type->type) +
                                    "`, but got `" +
-                                   get_str_for_type(found_type),
+                                   get_str_for_type(found_type) + "`",
                                return_node->linenum);
                 err_stack.push_back(false);
                 break;
@@ -722,6 +735,10 @@ bool SemanticAnalyzer::validate_expr(ASTNode *l, expr_list_t expected_types) {
     auto id = l->find_first(Node::id);
     auto sym = sym_table->find_function(id->value);
     l_type = sym->type;
+  } else if (l->type == Node::eq_op) {
+    auto expected = expression_types.at(l->type);
+    return validate_expr(l->children[0], expected) &&
+           validate_expr(l->children[1], expected);
   } else if (l->is_bool_expr() || l->is_num_expr()) {
     auto expected = expression_types.at(l->type);
     if (l->children.size() == 2) {

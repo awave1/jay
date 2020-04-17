@@ -64,6 +64,9 @@ public:
     expression_types.insert(std::pair<Node, expr_list_t>(
         Node::bin_or_op,
         {{Node::boolean_t, Node::boolean_t, Node::boolean_t}}));
+    expression_types.insert(std::pair<Node, expr_list_t>(
+        Node::eq_op, {{Node::boolean_t, Node::boolean_t, Node::boolean_t},
+                      {Node::int_t, Node::int_t, Node::int_t}}));
   }
 
   /**

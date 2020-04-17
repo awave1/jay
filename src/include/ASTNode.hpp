@@ -300,7 +300,7 @@ private:
     case Node::id:
       return "id";
     case Node::statement_expr:
-      return "statement_expt";
+      return "statement_expr";
     case Node::function_call:
       return "function_call";
     case Node::formal:

@@ -22,12 +22,13 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file,
     exit(EXIT_FAILURE);
   }
 
+  std::cout << *ast << std::endl;
+
   std::shared_ptr<SymTable> sym_table(new SymTable());
   std::unique_ptr<SemanticAnalyzer> semantic_analyzer(
       new SemanticAnalyzer(ast));
 
   bool is_valid = semantic_analyzer->validate();
-  // std::cout << *semantic_analyzer->sym_table << std::endl;
   if (!is_valid) {
     exit(EXIT_FAILURE);
   }
@@ -35,7 +36,8 @@ void build_ast(yy::JayCompiler &driver, std::istream *is, std::string file,
   std::unique_ptr<CodeGenerator> code_gen(
       new CodeGenerator(ast, semantic_analyzer->sym_table, out));
 
-  code_gen->generate_wasm();
+  // code_gen->generate_wasm();
+  // std::cout << *ast << std::endl;
 }
 
 int main(int argc, char **argv) {

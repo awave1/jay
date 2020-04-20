@@ -16,11 +16,13 @@ enum class Node {
   program,
   main_func_decl,
   global_var_decl,
+  global_func_var_decl,
   function_decl,
   formal_params,
   actual_params,
   block,
   variable_decl,
+  func_variable_declaration,
 
   null_statement,
   break_statement,
@@ -273,6 +275,10 @@ private:
       return "main_func_decl";
     case Node::global_var_decl:
       return "global_var_decl";
+    case Node::func_variable_declaration:
+      return "func_variable_declaration";
+    case Node::global_func_var_decl:
+      return "global_func_variable_declaration";
     case Node::function_decl:
       return "function_decl";
     case Node::formal_params:
@@ -361,6 +367,8 @@ inline std::string get_str_for_type(yy::Node type) {
     return "main_func_decl";
   case yy::Node::global_var_decl:
     return "global_var_decl";
+  case yy::Node::func_variable_declaration:
+    return "func_variable_declaration";
   case yy::Node::function_decl:
     return "function_decl";
   case yy::Node::formal_params:

@@ -26,6 +26,7 @@
 %token T_TYPE_INT
 %token T_TYPE_BOOLEAN
 %token T_TYPE_VOID
+%token T_DECORATOR_FUNC
 %token T_RESERVED_TRUE
 %token T_RESERVED_FALSE
 %token T_RESERVED_IF 
@@ -66,6 +67,7 @@
 %type<list> globaldeclarations
 %type<node> globaldeclaration
 %type<list> variable_declaration
+%type<list> func_variable_declaration
 %type<list> function_declaration 
 %type<node> main_function_declaration
 
@@ -133,6 +135,9 @@ type: T_TYPE_INT {
     | T_TYPE_BOOLEAN {
         $$ = new ASTNode{ Node::boolean_t, "", driver.lexer->lineno(), {} };
       }
+    | T_TYPE_VOID {
+        $$ = new ASTNode{ Node::void_t, "", driver.lexer->lineno(), {} };
+      }
     ;
 
 identifier: T_ID {
@@ -155,10 +160,14 @@ globaldeclaration: variable_declaration {
                      std::vector<ASTNode *> global_var_nodes = *$1;
                      $$ = new ASTNode { Node::global_var_decl, "", driver.lexer->lineno(), global_var_nodes };
                    }
+                 | func_variable_declaration {
+                     std::vector<ASTNode *> global_var_nodes = *$1;
+                     $$ = new ASTNode { Node::global_func_var_decl, "", driver.lexer->lineno(), global_var_nodes };
+                   }
                  | function_declaration {
-                   std::vector<ASTNode *> func_decl_nodes = *$1;
-                   $$ = new ASTNode { Node::function_decl, "", driver.lexer->lineno(), func_decl_nodes };
-                 }
+                     std::vector<ASTNode *> func_decl_nodes = *$1;
+                     $$ = new ASTNode { Node::function_decl, "", driver.lexer->lineno(), func_decl_nodes };
+                   }
                  | main_function_declaration {
                      ASTNode *main_func_node = $1;
                      $$ = main_func_node; 
@@ -173,6 +182,26 @@ variable_declaration: type identifier T_SEPARATOR_SEMI {
                         $$ = nodes;
                       }
                     ;
+
+func_variable_declaration: type T_DECORATOR_FUNC identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN T_SEPARATOR_SEMI {
+                             auto *nodes = new std::vector<ASTNode *>();
+                             auto *empty_formals = new ASTNode { Node::formal_params, "", 0, {} };
+
+                             nodes->push_back($1);
+                             nodes->push_back($3);
+                             nodes->push_back(empty_formals);
+                            
+                             $$ = nodes;
+    		                   }
+                         | type T_DECORATOR_FUNC identifier T_SEPARATOR_LPAREN param_list T_SEPARATOR_RPAREN T_SEPARATOR_SEMI {
+                             auto *nodes = new std::vector<ASTNode *>();
+
+                              nodes->push_back($1);
+                              nodes->push_back($3);
+                              nodes->push_back($5);
+                              $$ = nodes;
+		                       }
+                         ;
 
 function_declaration: type identifier T_SEPARATOR_LPAREN T_SEPARATOR_RPAREN block {
                         auto *func_nodes = new std::vector<ASTNode *>();
@@ -270,6 +299,9 @@ block_statements: block_statement {
 block_statement: variable_declaration {
                    auto *var_decl_node = new ASTNode{ Node::variable_decl, "", driver.lexer->lineno(), *$1 };
                    $$ = var_decl_node;
+                 }
+               | func_variable_declaration {
+                   $$ = new ASTNode { Node::func_variable_declaration, "", driver.lexer->lineno(), *$1 };
                  }
                | statement {
                    $$ = $1;

@@ -1,8 +1,14 @@
-int i1;
-boolean b1;
-
-void foo() {
+void foo() {}
+int bar(int a, boolean b) {
+  return a;
 }
 
+int a;
+boolean b;
+
+int func foob(int a, boolean b);
+void func boof();
+
 main() {
+  int func foof(int a, boolean b);
 }

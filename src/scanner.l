@@ -52,6 +52,7 @@ number      [0-9]+
 "int"         { return yy::Parser::token::T_TYPE_INT; }
 "boolean"     { return yy::Parser::token::T_TYPE_BOOLEAN; }
 "void"        { return yy::Parser::token::T_TYPE_VOID; }
+"func"        { return yy::Parser::token::T_DECORATOR_FUNC; }
 
 "("           { return yy::Parser::token::T_SEPARATOR_LPAREN; }
 ")"           { return yy::Parser::token::T_SEPARATOR_RPAREN; }

@@ -6,4 +6,4 @@ scanner
 tests/reference/*
 .vscode
 .idea
-./target
+target

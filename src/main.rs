@@ -1,7 +1,7 @@
 mod token;
 
 fn main() {
-    println!("Hello, world!");
-    let t = token::TokenType::True;
+    println!("jay!");
+    let t = token::Token::True;
     println!("{}", t)
 }
